@@ -131,7 +131,7 @@ export class ImageMessageHandler implements EventHandler {
     try {
       logger.debug({ userId, messageId }, 'Downloading image from LINE');
 
-      const imageBuffer = await this.client.getMessageContent(messageId);
+      const { content: imageBuffer } = await this.client.getMessageContent(messageId);
 
       logger.info(
         {

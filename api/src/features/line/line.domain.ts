@@ -24,7 +24,7 @@ export class LineDomain {
     private readonly client: LineMessagingClient,
     private readonly replyUtil: LineReplyUtil,
     private readonly eventRouter: LineEventRouter
-  ) {}
+  ) { }
 
   /**
    * Process incoming webhook from LINE
@@ -52,7 +52,7 @@ export class LineDomain {
     // Process events sequentially to maintain order
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
-      
+
       try {
         logger.debug(
           {
@@ -196,7 +196,7 @@ export class LineDomain {
 
     try {
       // Download image content from LINE
-      const imageBuffer = await this.client.getMessageContent(messageId);
+      const { content: imageBuffer } = await this.client.getMessageContent(messageId);
 
       logger.info(
         {
@@ -264,7 +264,7 @@ export class LineDomain {
     try {
       // Parse postback data (expected to be JSON)
       let postbackData: PostbackData;
-      
+
       try {
         postbackData = JSON.parse(postbackDataString) as PostbackData;
       } catch (parseError) {
@@ -276,7 +276,7 @@ export class LineDomain {
           },
           'Failed to parse postback data'
         );
-        
+
         await this.replyUtil.replyText(
           replyToken,
           'ขออภัย คำสั่งไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง',
@@ -377,7 +377,7 @@ export class LineDomain {
       }
 
       const errorMessage = 'ขออภัย เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
-      
+
       await this.replyUtil.replyText(replyToken, errorMessage, userId);
 
       logger.info(
