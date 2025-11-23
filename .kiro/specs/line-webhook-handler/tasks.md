@@ -48,22 +48,22 @@
   - Extract common event processing logic into shared functions
   - _Requirements: 7.1, 7.2, 7.5_
 
-- [ ] 8. Create event handlers
-- [ ] 8.1 Implement text message handler
+- [x] 8. Create event handlers
+- [x] 8.1 Implement text message handler
   - Create `api/src/features/line/handlers/text-message.handler.ts` with `TextMessageHandler` class
   - Implement `canHandle()` to identify text message events
   - Implement `handle()` to extract message text and user ID, route to business logic, and send response
   - Add error handling with fallback messages
   - _Requirements: 2.1, 2.2, 2.3, 2.4_
 
-- [ ] 8.2 Implement image message handler
+- [x] 8.2 Implement image message handler
   - Create `api/src/features/line/handlers/image-message.handler.ts` with `ImageMessageHandler` class
   - Implement `canHandle()` to identify image message events
   - Implement `handle()` to extract message ID, download image content, validate size (max 10MB), and process image
   - Add error handling for image download failures
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5_
 
-- [ ] 8.3 Implement postback handler
+- [x] 8.3 Implement postback handler
   - Create `api/src/features/line/handlers/postback.handler.ts` with `PostbackHandler` class
   - Implement `canHandle()` to identify postback events
   - Implement `handle()` to extract and parse postback data (JSON format), execute business logic, and send confirmation
