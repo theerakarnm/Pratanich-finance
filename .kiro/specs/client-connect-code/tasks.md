@@ -42,7 +42,7 @@
     - Implement time-based reset of rate limit counters
     - _Requirements: 2.5_
 
-- [ ] 3. Create custom error classes for connect code operations
+- [x] 3. Create custom error classes for connect code operations
   - Define `ConnectCodeNotFoundError` for invalid codes
   - Define `ConnectCodeExpiredError` for expired codes
   - Define `ConnectCodeAlreadyUsedError` for reused codes
@@ -51,31 +51,31 @@
   - Export all error classes from connect.errors.ts
   - _Requirements: 2.5, 3.3, 3.4, 3.5, 7.3_
 
-- [ ] 4. Extend clients repository and domain with LINE profile methods
-  - [ ] 4.1 Add LINE profile methods to clients repository
+- [x] 4. Extend clients repository and domain with LINE profile methods
+  - [x] 4.1 Add LINE profile methods to clients repository
     - Implement `updateLineProfile` method to save LINE user ID, display name, and picture URL
     - Implement `findByLineUserId` method for retrieving clients by LINE user ID
     - Implement `findAllWithConnectionStatus` method with connection filter parameter
     - _Requirements: 4.2, 4.3, 4.4, 6.1, 6.2, 6.4_
-  - [ ] 4.2 Add connection status methods to clients domain
+  - [x] 4.2 Add connection status methods to clients domain
     - Implement `getConnectionStatus` method that returns connection details
     - Implement `getLoansSummary` method that retrieves loan contracts for a client
     - Add business logic for filtering and formatting loan data
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3_
 
-- [ ] 5. Create admin API endpoints for connect code management
-  - [ ] 5.1 Implement POST /api/clients/:clientId/connect-code endpoint
+- [x] 5. Create admin API endpoints for connect code management
+  - [x] 5.1 Implement POST /api/clients/:clientId/connect-code endpoint
     - Create route handler with client ID validation
     - Call connect domain to generate new connect code
     - Return code and expiration timestamp in response
     - Add authentication middleware to require admin access
     - _Requirements: 1.1, 1.2, 1.5_
-  - [ ] 5.2 Implement GET /api/clients/:clientId/connect-codes endpoint
+  - [x] 5.2 Implement GET /api/clients/:clientId/connect-codes endpoint
     - Create route handler to list all codes for a client
     - Return code status (used/unused/expired) for each code
     - Add authentication middleware to require admin access
     - _Requirements: 6.5_
-  - [ ] 5.3 Implement DELETE /api/connect-codes/:code endpoint
+  - [x] 5.3 Implement DELETE /api/connect-codes/:code endpoint
     - Create route handler to invalidate/delete a connect code
     - Verify admin permissions before deletion
     - Return success response

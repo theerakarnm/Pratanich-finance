@@ -169,6 +169,27 @@ export class ConnectDomain {
   async incrementRateLimit(clientId: string): Promise<void> {
     await rateLimitRepository.incrementAttempts(clientId);
   }
+
+  /**
+   * Get all connect codes for a client
+   */
+  async getConnectCodesByClientId(clientId: string) {
+    return await connectRepository.findByClientId(clientId);
+  }
+
+  /**
+   * Delete a connect code
+   */
+  async deleteConnectCode(code: string) {
+    // Verify code exists
+    const connectCode = await connectRepository.findByCode(code);
+    
+    if (!connectCode) {
+      throw new Error("Connect code not found");
+    }
+    
+    await connectRepository.delete(code);
+  }
 }
 
 export const connectDomain = new ConnectDomain();

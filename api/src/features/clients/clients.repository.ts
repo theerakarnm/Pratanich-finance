@@ -108,6 +108,40 @@ export class ClientsRepository {
 
     return result[0];
   }
+
+  async findAllWithConnectionStatus(
+    limit: number,
+    offset: number,
+    connected?: boolean
+  ) {
+    let query = db
+      .select()
+      .from(clients)
+      .where(sql`${clients.deleted_at} IS NULL`);
+
+    if (connected !== undefined) {
+      if (connected) {
+        query = db
+          .select()
+          .from(clients)
+          .where(
+            sql`${clients.deleted_at} IS NULL AND ${clients.line_user_id} IS NOT NULL`
+          );
+      } else {
+        query = db
+          .select()
+          .from(clients)
+          .where(
+            sql`${clients.deleted_at} IS NULL AND ${clients.line_user_id} IS NULL`
+          );
+      }
+    }
+
+    return query
+      .limit(limit)
+      .offset(offset)
+      .orderBy(desc(clients.created_at));
+  }
 }
 
 export const clientsRepository = new ClientsRepository();

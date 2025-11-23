@@ -115,6 +115,18 @@ export class LoansRepository {
 
     return result[0];
   }
+
+  async findByClientId(clientId: string) {
+    const result = await db
+      .select()
+      .from(loans)
+      .where(
+        sql`${loans.client_id} = ${clientId} AND ${loans.deleted_at} IS NULL`
+      )
+      .orderBy(desc(loans.created_at));
+
+    return result;
+  }
 }
 
 export const loansRepository = new LoansRepository();
