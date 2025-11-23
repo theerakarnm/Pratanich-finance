@@ -3,6 +3,8 @@ import type { EventHandler } from '../line.router';
 import type { LineEvent, LineMessageEvent, EventContext } from '../line.types';
 import type { LineMessagingClient } from '../line.client';
 import type { LineReplyUtil } from '../utils/line-reply.util';
+import { readQRCode } from '../../../utils/qrcode';
+import { SlipOKService } from '../../slipok/slipok.service';
 
 /**
  * Fallback error messages for image message handling
@@ -26,7 +28,7 @@ export class ImageMessageHandler implements EventHandler {
   constructor(
     private readonly client: LineMessagingClient,
     private readonly replyUtil: LineReplyUtil
-  ) {}
+  ) { }
 
   /**
    * Determines if this handler can process the given event
@@ -83,7 +85,7 @@ export class ImageMessageHandler implements EventHandler {
       this.validateImageSize(imageBuffer, messageId, userId);
 
       // Process the image
-      await this.processImage(imageBuffer, messageId, userId);
+      await this.processImage(imageBuffer, messageId, userId, replyToken);
 
       // Send confirmation response
       await this.replyUtil.replyText(
@@ -205,7 +207,8 @@ export class ImageMessageHandler implements EventHandler {
   private async processImage(
     imageBuffer: Buffer,
     messageId: string,
-    userId: string
+    userId: string,
+    replyToken: string
   ): Promise<void> {
     logger.info(
       {
@@ -217,32 +220,64 @@ export class ImageMessageHandler implements EventHandler {
     );
 
     try {
-      // TODO: Implement actual image processing logic
-      // This is a placeholder that will be replaced with actual business logic
-      // Possible implementations:
-      // - Save image to storage (S3, local filesystem, etc.)
-      // - Extract text from image (OCR)
-      // - Validate document type
-      // - Associate image with client/loan record
-      // - Trigger document verification workflow
+      // 1. Read QR Code from image
+      const qrCodeData = await readQRCode(imageBuffer);
 
-      // For now, just log that we received the image
-      logger.debug(
-        {
-          userId,
-          messageId,
-          imageSize: imageBuffer.length,
-        },
-        'Image processing placeholder - implement actual business logic here'
-      );
+      if (!qrCodeData) {
+        logger.info({ userId, messageId }, 'No QR code found in image');
+        // Optional: Reply that no QR code was found, or just ignore.
+        // For better UX, let's reply.
+        await this.replyUtil.replyText(
+          replyToken,
+          'ไม่พบ QR Code ในรูปภาพ กรุณาส่งรูปภาพสลิปที่มี QR Code เพื่อตรวจสอบ',
+          userId
+        );
+        return;
+      }
 
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 100));
+      logger.info({ userId, messageId, qrCodeData }, 'QR code found');
 
-      logger.info(
-        { userId, messageId },
-        'Image processing completed successfully'
-      );
+      // 2. Verify Slip with SlipOK
+      try {
+        const verificationResult = await SlipOKService.verifySlip({
+          data: qrCodeData,
+          log: true
+        });
+
+        logger.info({ userId, messageId, verificationResult }, 'Slip verification result');
+
+        if (verificationResult.success && verificationResult.data && verificationResult.data.success) {
+          const { amount, sender, receiver, transDate, transTime, receivingBank, sendingBank } = verificationResult.data;
+
+          const message = `✅ ตรวจสอบสลิปสำเร็จ\n\n` +
+            `💰 จำนวนเงิน: ${amount} บาท\n` +
+            `🗓️ วันที่: ${transDate}\n` +
+            `⏰ เวลา: ${transTime}\n` +
+            `👤 ผู้โอน: ${sender.displayName} (${sendingBank.displayName})\n` +
+            `🏦 ผู้รับ: ${receiver.displayName} (${receivingBank.displayName})`;
+
+          await this.replyUtil.replyText(
+            replyToken,
+            message,
+            userId
+          );
+        } else {
+          await this.replyUtil.replyText(
+            replyToken,
+            `❌ ตรวจสอบสลิปไม่สำเร็จ: ${verificationResult.message || 'ข้อมูลไม่ถูกต้อง'}`,
+            userId
+          );
+        }
+
+      } catch (slipError) {
+        logger.error({ error: slipError, userId, messageId }, 'Slip verification failed');
+        await this.replyUtil.replyText(
+          replyToken,
+          `❌ เกิดข้อผิดพลาดในการตรวจสอบสลิป: ${slipError instanceof Error ? slipError.message : 'Unknown error'}`,
+          userId
+        );
+      }
+
     } catch (error) {
       logger.error(
         {

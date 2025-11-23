@@ -1,0 +1,200 @@
+# Implementation Plan
+
+- [ ] 1. Create database schema and migrations for connect code system
+  - Create `connect_codes` table schema with code, client_id, is_used, expires_at, used_at, and timestamps
+  - Create `connect_rate_limit` table schema with client_id, attempt_count, window_start, and blocked_until
+  - Add LINE profile columns to existing `clients` table: line_user_id (unique), line_display_name, line_picture_url, connected_at
+  - Add database indexes for performance: idx_connect_codes_code, idx_connect_codes_client_id, idx_clients_line_user_id, idx_connect_rate_limit_client_id
+  - Generate and run Drizzle migration files
+  - _Requirements: 1.2, 1.3, 1.4, 4.2, 4.3, 4.4, 4.5, 7.1, 7.2, 7.4, 7.5_
+
+- [ ] 2. Implement connect code domain logic and repository layer
+  - [ ] 2.1 Create connect code repository with CRUD operations
+    - Implement `ConnectRepository` class with create, findByCode, findByClientId, markAsUsed, and delete methods
+    - Implement database queries using Drizzle ORM for all repository methods
+    - Add transaction support for marking codes as used to prevent race conditions
+    - _Requirements: 1.2, 1.3, 1.4, 3.2, 3.4, 3.5_
+  - [ ] 2.2 Create rate limiting repository
+    - Implement `RateLimitRepository` class with getOrCreate, incrementAttempts, reset, and blockClient methods
+    - Implement time-window based rate limiting logic
+    - Add cleanup method for expired rate limit records
+    - _Requirements: 2.5_
+  - [ ] 2.3 Implement connect code generation logic
+    - Create secure random code generator using crypto.randomBytes with 8-character alphanumeric output
+    - Format codes as XXXX-XXXX for readability
+    - Implement code uniqueness validation with retry logic
+    - Calculate expiration timestamp based on configurable days (default 7 days)
+    - _Requirements: 1.2, 2.1_
+  - [ ] 2.4 Implement connect code verification logic
+    - Create `verifyConnectCode` method that checks code existence, expiration, and usage status
+    - Return structured validation result with specific error types
+    - _Requirements: 3.2, 3.3, 3.4, 3.5_
+  - [ ] 2.5 Implement connection completion logic
+    - Create `completeConnection` method that updates client with LINE profile data
+    - Mark connect code as used with timestamp
+    - Set connected_at timestamp on client record
+    - Validate LINE user ID uniqueness before saving
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 7.2, 7.3, 7.4_
+  - [ ] 2.6 Implement rate limiting logic
+    - Create `checkRateLimit` method that validates attempt count within time window
+    - Implement `incrementRateLimit` method to track connection attempts
+    - Add automatic blocking after exceeding max attempts (5 attempts in 15 minutes)
+    - Implement time-based reset of rate limit counters
+    - _Requirements: 2.5_
+
+- [ ] 3. Create custom error classes for connect code operations
+  - Define `ConnectCodeNotFoundError` for invalid codes
+  - Define `ConnectCodeExpiredError` for expired codes
+  - Define `ConnectCodeAlreadyUsedError` for reused codes
+  - Define `LineUserIdAlreadyConnectedError` for duplicate LINE accounts
+  - Define `RateLimitExceededError` with retryAfter property
+  - Export all error classes from connect.errors.ts
+  - _Requirements: 2.5, 3.3, 3.4, 3.5, 7.3_
+
+- [ ] 4. Extend clients repository and domain with LINE profile methods
+  - [ ] 4.1 Add LINE profile methods to clients repository
+    - Implement `updateLineProfile` method to save LINE user ID, display name, and picture URL
+    - Implement `findByLineUserId` method for retrieving clients by LINE user ID
+    - Implement `findAllWithConnectionStatus` method with connection filter parameter
+    - _Requirements: 4.2, 4.3, 4.4, 6.1, 6.2, 6.4_
+  - [ ] 4.2 Add connection status methods to clients domain
+    - Implement `getConnectionStatus` method that returns connection details
+    - Implement `getLoansSummary` method that retrieves loan contracts for a client
+    - Add business logic for filtering and formatting loan data
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 6.1, 6.2, 6.3_
+
+- [ ] 5. Create admin API endpoints for connect code management
+  - [ ] 5.1 Implement POST /api/clients/:clientId/connect-code endpoint
+    - Create route handler with client ID validation
+    - Call connect domain to generate new connect code
+    - Return code and expiration timestamp in response
+    - Add authentication middleware to require admin access
+    - _Requirements: 1.1, 1.2, 1.5_
+  - [ ] 5.2 Implement GET /api/clients/:clientId/connect-codes endpoint
+    - Create route handler to list all codes for a client
+    - Return code status (used/unused/expired) for each code
+    - Add authentication middleware to require admin access
+    - _Requirements: 6.5_
+  - [ ] 5.3 Implement DELETE /api/connect-codes/:code endpoint
+    - Create route handler to invalidate/delete a connect code
+    - Verify admin permissions before deletion
+    - Return success response
+    - _Requirements: 6.5_
+
+- [ ] 6. Create client-facing API endpoints for connection flow
+  - [ ] 6.1 Implement POST /api/connect/verify endpoint
+    - Create route handler with code validation using Zod
+    - Call connect domain to verify code validity
+    - Return validation result with client ID if valid
+    - Handle all error types and return appropriate error messages
+    - Implement rate limiting check before verification
+    - _Requirements: 3.2, 3.3, 3.4, 3.5, 2.5_
+  - [ ] 6.2 Implement POST /api/connect/complete endpoint
+    - Create route handler with code and LINE profile validation using Zod
+    - Call connect domain to complete connection
+    - Check for duplicate LINE user ID and return error if exists
+    - Return success response with client ID and hasLoans flag
+    - Increment rate limit counter on failed attempts
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 7.2, 7.3, 2.5_
+  - [ ] 6.3 Implement GET /api/connect/client/:lineUserId endpoint
+    - Create route handler to retrieve client by LINE user ID
+    - Return client basic info and connection timestamp
+    - Handle case where LINE user ID is not found
+    - _Requirements: 4.1_
+  - [ ] 6.4 Implement GET /api/clients/:clientId/loans/summary endpoint
+    - Create route handler to retrieve loan summary for client
+    - Format loan data with contract details, status, and amounts
+    - Calculate total outstanding balance across all loans
+    - Sort loans by creation date (newest first)
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
+
+- [ ] 7. Create admin portal UI components for connect code management
+  - [ ] 7.1 Create ConnectCodeGenerator component
+    - Build button/modal UI to trigger code generation
+    - Implement API call to POST /api/clients/:clientId/connect-code
+    - Display loading state during generation
+    - Show success message with generated code
+    - _Requirements: 1.1, 1.5_
+  - [ ] 7.2 Create ConnectCodeDisplay component
+    - Display generated code in large, readable format (XXXX-XXXX)
+    - Show expiration date and time
+    - Add copy-to-clipboard functionality
+    - Display QR code representation of the code (optional enhancement)
+    - _Requirements: 1.5_
+  - [ ] 7.3 Create ConnectionStatusBadge component
+    - Display badge showing "Connected" or "Not Connected" status
+    - Show LINE display name and connection timestamp when connected
+    - Add visual indicator (icon/color) for connection status
+    - _Requirements: 6.1, 6.2, 6.3_
+  - [ ] 7.4 Integrate components into client management pages
+    - Add ConnectCodeGenerator button to client detail page
+    - Add ConnectionStatusBadge to client list and detail views
+    - Add connection status filter to client list page
+    - Update client form to display LINE profile information when connected
+    - _Requirements: 6.1, 6.2, 6.3, 6.4_
+
+- [ ] 8. Create LIFF portal pages for client connection flow
+  - [ ] 8.1 Create LiffConnect page component
+    - Build connect code input form with validation
+    - Implement LIFF initialization and login flow
+    - Call POST /api/connect/verify to validate code
+    - Retrieve LINE profile using liff.getProfile()
+    - Call POST /api/connect/complete with code and profile data
+    - Display appropriate error messages for invalid/expired/used codes
+    - Show rate limit error with retry time when applicable
+    - Redirect to loan summary page on successful connection
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 2.5_
+  - [ ] 8.2 Create LiffLoanSummary page component
+    - Call GET /api/clients/:clientId/loans/summary to fetch loan data
+    - Display "No active loans" message when client has no loans
+    - Show loading state while fetching loan data
+    - Handle errors gracefully with user-friendly messages
+    - _Requirements: 5.1, 5.2, 5.3_
+  - [ ] 8.3 Create LoanCard component
+    - Display individual loan information in card format
+    - Show contract number, loan type, principal amount, and outstanding balance
+    - Display contract status with color-coded badge (Active/Closed/Overdue)
+    - Show contract dates and due day
+    - Display overdue days when status is Overdue
+    - Format currency amounts appropriately
+    - _Requirements: 5.4, 5.5_
+  - [ ] 8.4 Update LIFF routing and navigation
+    - Add routes for /liff/connect and /liff/loans pages
+    - Implement navigation flow from connect to loan summary
+    - Add logic to check if user is already connected and skip connect page
+    - Store client ID in local state after successful connection
+    - _Requirements: 5.1_
+
+- [ ] 9. Add environment configuration and validation
+  - Add CONNECT_CODE_EXPIRY_DAYS to .env with default value of 7
+  - Add CONNECT_RATE_LIMIT_MAX_ATTEMPTS to .env with default value of 5
+  - Add CONNECT_RATE_LIMIT_WINDOW_MINUTES to .env with default value of 15
+  - Add CONNECT_RATE_LIMIT_BLOCK_MINUTES to .env with default value of 15
+  - Update config/index.ts to load and validate connect code configuration
+  - Add Zod schema validation for all connect code environment variables
+  - _Requirements: 2.1, 2.5_
+
+- [ ] 10. Implement error handling and logging
+  - Add structured logging for connect code generation events
+  - Add logging for connection attempts (success and failure)
+  - Add logging for rate limit violations
+  - Implement error middleware to handle connect-specific errors
+  - Map custom error classes to appropriate HTTP status codes
+  - Add request ID tracking for debugging connection issues
+  - _Requirements: 2.5, 3.3, 3.4, 3.5, 7.3_
+
+- [ ]* 11. Create unit tests for connect code domain logic
+  - Write tests for connect code generation (format, uniqueness, expiration)
+  - Write tests for code verification (valid, expired, used, not found)
+  - Write tests for connection completion (profile update, code marking, duplicate LINE ID)
+  - Write tests for rate limiting (within limit, exceeded, reset, blocking)
+  - Mock repository layer for isolated domain testing
+  - _Requirements: 1.2, 2.1, 2.5, 3.2, 3.3, 3.4, 3.5, 4.2, 4.3, 4.4, 7.2, 7.3_
+
+- [ ]* 12. Create integration tests for API endpoints
+  - Write tests for POST /api/clients/:clientId/connect-code (success, not found, auth)
+  - Write tests for POST /api/connect/verify (valid, expired, used, not found)
+  - Write tests for POST /api/connect/complete (success, duplicate LINE ID, rate limit)
+  - Write tests for GET /api/clients/:clientId/loans/summary (with loans, without loans)
+  - Set up test database and fixtures for integration testing
+  - _Requirements: 1.1, 1.2, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 5.1, 5.2, 5.3, 7.2, 7.3_
