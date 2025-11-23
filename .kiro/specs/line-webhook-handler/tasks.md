@@ -26,14 +26,14 @@
   - Log all signature validation attempts
   - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 5. Build Flex Message Builder utility
+- [x] 5. Build Flex Message Builder utility
   - Create `api/src/features/line/utils/flex-message.builder.ts` with `FlexMessageBuilder` class
   - Implement fluent API methods: `createBubble()`, `setHeader()`, `setBody()`, `setFooter()`
   - Implement component creation methods: `addText()`, `addButton()`, `addImage()`, `addSeparator()`, `addSpacer()`, `createBox()`
   - Implement `build()` method with validation of flex message structure
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 6. Create LINE Reply utility
+- [-] 6. Create LINE Reply utility
   - Create `api/src/features/line/utils/line-reply.util.ts` with `LineReplyUtil` class
   - Implement `replyText()` method for sending text messages
   - Implement `replyFlex()` method for sending flex messages
