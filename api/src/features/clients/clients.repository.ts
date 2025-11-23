@@ -75,6 +75,39 @@ export class ClientsRepository {
 
     return result[0];
   }
+
+  async findByLineUserId(lineUserId: string) {
+    const result = await db
+      .select()
+      .from(clients)
+      .where(
+        sql`${clients.line_user_id} = ${lineUserId} AND ${clients.deleted_at} IS NULL`
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
+
+  async updateLineProfile(
+    clientId: string,
+    lineProfile: {
+      line_user_id: string;
+      line_display_name: string;
+      line_picture_url: string | null;
+      connected_at: Date;
+    }
+  ) {
+    const result = await db
+      .update(clients)
+      .set({
+        ...lineProfile,
+        updated_at: new Date(),
+      })
+      .where(eq(clients.id, clientId))
+      .returning();
+
+    return result[0];
+  }
 }
 
 export const clientsRepository = new ClientsRepository();

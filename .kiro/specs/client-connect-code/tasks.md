@@ -8,34 +8,34 @@
   - Generate and run Drizzle migration files
   - _Requirements: 1.2, 1.3, 1.4, 4.2, 4.3, 4.4, 4.5, 7.1, 7.2, 7.4, 7.5_
 
-- [ ] 2. Implement connect code domain logic and repository layer
-  - [ ] 2.1 Create connect code repository with CRUD operations
+- [x] 2. Implement connect code domain logic and repository layer
+  - [x] 2.1 Create connect code repository with CRUD operations
     - Implement `ConnectRepository` class with create, findByCode, findByClientId, markAsUsed, and delete methods
     - Implement database queries using Drizzle ORM for all repository methods
     - Add transaction support for marking codes as used to prevent race conditions
     - _Requirements: 1.2, 1.3, 1.4, 3.2, 3.4, 3.5_
-  - [ ] 2.2 Create rate limiting repository
+  - [x] 2.2 Create rate limiting repository
     - Implement `RateLimitRepository` class with getOrCreate, incrementAttempts, reset, and blockClient methods
     - Implement time-window based rate limiting logic
     - Add cleanup method for expired rate limit records
     - _Requirements: 2.5_
-  - [ ] 2.3 Implement connect code generation logic
+  - [x] 2.3 Implement connect code generation logic
     - Create secure random code generator using crypto.randomBytes with 8-character alphanumeric output
     - Format codes as XXXX-XXXX for readability
     - Implement code uniqueness validation with retry logic
     - Calculate expiration timestamp based on configurable days (default 7 days)
     - _Requirements: 1.2, 2.1_
-  - [ ] 2.4 Implement connect code verification logic
+  - [x] 2.4 Implement connect code verification logic
     - Create `verifyConnectCode` method that checks code existence, expiration, and usage status
     - Return structured validation result with specific error types
     - _Requirements: 3.2, 3.3, 3.4, 3.5_
-  - [ ] 2.5 Implement connection completion logic
+  - [x] 2.5 Implement connection completion logic
     - Create `completeConnection` method that updates client with LINE profile data
     - Mark connect code as used with timestamp
     - Set connected_at timestamp on client record
     - Validate LINE user ID uniqueness before saving
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 7.2, 7.3, 7.4_
-  - [ ] 2.6 Implement rate limiting logic
+  - [x] 2.6 Implement rate limiting logic
     - Create `checkRateLimit` method that validates attempt count within time window
     - Implement `incrementRateLimit` method to track connection attempts
     - Add automatic blocking after exceeding max attempts (5 attempts in 15 minutes)

@@ -119,31 +119,27 @@ export class LineMessagingClient {
       throw new Error('Message ID is required');
     }
 
-    const url = `${this.apiUrl}/message/${messageId}/content`;
+    // Use api-data.line.me for content download
+    const url = this.apiUrl.replace('api.line.me', 'api-data.line.me') + `/message/${messageId}/content`;
     const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
     try {
       logger.info({ messageId }, 'Downloading LINE message content');
-
-      // const response = await fetch(url, {
-      //   method: 'GET',
-      //   headers: {
-      //     'Authorization': `Bearer ${this.accessToken}`,
-      //   },
-      // });
 
       const response = await axios.get<Buffer>(url, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
         },
         responseType: 'arraybuffer',
-      })
+        validateStatus: () => true, // Handle all status codes manually
+      });
 
-      if (!response.status) {
+      if (response.status >= 400) {
         let errorMessage = 'Unknown LINE API error';
 
         try {
-          const text = await response.data;
+          // Convert buffer to string to parse error message
+          const text = response.data.toString();
           try {
             const errorData = JSON.parse(text) as LineApiErrorResponse;
             errorMessage = errorData.message || errorMessage;
@@ -172,14 +168,13 @@ export class LineMessagingClient {
       }
 
       // Check content length
-      const contentLength = response.headers.get('content-length');
+      const contentLength = response.headers['content-length'];
       if (contentLength && parseInt(contentLength) > MAX_SIZE) {
         logger.warn({ messageId, contentLength }, 'Message content exceeds maximum size');
         throw new Error(`Message content exceeds maximum size of ${MAX_SIZE} bytes`);
       }
 
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = Buffer.from(arrayBuffer);
+      const buffer = Buffer.from(response.data);
 
       // Double-check actual size
       if (buffer.length > MAX_SIZE) {
@@ -188,13 +183,13 @@ export class LineMessagingClient {
       }
 
       logger.info(
-        { messageId, size: buffer.length, contentType: response.headers.get('content-type') },
+        { messageId, size: buffer.length, contentType: response.headers['content-type'] },
         'LINE message content downloaded successfully'
       );
 
       return {
         content: buffer,
-        contentType: response.headers.get('content-type'),
+        contentType: response.headers['content-type'] || null,
       };
     } catch (error) {
       if (error instanceof Error && (error.message.includes('LINE API error') || error.message.includes('exceeds maximum size'))) {
