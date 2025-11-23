@@ -41,7 +41,7 @@
   - Add logging for all outgoing messages with user context
   - _Requirements: 6.1, 6.2, 6.5_
 
-- [ ] 7. Implement event router with strategy pattern
+- [x] 7. Implement event router with strategy pattern
   - Create `api/src/features/line/line.router.ts` with `EventHandler` interface and `LineEventRouter` class
   - Implement `registerHandler()` method to register event handlers
   - Implement `routeEvent()` method to route events to appropriate handlers
