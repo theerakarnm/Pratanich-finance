@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Create database schema and migrations for connect code system
+- [x] 1. Create database schema and migrations for connect code system
   - Create `connect_codes` table schema with code, client_id, is_used, expires_at, used_at, and timestamps
   - Create `connect_rate_limit` table schema with client_id, attempt_count, window_start, and blocked_until
   - Add LINE profile columns to existing `clients` table: line_user_id (unique), line_display_name, line_picture_url, connected_at

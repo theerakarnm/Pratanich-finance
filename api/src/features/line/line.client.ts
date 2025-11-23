@@ -1,5 +1,6 @@
 import { logger } from '../../core/logger';
 import type { LineReplyMessage } from './line.types';
+import axios from 'axios'
 
 interface LineApiErrorResponse {
   message: string;
@@ -59,11 +60,26 @@ export class LineMessagingClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json() as LineApiErrorResponse;
-        const errorMessage = errorData.message || 'Unknown LINE API error';
-        const errorDetails = errorData.details
-          ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
-          : undefined;
+        let errorMessage = 'Unknown LINE API error';
+        let errorDetails: string | undefined;
+
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text) as LineApiErrorResponse;
+            errorMessage = errorData.message || errorMessage;
+            errorDetails = errorData.details
+              ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
+              : undefined;
+          } catch {
+            // If not JSON, use the text as error message if it's not empty
+            if (text.trim()) {
+              errorMessage = text;
+            }
+          }
+        } catch (e) {
+          // Failed to read text, keep default error message
+        }
 
         logger.error(
           {
@@ -109,16 +125,36 @@ export class LineMessagingClient {
     try {
       logger.info({ messageId }, 'Downloading LINE message content');
 
-      const response = await fetch(url, {
-        method: 'GET',
+      // const response = await fetch(url, {
+      //   method: 'GET',
+      //   headers: {
+      //     'Authorization': `Bearer ${this.accessToken}`,
+      //   },
+      // });
+
+      const response = await axios.get<Buffer>(url, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
         },
-      });
+        responseType: 'arraybuffer',
+      })
 
-      if (!response.ok) {
-        const errorData = await response.json() as LineApiErrorResponse;
-        const errorMessage = errorData.message || 'Unknown LINE API error';
+      if (!response.status) {
+        let errorMessage = 'Unknown LINE API error';
+
+        try {
+          const text = await response.data;
+          try {
+            const errorData = JSON.parse(text) as LineApiErrorResponse;
+            errorMessage = errorData.message || errorMessage;
+          } catch {
+            if (text.trim()) {
+              errorMessage = text;
+            }
+          }
+        } catch (e) {
+          // Failed to read text
+        }
 
         logger.error(
           {
@@ -211,11 +247,25 @@ export class LineMessagingClient {
       });
 
       if (!response.ok) {
-        const errorData = await response.json() as LineApiErrorResponse;
-        const errorMessage = errorData.message || 'Unknown LINE API error';
-        const errorDetails = errorData.details
-          ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
-          : undefined;
+        let errorMessage = 'Unknown LINE API error';
+        let errorDetails: string | undefined;
+
+        try {
+          const text = await response.text();
+          try {
+            const errorData = JSON.parse(text) as LineApiErrorResponse;
+            errorMessage = errorData.message || errorMessage;
+            errorDetails = errorData.details
+              ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
+              : undefined;
+          } catch {
+            if (text.trim()) {
+              errorMessage = text;
+            }
+          }
+        } catch (e) {
+          // Failed to read text
+        }
 
         logger.error(
           {
