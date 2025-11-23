@@ -13,12 +13,12 @@
   - Add proper error handling for LINE API responses with descriptive errors
   - _Requirements: 3.2, 6.3, 6.4_
 
-- [ ] 3. Create LINE-specific error classes
+- [x] 3. Create LINE-specific error classes
   - Create `api/src/features/line/line.errors.ts` with custom error classes
   - Implement `LineApiError`, `LineSignatureError`, and `LineMessageError` extending `AppError`
   - _Requirements: 2.4, 3.5, 4.4_
 
-- [ ] 4. Implement signature validation middleware
+- [-] 4. Implement signature validation middleware
   - Create `api/src/middleware/line-signature.middleware.ts` with `validateLineSignature()` middleware
   - Implement HMAC-SHA256 signature verification using channel secret
   - Parse and attach webhook body to context when signature is valid
