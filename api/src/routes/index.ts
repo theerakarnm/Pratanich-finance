@@ -36,7 +36,8 @@ router.route('/users', usersRoutes);
 router.route('/internal/clients', clientsRoutes);
 router.route('/internal/loans', loansRoutes);
 router.route('/line', lineRoutes);
-router.route('/internal', connectRoutes);
+router.route('/internal', connectRoutes); // Admin endpoints: /api/internal/clients/:id/connect-code
+router.route('/connect', connectRoutes); // Client-facing endpoints: /api/connect/verify, /api/connect/complete
 router.route('/slipok', slipokRoutes);
 
 export default router;

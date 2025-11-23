@@ -8,8 +8,8 @@ export function ClientEdit() {
   const [, params] = useRoute("/admin/clients/:id/edit");
   const [, setLocation] = useLocation();
   const [clientData, setClientData] = useState<ClientFormValues | undefined>(undefined);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [_loading, setLoading] = useState(true);
+  const [_error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchClient = async () => {

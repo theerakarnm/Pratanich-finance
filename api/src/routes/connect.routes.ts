@@ -1,9 +1,18 @@
 import { Hono } from "hono";
+import { zValidator } from "@hono/zod-validator";
+import { z } from "zod";
 import { connectDomain } from "../features/connect/connect.domain";
 import { clientsDomain } from "../features/clients/clients.domain";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { auth } from "../libs/auth";
 import { ResponseBuilder } from "../core/response";
+import {
+  ConnectCodeNotFoundError,
+  ConnectCodeExpiredError,
+  ConnectCodeAlreadyUsedError,
+  LineUserIdAlreadyConnectedError,
+  RateLimitExceededError,
+} from "../features/connect/connect.errors";
 
 const connectRoutes = new Hono<{
   Variables: {
@@ -11,6 +20,18 @@ const connectRoutes = new Hono<{
     session: typeof auth.$Infer.Session.session | null
   }
 }>();
+
+// Validation schemas
+const verifyCodeSchema = z.object({
+  code: z.string().min(1, "Connect code is required"),
+});
+
+const completeConnectionSchema = z.object({
+  code: z.string().min(1, "Connect code is required"),
+  lineUserId: z.string().min(1, "LINE user ID is required"),
+  lineDisplayName: z.string().min(1, "LINE display name is required"),
+  linePictureUrl: z.string().optional(),
+});
 
 // Admin endpoint: Generate connect code for a client
 connectRoutes.post("/clients/:clientId/connect-code", authMiddleware, async (c) => {
@@ -85,6 +106,137 @@ connectRoutes.delete("/connect-codes/:code", authMiddleware, async (c) => {
       return ResponseBuilder.error(c, error.message, 404);
     }
     return ResponseBuilder.error(c, error.message, 400);
+  }
+});
+
+// Client-facing endpoint: Verify connect code
+connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) => {
+  const { code } = c.req.valid("json");
+  
+  try {
+    // Verify the connect code
+    const result = await connectDomain.verifyConnectCode(code);
+    
+    if (!result.valid) {
+      return ResponseBuilder.error(c, result.error || "Invalid connect code", 400);
+    }
+    
+    // Check rate limit before allowing connection
+    try {
+      await connectDomain.checkRateLimit(result.clientId!);
+    } catch (error: any) {
+      if (error instanceof RateLimitExceededError) {
+        return ResponseBuilder.error(
+          c,
+          error.message,
+          429,
+          "RATE_LIMIT_EXCEEDED",
+          { retryAfter: error.retryAfter }
+        );
+      }
+      throw error;
+    }
+    
+    return ResponseBuilder.success(c, {
+      valid: true,
+      clientId: result.clientId,
+    });
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Complete connection with LINE profile
+connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), async (c) => {
+  const { code, lineUserId, lineDisplayName, linePictureUrl } = c.req.valid("json");
+  
+  try {
+    // Complete the connection
+    const client = await connectDomain.completeConnection(code, {
+      userId: lineUserId,
+      displayName: lineDisplayName,
+      pictureUrl: linePictureUrl,
+    });
+    
+    // Get loans summary to check if client has loans
+    const loansSummary = await clientsDomain.getLoansSummary(client.id);
+    
+    return ResponseBuilder.success(c, {
+      success: true,
+      clientId: client.id,
+      hasLoans: loansSummary.totalLoans > 0,
+    });
+  } catch (error: any) {
+    // Increment rate limit on failed attempts
+    if (error instanceof ConnectCodeNotFoundError ||
+        error instanceof ConnectCodeExpiredError ||
+        error instanceof ConnectCodeAlreadyUsedError) {
+      // Try to get client ID from code for rate limiting
+      try {
+        const verification = await connectDomain.verifyConnectCode(code);
+        if (verification.clientId) {
+          await connectDomain.incrementRateLimit(verification.clientId);
+        }
+      } catch {
+        // Ignore errors during rate limit increment
+      }
+      
+      return ResponseBuilder.error(c, error.message, 400);
+    }
+    
+    if (error instanceof LineUserIdAlreadyConnectedError) {
+      return ResponseBuilder.error(c, error.message, 409);
+    }
+    
+    if (error instanceof RateLimitExceededError) {
+      return ResponseBuilder.error(
+        c,
+        error.message,
+        429,
+        "RATE_LIMIT_EXCEEDED",
+        { retryAfter: error.retryAfter }
+      );
+    }
+    
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Get client by LINE user ID
+connectRoutes.get("/client/:lineUserId", async (c) => {
+  const lineUserId = c.req.param("lineUserId");
+  
+  try {
+    const client = await connectDomain.getClientByLineUserId(lineUserId);
+    
+    if (!client) {
+      return ResponseBuilder.error(c, "Client not found", 404);
+    }
+    
+    return ResponseBuilder.success(c, {
+      clientId: client.id,
+      firstName: client.first_name,
+      lastName: client.last_name,
+      connectedAt: client.connected_at?.toISOString(),
+    });
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Get loans summary for a client
+connectRoutes.get("/clients/:clientId/loans/summary", async (c) => {
+  const clientId = c.req.param("clientId");
+  
+  try {
+    const loansSummary = await clientsDomain.getLoansSummary(clientId);
+    
+    return ResponseBuilder.success(c, loansSummary);
+  } catch (error: any) {
+    if (error.message === "Client not found") {
+      return ResponseBuilder.error(c, error.message, 404);
+    }
+    return ResponseBuilder.error(c, error.message, 500);
   }
 });
 

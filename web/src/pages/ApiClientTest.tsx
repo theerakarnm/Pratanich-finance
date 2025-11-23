@@ -126,9 +126,9 @@ export default function ApiClientTest() {
                   {clients.map((client) => (
                     <div key={client.id} className="bg-muted p-3 rounded-lg text-sm">
                       <p className="font-semibold">
-                        {client.firstName} {client.lastName}
+                        {client.first_name} {client.last_name}
                       </p>
-                      <p className="text-muted-foreground">{client.phoneNumber}</p>
+                      <p className="text-muted-foreground">{client.mobile_number}</p>
                     </div>
                   ))}
                 </div>

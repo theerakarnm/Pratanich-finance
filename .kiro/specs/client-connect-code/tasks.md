@@ -81,27 +81,27 @@
     - Return success response
     - _Requirements: 6.5_
 
-- [ ] 6. Create client-facing API endpoints for connection flow
-  - [ ] 6.1 Implement POST /api/connect/verify endpoint
+- [x] 6. Create client-facing API endpoints for connection flow
+  - [x] 6.1 Implement POST /api/connect/verify endpoint
     - Create route handler with code validation using Zod
     - Call connect domain to verify code validity
     - Return validation result with client ID if valid
     - Handle all error types and return appropriate error messages
     - Implement rate limiting check before verification
     - _Requirements: 3.2, 3.3, 3.4, 3.5, 2.5_
-  - [ ] 6.2 Implement POST /api/connect/complete endpoint
+  - [x] 6.2 Implement POST /api/connect/complete endpoint
     - Create route handler with code and LINE profile validation using Zod
     - Call connect domain to complete connection
     - Check for duplicate LINE user ID and return error if exists
     - Return success response with client ID and hasLoans flag
     - Increment rate limit counter on failed attempts
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 7.2, 7.3, 2.5_
-  - [ ] 6.3 Implement GET /api/connect/client/:lineUserId endpoint
+  - [x] 6.3 Implement GET /api/connect/client/:lineUserId endpoint
     - Create route handler to retrieve client by LINE user ID
     - Return client basic info and connection timestamp
     - Handle case where LINE user ID is not found
     - _Requirements: 4.1_
-  - [ ] 6.4 Implement GET /api/clients/:clientId/loans/summary endpoint
+  - [x] 6.4 Implement GET /api/clients/:clientId/loans/summary endpoint
     - Create route handler to retrieve loan summary for client
     - Format loan data with contract details, status, and amounts
     - Calculate total outstanding balance across all loans
