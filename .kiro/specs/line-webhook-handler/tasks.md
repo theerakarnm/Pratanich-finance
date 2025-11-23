@@ -6,7 +6,7 @@
   - Add environment variables to `.env.example` for LINE credentials
   - _Requirements: 7.3, 7.4_
 
-- [ ] 2. Implement LINE Messaging API client
+- [x] 2. Implement LINE Messaging API client
   - Create `api/src/features/line/line.client.ts` with `LineMessagingClient` class
   - Implement `replyMessage()` method to send reply messages using LINE API
   - Implement `getMessageContent()` method to download image content from LINE
