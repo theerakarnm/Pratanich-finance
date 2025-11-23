@@ -251,5 +251,27 @@ export const deleteLoan = async (id: string): Promise<{ message: string }> => {
   return response.data;
 };
 
+// ============================================================================
+// SlipOK API
+// ============================================================================
+
+export interface VerifySlipParams {
+  data?: string;
+  files?: string; // base64
+  url?: string;
+  amount?: number;
+  log?: boolean;
+}
+
+export const verifySlip = async (params: VerifySlipParams) => {
+  const response = await apiClient.post('/api/slipok/verify', params);
+  return response.data;
+};
+
+export const getSlipQuota = async () => {
+  const response = await apiClient.get('/api/slipok/quota');
+  return response.data;
+};
+
 // Export the configured axios instance for custom requests
 export default apiClient;

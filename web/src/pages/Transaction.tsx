@@ -22,10 +22,13 @@ import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
 import { TransactionDetail } from "@/components/transaction-detail";
 import { formatCurrency } from '@/lib/formatter';
 
+import { SlipVerificationModal } from "@/components/slip-verification-modal";
+
 export function Transaction() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionType | null>(null);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
   const itemsPerPage = 10;
 
   const filteredTransactions = transactions.filter(t =>
@@ -42,12 +45,17 @@ export function Transaction() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-        <Input
-          placeholder="Search reference, sender, receiver..."
-          value={searchTerm}
-          onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center space-x-2">
+          <Button onClick={() => setShowVerifyModal(true)}>
+            Verify Slip
+          </Button>
+          <Input
+            placeholder="Search reference, sender, receiver..."
+            value={searchTerm}
+            onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+            className="max-w-sm"
+          />
+        </div>
       </div>
 
       <div className="rounded-md border bg-white">
@@ -127,6 +135,8 @@ export function Transaction() {
           {selectedTransaction && <TransactionDetail transaction={selectedTransaction} />}
         </DialogContent>
       </Dialog>
+
+      <SlipVerificationModal open={showVerifyModal} onOpenChange={setShowVerifyModal} />
     </div >
   );
 }

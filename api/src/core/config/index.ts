@@ -11,5 +11,10 @@ export const config = {
     channelSecret: process.env.LINE_CHANNEL_SECRET || '',
     messagingApiUrl: 'https://api.line.me/v2/bot',
   },
+  slipok: {
+    branchId: process.env.SLIPOK_BRANCH_ID || '',
+    apiKey: process.env.SLIPOK_API_KEY || '',
+    apiUrl: 'https://api.slipok.com/api/line/apikey',
+  },
   env: process.env.NODE_ENV || 'development',
 };

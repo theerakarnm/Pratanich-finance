@@ -28,11 +28,13 @@ router.on(['POST', 'GET'], '/auth/*', (c) => auth.handler(c.req.raw));
 import clientsRoutes from './clients.routes';
 import loansRoutes from './loans.routes';
 import lineRoutes from './line.routes';
+import slipokRoutes from '../features/slipok/slipok.routes';
 
 // Feature routes
 router.route('/users', usersRoutes);
 router.route('/internal/clients', clientsRoutes);
 router.route('/internal/loans', loansRoutes);
 router.route('/line', lineRoutes);
+router.route('/slipok', slipokRoutes);
 
 export default router;
