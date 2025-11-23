@@ -292,5 +292,74 @@ export const generateConnectCode = async (clientId: string): Promise<GenerateCon
   return response.data;
 };
 
+export interface VerifyConnectCodeRequest {
+  code: string;
+}
+
+export interface VerifyConnectCodeResponse {
+  valid: boolean;
+  clientId?: string;
+  error?: string;
+}
+
+export const verifyConnectCode = async (data: VerifyConnectCodeRequest): Promise<VerifyConnectCodeResponse> => {
+  const response = await apiClient.post('/api/connect/verify', data);
+  return response.data;
+};
+
+export interface CompleteConnectionRequest {
+  code: string;
+  lineUserId: string;
+  lineDisplayName: string;
+  linePictureUrl?: string;
+}
+
+export interface CompleteConnectionResponse {
+  success: boolean;
+  clientId: string;
+  hasLoans: boolean;
+}
+
+export const completeConnection = async (data: CompleteConnectionRequest): Promise<CompleteConnectionResponse> => {
+  const response = await apiClient.post('/api/connect/complete', data);
+  return response.data;
+};
+
+export interface ClientByLineUserIdResponse {
+  clientId: string;
+  firstName: string;
+  lastName: string;
+  connectedAt: string;
+}
+
+export const getClientByLineUserId = async (lineUserId: string): Promise<ClientByLineUserIdResponse> => {
+  const response = await apiClient.get(`/api/connect/client/${lineUserId}`);
+  return response.data;
+};
+
+export interface LoanSummary {
+  id: string;
+  contractNumber: string;
+  loanType: string;
+  principalAmount: string;
+  outstandingBalance: string;
+  contractStatus: 'Active' | 'Closed' | 'Overdue';
+  contractStartDate: string;
+  contractEndDate: string;
+  dueDay: number;
+  overduedays: number;
+}
+
+export interface LoanSummaryResponse {
+  loans: LoanSummary[];
+  totalLoans: number;
+  totalOutstanding: string;
+}
+
+export const getClientLoansSummary = async (clientId: string): Promise<LoanSummaryResponse> => {
+  const response = await apiClient.get(`/api/clients/${clientId}/loans/summary`);
+  return response.data;
+};
+
 // Export the configured axios instance for custom requests
 export default apiClient;

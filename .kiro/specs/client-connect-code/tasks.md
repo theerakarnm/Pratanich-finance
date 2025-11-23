@@ -133,8 +133,8 @@
     - Update client form to display LINE profile information when connected
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 8. Create LIFF portal pages for client connection flow
-  - [ ] 8.1 Create LiffConnect page component
+- [x] 8. Create LIFF portal pages for client connection flow
+  - [x] 8.1 Create LiffConnect page component
     - Build connect code input form with validation
     - Implement LIFF initialization and login flow
     - Call POST /api/connect/verify to validate code
@@ -144,13 +144,13 @@
     - Show rate limit error with retry time when applicable
     - Redirect to loan summary page on successful connection
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 4.1, 2.5_
-  - [ ] 8.2 Create LiffLoanSummary page component
+  - [x] 8.2 Create LiffLoanSummary page component
     - Call GET /api/clients/:clientId/loans/summary to fetch loan data
     - Display "No active loans" message when client has no loans
     - Show loading state while fetching loan data
     - Handle errors gracefully with user-friendly messages
     - _Requirements: 5.1, 5.2, 5.3_
-  - [ ] 8.3 Create LoanCard component
+  - [x] 8.3 Create LoanCard component
     - Display individual loan information in card format
     - Show contract number, loan type, principal amount, and outstanding balance
     - Display contract status with color-coded badge (Active/Closed/Overdue)
@@ -158,14 +158,14 @@
     - Display overdue days when status is Overdue
     - Format currency amounts appropriately
     - _Requirements: 5.4, 5.5_
-  - [ ] 8.4 Update LIFF routing and navigation
+  - [x] 8.4 Update LIFF routing and navigation
     - Add routes for /liff/connect and /liff/loans pages
     - Implement navigation flow from connect to loan summary
     - Add logic to check if user is already connected and skip connect page
     - Store client ID in local state after successful connection
     - _Requirements: 5.1_
 
-- [ ] 9. Add environment configuration and validation
+- [-] 9. Add environment configuration and validation
   - Add CONNECT_CODE_EXPIRY_DAYS to .env with default value of 7
   - Add CONNECT_RATE_LIMIT_MAX_ATTEMPTS to .env with default value of 5
   - Add CONNECT_RATE_LIMIT_WINDOW_MINUTES to .env with default value of 15

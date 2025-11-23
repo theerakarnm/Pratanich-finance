@@ -12,6 +12,8 @@ import { LoanContractEdit } from '@/pages/LoanContractEdit';
 import AdminLogin from '@/pages/login';
 import { NotFoundPage } from './pages/404NotFound';
 import { LiffClient } from '@/pages/LiffClient';
+import { LiffConnect } from '@/pages/LiffConnect';
+import { LiffLoanSummary } from '@/pages/LiffLoanSummary';
 import ApiClientTest from '@/pages/ApiClientTest';
 import { Toaster } from 'sonner';
 
@@ -22,6 +24,12 @@ export function App() {
       <Switch>
         <Route path="/auth/login" component={AdminLogin} />
         <Route path="/api-test" component={ApiClientTest} />
+        
+        {/* LIFF Routes */}
+        <Route path="/liff/connect" component={LiffConnect} />
+        <Route path="/liff/loans/:clientId">
+          {(params: { clientId: string }) => <LiffLoanSummary clientId={params.clientId} />}
+        </Route>
         <Route path="/" component={LiffClient} />
 
         <Route path="/admin/*">

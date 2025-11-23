@@ -1,12 +1,24 @@
-import { generatePromptPayQR } from '../src/libs/promptpay';
+// import { billPayment, } from 'promptparse/generate'
+
+// try {
+
+//   const payload = billPayment({
+//     billerId: '0105568129362',
+//     amount: 10.0,
+//     ref1: 'INV12345',
+//   })
+//   console.log(payload);
+// } catch (error) {
+//   console.error(error);
+// }
+
+import generatePayload from 'promptpay-qr'
 
 try {
-  const qr = generatePromptPayQR({
-    target: "1508600004024",
-    amount: 10.5,
-    refKey: "OD2132191239",
-  });
-  console.log("QR Generated:", qr);
-} catch (e) {
-  console.error(e);
+  const payload = generatePayload('1508600004024', {
+    amount: 10.5
+  })
+  console.log(payload);
+} catch (error) {
+  console.error(error);
 }
