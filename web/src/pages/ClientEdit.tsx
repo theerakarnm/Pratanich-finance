@@ -1,42 +1,48 @@
 import { ClientForm, type ClientFormValues } from "@/components/forms/ClientForm";
 import { useLocation, useRoute } from "wouter";
 import { useEffect, useState } from "preact/hooks";
+import { ConnectCodeGenerator } from "@/components/ConnectCodeGenerator";
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
-import { getClientById, updateClient } from "@/lib/api-client";
+import { getClientById, updateClient, type Client } from "@/lib/api-client";
 
 export function ClientEdit() {
   const [, params] = useRoute("/admin/clients/:id/edit");
   const [, setLocation] = useLocation();
   const [clientData, setClientData] = useState<ClientFormValues | undefined>(undefined);
+  const [client, setClient] = useState<Client | null>(null);
   const [_loading, setLoading] = useState(true);
   const [_error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchClient = async () => {
-      if (!params?.id) return;
-      try {
-        setLoading(true);
-        const client = await getClientById(params.id);
-        // Transform API data to form values if necessary
-        // The API returns snake_case which matches the form values
-        setClientData({
-          citizen_id: client.citizen_id,
-          title_name: client.title_name,
-          first_name: client.first_name,
-          last_name: client.last_name,
-          date_of_birth: client.date_of_birth,
-          mobile_number: client.mobile_number,
-          email: client.email || "",
-          line_id: client.line_id || "",
-        });
-      } catch (err) {
-        console.error("Failed to fetch client:", err);
-        setError("Failed to load client data");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchClient = async () => {
+    if (!params?.id) return;
+    try {
+      setLoading(true);
+      const clientResponse = await getClientById(params.id);
+      setClient(clientResponse);
+      // Transform API data to form values if necessary
+      // The API returns snake_case which matches the form values
+      setClientData({
+        citizen_id: clientResponse.citizen_id,
+        title_name: clientResponse.title_name,
+        first_name: clientResponse.first_name,
+        last_name: clientResponse.last_name,
+        date_of_birth: clientResponse.date_of_birth,
+        mobile_number: clientResponse.mobile_number,
+        email: clientResponse.email || "",
+        line_id: clientResponse.line_id || "",
+      });
+    } catch (err) {
+      console.error("Failed to fetch client:", err);
+      setError("Failed to load client data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchClient();
   }, [params?.id]);
 
@@ -56,9 +62,65 @@ export function ClientEdit() {
     return <div>Loading...</div>;
   }
 
+  const isConnected = !!(client?.line_user_id);
+
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Edit Client</h1>
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Edit Client</h1>
+      </div>
+
+      {client && (
+        <Card>
+          <CardHeader>
+            <CardTitle>LINE Connection</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <ConnectionStatusBadge
+                  isConnected={isConnected}
+                  connectedAt={client.connected_at}
+                  lineDisplayName={client.line_display_name}
+                  variant="detailed"
+                />
+              </div>
+              {!isConnected && (
+                <ConnectCodeGenerator
+                  clientId={client.id}
+                  onCodeGenerated={() => {
+                    // Optionally refresh client data after code generation
+                    fetchClient();
+                  }}
+                />
+              )}
+            </div>
+
+            {isConnected && client.line_display_name && (
+              <>
+                <Separator />
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="font-medium text-muted-foreground">LINE Display Name</div>
+                    <div>{client.line_display_name}</div>
+                  </div>
+                  {client.line_picture_url && (
+                    <div>
+                      <div className="font-medium text-muted-foreground">Profile Picture</div>
+                      <img
+                        src={client.line_picture_url}
+                        alt={client.line_display_name}
+                        className="h-10 w-10 rounded-full mt-1"
+                      />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       <ClientForm initialData={clientData} onSubmit={handleSubmit} isEditing />
     </div>
   );

@@ -108,25 +108,25 @@
     - Sort loans by creation date (newest first)
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [ ] 7. Create admin portal UI components for connect code management
-  - [ ] 7.1 Create ConnectCodeGenerator component
+- [x] 7. Create admin portal UI components for connect code management
+  - [x] 7.1 Create ConnectCodeGenerator component
     - Build button/modal UI to trigger code generation
     - Implement API call to POST /api/clients/:clientId/connect-code
     - Display loading state during generation
     - Show success message with generated code
     - _Requirements: 1.1, 1.5_
-  - [ ] 7.2 Create ConnectCodeDisplay component
+  - [x] 7.2 Create ConnectCodeDisplay component
     - Display generated code in large, readable format (XXXX-XXXX)
     - Show expiration date and time
     - Add copy-to-clipboard functionality
     - Display QR code representation of the code (optional enhancement)
     - _Requirements: 1.5_
-  - [ ] 7.3 Create ConnectionStatusBadge component
+  - [x] 7.3 Create ConnectionStatusBadge component
     - Display badge showing "Connected" or "Not Connected" status
     - Show LINE display name and connection timestamp when connected
     - Add visual indicator (icon/color) for connection status
     - _Requirements: 6.1, 6.2, 6.3_
-  - [ ] 7.4 Integrate components into client management pages
+  - [x] 7.4 Integrate components into client management pages
     - Add ConnectCodeGenerator button to client detail page
     - Add ConnectionStatusBadge to client list and detail views
     - Add connection status filter to client list page

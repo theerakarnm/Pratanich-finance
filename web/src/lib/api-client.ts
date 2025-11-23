@@ -134,6 +134,10 @@ export interface Client {
   mobile_number: string;
   email?: string | null;
   line_id?: string | null;
+  line_user_id?: string | null;
+  line_display_name?: string | null;
+  line_picture_url?: string | null;
+  connected_at?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;
@@ -270,6 +274,21 @@ export const verifySlip = async (params: VerifySlipParams) => {
 
 export const getSlipQuota = async () => {
   const response = await apiClient.get('/api/slipok/quota');
+  return response.data;
+};
+
+// ============================================================================
+// Connect Code API
+// ============================================================================
+
+export interface GenerateConnectCodeResponse {
+  code: string;
+  expiresAt: string;
+  clientId: string;
+}
+
+export const generateConnectCode = async (clientId: string): Promise<GenerateConnectCodeResponse> => {
+  const response = await apiClient.post(`/api/internal/clients/${clientId}/connect-code`);
   return response.data;
 };
 

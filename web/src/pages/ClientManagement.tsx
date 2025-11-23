@@ -10,11 +10,20 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Link } from 'wouter';
 import { ChevronLeft, ChevronRight, Edit, Plus } from "lucide-react";
 
 export function ClientManagement() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [connectionFilter, setConnectionFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,6 +69,16 @@ export function ClientManagement() {
     fetchClients(currentPage, searchTerm);
   }, [currentPage]);
 
+  // Filter clients based on connection status
+  const filteredClients = clients.filter(client => {
+    if (connectionFilter === 'connected') {
+      return !!client.line_user_id;
+    } else if (connectionFilter === 'not-connected') {
+      return !client.line_user_id;
+    }
+    return true; // 'all'
+  });
+
   if (loading && clients.length === 0) {
     return (
       <div className="space-y-6">
@@ -99,8 +118,18 @@ export function ClientManagement() {
             placeholder="Search clients..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-            className="w-[300px]"
+            className="w-[250px]"
           />
+          <Select value={connectionFilter} onValueChange={setConnectionFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Connection status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Clients</SelectItem>
+              <SelectItem value="connected">Connected</SelectItem>
+              <SelectItem value="not-connected">Not Connected</SelectItem>
+            </SelectContent>
+          </Select>
           <Link href="/admin/clients/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -127,26 +156,27 @@ export function ClientManagement() {
               <TableHead>Date of Birth</TableHead>
               <TableHead>Mobile Number</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>LINE Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">Loading...</div>
                 </TableCell>
               </TableRow>
-            ) : clients.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8">
+                <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">
-                    {searchTerm ? 'No clients found matching your search.' : 'No clients available.'}
+                    {searchTerm || connectionFilter !== 'all' ? 'No clients found matching your filters.' : 'No clients available.'}
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              clients.map((client) => (
+              filteredClients.map((client) => (
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.citizen_id}</TableCell>
                   <TableCell>{client.title_name}</TableCell>
@@ -155,6 +185,13 @@ export function ClientManagement() {
                   <TableCell>{client.date_of_birth}</TableCell>
                   <TableCell>{client.mobile_number}</TableCell>
                   <TableCell>{client.email || '-'}</TableCell>
+                  <TableCell>
+                    <ConnectionStatusBadge
+                      isConnected={!!client.line_user_id}
+                      connectedAt={client.connected_at}
+                      lineDisplayName={client.line_display_name}
+                    />
+                  </TableCell>
                   <TableCell className="text-right">
                     <Link href={`/admin/clients/${client.id}/edit`}>
                       <Button variant="ghost" size="icon">
