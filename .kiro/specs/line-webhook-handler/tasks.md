@@ -70,7 +70,7 @@
   - Add error handling for invalid postback data
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
 
-- [ ] 9. Implement LINE domain layer
+- [x] 9. Implement LINE domain layer
   - Create `api/src/features/line/line.domain.ts` with `LineDomain` class
   - Implement `processWebhook()` method to process webhook body and route events
   - Implement `handleTextMessage()`, `handleImageMessage()`, and `handlePostback()` methods with business logic
