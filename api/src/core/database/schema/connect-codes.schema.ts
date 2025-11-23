@@ -14,10 +14,10 @@ export const connectCodes = pgTable("connect_codes", {
   expires_at: timestamp("expires_at").notNull(),
   used_at: timestamp("used_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),
-}, (table) => ({
+}, (table) => ([{
   codeIdx: index("idx_connect_codes_code").on(table.code),
   clientIdIdx: index("idx_connect_codes_client_id").on(table.client_id),
-}));
+}]));
 
 export const connectRateLimit = pgTable("connect_rate_limit", {
   id: varchar("id", { length: 36 })
@@ -29,6 +29,6 @@ export const connectRateLimit = pgTable("connect_rate_limit", {
   attempt_count: integer("attempt_count").default(0).notNull(),
   window_start: timestamp("window_start").defaultNow().notNull(),
   blocked_until: timestamp("blocked_until"),
-}, (table) => ({
+}, (table) => ([{
   clientIdIdx: index("idx_connect_rate_limit_client_id").on(table.client_id),
-}));
+}]));
