@@ -33,7 +33,7 @@
   - Implement `build()` method with validation of flex message structure
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5_
 
-- [-] 6. Create LINE Reply utility
+- [x] 6. Create LINE Reply utility
   - Create `api/src/features/line/utils/line-reply.util.ts` with `LineReplyUtil` class
   - Implement `replyText()` method for sending text messages
   - Implement `replyFlex()` method for sending flex messages
