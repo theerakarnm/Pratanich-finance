@@ -27,10 +27,12 @@ router.on(['POST', 'GET'], '/auth/*', (c) => auth.handler(c.req.raw));
 
 import clientsRoutes from './clients.routes';
 import loansRoutes from './loans.routes';
+import lineRoutes from './line.routes';
 
 // Feature routes
 router.route('/users', usersRoutes);
 router.route('/internal/clients', clientsRoutes);
 router.route('/internal/loans', loansRoutes);
+router.route('/line', lineRoutes);
 
 export default router;

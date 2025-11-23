@@ -78,7 +78,7 @@
   - Use dependency injection for client, reply utility, and event router
   - _Requirements: 2.5, 7.5_
 
-- [ ] 10. Create webhook route and controller
+- [x] 10. Create webhook route and controller
   - Create `api/src/routes/line.routes.ts` with webhook endpoint
   - Implement POST `/webhook` route with signature validation middleware
   - Integrate `LineDomain` to process webhook events
