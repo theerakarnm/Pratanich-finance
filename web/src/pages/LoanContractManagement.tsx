@@ -38,7 +38,7 @@ export function LoanContractManagement() {
       setTotalPages(response.meta.totalPages);
       setTotal(response.meta.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch loans');
+      setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลเงินกู้ได้');
       setLoans([]);
     } finally {
       setLoading(false);
@@ -67,10 +67,10 @@ export function LoanContractManagement() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight">Loan Contract Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search contracts..."
+              placeholder="ค้นหาสัญญา..."
               value={searchTerm}
               onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
               className="w-[300px]"
@@ -78,13 +78,13 @@ export function LoanContractManagement() {
             <Link href="/admin/loans/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Contract
+                สร้างสัญญา
               </Button>
             </Link>
           </div>
         </div>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-muted-foreground">Loading loan contracts...</div>
+          <div className="text-lg text-muted-foreground">กำลังโหลดข้อมูลสัญญาเงินกู้...</div>
         </div>
       </div>
     );
@@ -94,12 +94,12 @@ export function LoanContractManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Loan Contract Management</h1>
-          <p className="text-sm text-muted-foreground">Total {total} loan contracts</p>
+          <h1 className="text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
+          <p className="text-sm text-muted-foreground">ทั้งหมด {total} สัญญา</p>
         </div>
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Search contracts..."
+            placeholder="ค้นหาสัญญา..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             className="w-[300px]"
@@ -107,7 +107,7 @@ export function LoanContractManagement() {
           <Link href="/admin/loans/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Create Contract
+              สร้างสัญญา
             </Button>
           </Link>
         </div>
@@ -115,7 +115,7 @@ export function LoanContractManagement() {
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4">
-          <div className="text-sm text-red-800">Error: {error}</div>
+          <div className="text-sm text-red-800">ข้อผิดพลาด: {error}</div>
         </div>
       )}
 
@@ -123,29 +123,29 @@ export function LoanContractManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Contract Number</TableHead>
-              <TableHead>Client Name</TableHead>
-              <TableHead>Citizen ID</TableHead>
-              <TableHead>Loan Type</TableHead>
-              <TableHead>Principal Amount</TableHead>
-              <TableHead>Start Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Outstanding Balance</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>เลขที่สัญญา</TableHead>
+              <TableHead>ชื่อลูกค้า</TableHead>
+              <TableHead>เลขบัตรประชาชน</TableHead>
+              <TableHead>ประเภทเงินกู้</TableHead>
+              <TableHead>จำนวนเงินต้น</TableHead>
+              <TableHead>วันเริ่มต้น</TableHead>
+              <TableHead>สถานะ</TableHead>
+              <TableHead>ยอดคงเหลือ</TableHead>
+              <TableHead className="text-right">การกระทำ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
-                  <div className="text-sm text-muted-foreground">Loading...</div>
+                  <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
                 </TableCell>
               </TableRow>
             ) : loans.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">
-                    {searchTerm ? 'No contracts found matching your search.' : 'No loan contracts available.'}
+                    {searchTerm ? 'ไม่พบสัญญาที่ตรงกับการค้นหาของคุณ' : 'ไม่มีข้อมูลสัญญาเงินกู้'}
                   </div>
                 </TableCell>
               </TableRow>
@@ -193,10 +193,10 @@ export function LoanContractManagement() {
           disabled={currentPage === 1 || loading}
         >
           <ChevronLeft className="h-4 w-4" />
-          Previous
+          ก่อนหน้า
         </Button>
         <div className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          หน้า {currentPage} จาก {totalPages}
         </div>
         <Button
           variant="outline"
@@ -204,7 +204,7 @@ export function LoanContractManagement() {
           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages || loading}
         >
-          Next
+          ถัดไป
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

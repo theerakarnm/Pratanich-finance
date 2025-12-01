@@ -43,7 +43,7 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
 
     try {
       const response = await apiClient.get<LoanSummaryResponse>(
-        `/api/clients/${clientId}/loans/summary`
+        `/api/internal/clients/${clientId}/loans/summary`
       );
       setLoanData(response.data);
     } catch (error: any) {

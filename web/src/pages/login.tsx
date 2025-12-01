@@ -12,8 +12,8 @@ import { AlertCircle } from 'lucide-react';
 import { navigate } from 'wouter/use-browser-location';
 
 const loginSchema = z.object({
-  email: z.email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.email('กรุณากรอกอีเมลให้ถูกต้อง'),
+  password: z.string().min(1, 'กรุณากรอกรหัสผ่าน'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -39,7 +39,7 @@ export default function AdminLogin() {
       await login(data.email, data.password);
       navigate('/admin/dashboard', { replace: true });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      const errorMessage = err instanceof Error ? err.message : 'การยืนยันตัวตนล้มเหลว';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -51,9 +51,9 @@ export default function AdminLogin() {
       <div className="w-full max-w-md">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Admin Portal</CardTitle>
+            <CardTitle className="text-2xl">ระบบผู้ดูแล</CardTitle>
             <CardDescription>
-              Sign in to access the admin dashboard
+              เข้าสู่ระบบเพื่อเข้าถึงแดชบอร์ดผู้ดูแล
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -66,7 +66,7 @@ export default function AdminLogin() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">อีเมล</Label>
                 <Input
                   id="email"
                   type="email"
@@ -81,11 +81,11 @@ export default function AdminLogin() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">รหัสผ่าน</Label>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="กรอกรหัสผ่านของคุณ"
                   aria-invalid={!!errors.password}
                   disabled={isLoading}
                   {...register('password')}
@@ -100,7 +100,7 @@ export default function AdminLogin() {
                 className="w-full"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign in'}
+                {isLoading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
               </Button>
             </form>
           </CardContent>

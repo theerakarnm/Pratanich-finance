@@ -71,13 +71,7 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
         color: PRIMARY_COLOR,
       }),
     ])
-    .setHero(
-      builder.addImage(MOCK_QR_CODE_URL, {
-        size: 'full',
-        aspectRatio: '20:13',
-        aspectMode: 'cover',
-      })
-    )
+
     .setBody([
       builder.addText('อนุมัติสินเชื่อเรียบร้อยแล้ว', {
         weight: 'bold',
@@ -97,6 +91,13 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
+      builder.addImage(MOCK_QR_CODE_URL, {
+        size: 'md',
+        aspectRatio: '1:1',
+        aspectMode: 'cover',
+        align: 'center',
+        margin: 'md',
+      }),
       builder.addButton('ดูรายละเอียดสัญญา', {
         type: 'uri',
         uri: data.paymentLink, // Assuming link to contract details
@@ -119,14 +120,7 @@ export function createBillingMessage(data: BillingData): FlexMessage {
         color: '#333333',
       }),
     ])
-    .setHero(
-      builder.addImage(MOCK_QR_CODE_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-      })
-    )
+
     .setBody([
       builder.addText('ยอดที่ต้องชำระ', {
         size: 'sm',
@@ -151,6 +145,13 @@ export function createBillingMessage(data: BillingData): FlexMessage {
       ], { margin: 'lg' }),
     ])
     .setFooter([
+      builder.addImage(MOCK_QR_CODE_URL, {
+        size: 'md',
+        aspectRatio: '1:1',
+        aspectMode: 'cover',
+        align: 'center',
+        margin: 'md',
+      }),
       builder.addButton('ชำระเงินทันที', {
         type: 'uri',
         uri: data.paymentLink,
@@ -175,14 +176,7 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
         }),
       ]),
     ])
-    .setHero(
-      builder.addImage(MOCK_QR_CODE_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-      })
-    )
+
     .setBody([
       builder.addText(`อีก ${data.daysRemaining} วันจะครบกำหนด`, {
         weight: 'bold',
@@ -203,6 +197,13 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
+      builder.addImage(MOCK_QR_CODE_URL, {
+        size: 'md',
+        aspectRatio: '1:1',
+        aspectMode: 'cover',
+        align: 'center',
+        margin: 'md',
+      }),
       builder.addButton('ชำระเงินทันที', {
         type: 'uri',
         uri: data.paymentLink,
@@ -225,14 +226,7 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
         color: DANGER_COLOR,
       }),
     ])
-    .setHero(
-      builder.addImage(MOCK_QR_CODE_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-      })
-    )
+
     .setBody([
       builder.addText('กรุณาชำระภายใน 23:59 น.', {
         weight: 'bold',
@@ -259,6 +253,13 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
       ], { margin: 'lg' }),
     ])
     .setFooter([
+      builder.addImage(MOCK_QR_CODE_URL, {
+        size: 'md',
+        aspectRatio: '1:1',
+        aspectMode: 'cover',
+        align: 'center',
+        margin: 'md',
+      }),
       builder.addButton('ชำระเงินตอนนี้', {
         type: 'uri',
         uri: data.paymentLink,
@@ -318,14 +319,7 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
         color: DANGER_COLOR,
       }),
     ])
-    .setHero(
-      builder.addImage(MOCK_QR_CODE_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-      })
-    )
+
     .setBody([
       builder.addText(`เกินกำหนด ${data.daysOverdue} วัน`, {
         weight: 'bold',
@@ -347,6 +341,13 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
+      builder.addImage(MOCK_QR_CODE_URL, {
+        size: 'md',
+        aspectRatio: '1:1',
+        aspectMode: 'cover',
+        align: 'center',
+        margin: 'md',
+      }),
       builder.addButton('ชำระเงินทันที', {
         type: 'uri',
         uri: data.paymentLink,

@@ -12,12 +12,12 @@ export function ClientCreate() {
     try {
       setError(null);
       await createClient(data);
-      alert("Client created successfully!");
+      alert("สร้างลูกค้าสำเร็จแล้ว!");
       setLocation("/admin/clients");
     } catch (err) {
       console.error("Failed to create client:", err);
-      setError(err instanceof Error ? err.message : "Failed to create client");
-      alert("Failed to create client: " + (err instanceof Error ? err.message : "Unknown error"));
+      setError(err instanceof Error ? err.message : "ไม่สามารถสร้างลูกค้าได้");
+      alert("ไม่สามารถสร้างลูกค้าได้: " + (err instanceof Error ? err.message : "ข้อผิดพลาดที่ไม่ทราบสาเหตุ"));
     }
   };
 

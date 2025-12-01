@@ -24,7 +24,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
-                  <BreadcrumbPage>Admin Portal</BreadcrumbPage>
+                  <BreadcrumbPage>ระบบผู้ดูแล</BreadcrumbPage>
                 </BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>

@@ -23,20 +23,20 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const loanContractSchema = z.object({
-  contract_number: z.string().min(1, "Contract number is required"),
-  loan_type: z.string().min(1, "Loan type is required"),
-  principal_amount: z.coerce.number().min(1, "Principal amount must be greater than 0"),
-  approved_amount: z.coerce.number().min(1, "Approved amount must be greater than 0"),
-  interest_rate: z.coerce.number().min(0, "Interest rate must be positive"),
-  term_months: z.coerce.number().min(1, "Term must be at least 1 month"),
-  installment_amount: z.coerce.number().min(0, "Installment amount must be positive"),
-  contract_start_date: z.string().min(1, "Start date is required"),
-  contract_end_date: z.string().min(1, "End date is required"),
-  due_day: z.coerce.number().min(1).max(31, "Due day must be between 1 and 31"),
+  contract_number: z.string().min(1, "กรุณากรอกเลขที่สัญญา"),
+  loan_type: z.string().min(1, "กรุณาเลือกประเภทเงินกู้"),
+  principal_amount: z.coerce.number().min(1, "จำนวนเงินต้นต้องมากกว่า 0"),
+  approved_amount: z.coerce.number().min(1, "จำนวนเงินที่อนุมัติต้องมากกว่า 0"),
+  interest_rate: z.coerce.number().min(0, "อัตราดอกเบี้ยต้องเป็นค่าบวก"),
+  term_months: z.coerce.number().min(1, "ระยะเวลาต้องอย่างน้อย 1 เดือน"),
+  installment_amount: z.coerce.number().min(0, "จำนวนเงินผ่อนต้องเป็นค่าบวก"),
+  contract_start_date: z.string().min(1, "กรุณากรอกวันเริ่มต้นสัญญา"),
+  contract_end_date: z.string().min(1, "กรุณากรอกวันสิ้นสุดสัญญา"),
+  due_day: z.coerce.number().min(1).max(31, "วันที่ชำระต้องอยู่ระหว่าง 1 ถึง 31"),
   contract_status: z.enum(["Active", "Closed", "Overdue"]),
-  outstanding_balance: z.coerce.number().min(0, "Outstanding balance must be positive"),
-  overdue_days: z.coerce.number().min(0, "Overdue days must be positive"),
-  client_id: z.string().min(1, "Client is required"),
+  outstanding_balance: z.coerce.number().min(0, "ยอดคงเหลือต้องเป็นค่าบวก"),
+  overdue_days: z.coerce.number().min(0, "จำนวนวันที่ค้างชำระต้องเป็นค่าบวก"),
+  client_id: z.string().min(1, "กรุณาเลือกลูกค้า"),
 });
 
 export type LoanContractFormValues = z.infer<typeof loanContractSchema>;
@@ -72,7 +72,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
   return (
     <Card className="w-full mx-auto">
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Loan Contract" : "Create New Loan Contract"}</CardTitle>
+        <CardTitle>{isEditing ? "แก้ไขสัญญาเงินกู้" : "สร้างสัญญาเงินกู้ใหม่"}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>

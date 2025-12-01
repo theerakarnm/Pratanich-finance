@@ -13,7 +13,7 @@ const router = new Hono<{
 router.use(
   "/auth/*", // or replace with "*" to enable cors for all routes
   cors({
-    origin: "http://localhost:5555", // replace with your origin
+    origin: ["http://localhost:5555", 'https://d0badd696350.ngrok-free.app'], // replace with your origin
     allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],

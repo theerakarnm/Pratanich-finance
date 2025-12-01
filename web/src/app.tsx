@@ -24,7 +24,7 @@ export function App() {
       <Switch>
         <Route path="/auth/login" component={AdminLogin} />
         <Route path="/api-test" component={ApiClientTest} />
-        
+
         {/* LIFF Routes */}
         <Route path="/liff/connect" component={LiffConnect} />
         <Route path="/liff/loans/:clientId">

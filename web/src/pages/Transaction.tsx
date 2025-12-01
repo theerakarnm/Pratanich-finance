@@ -44,13 +44,13 @@ export function Transaction() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
+        <h1 className="text-3xl font-bold tracking-tight">รายการทำรายการ</h1>
         <div className="flex items-center space-x-2">
           <Button onClick={() => setShowVerifyModal(true)}>
-            Verify Slip
+            ตรวจสอบสลิป
           </Button>
           <Input
-            placeholder="Search reference, sender, receiver..."
+            placeholder="ค้นหาเลขอ้างอิง, ผู้ส่ง, ผู้รับ..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             className="max-w-sm"
@@ -62,13 +62,13 @@ export function Transaction() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date/Time</TableHead>
-              <TableHead>Ref No.</TableHead>
-              <TableHead>Sender</TableHead>
-              <TableHead>Receiver</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Action</TableHead>
+              <TableHead>วันที่/เวลา</TableHead>
+              <TableHead>เลขที่อ้างอิง</TableHead>
+              <TableHead>ผู้ส่ง</TableHead>
+              <TableHead>ผู้รับ</TableHead>
+              <TableHead>จำนวนเงิน</TableHead>
+              <TableHead>สถานะ</TableHead>
+              <TableHead className="text-right">การกระทำ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,10 +108,10 @@ export function Transaction() {
           disabled={currentPage === 1}
         >
           <ChevronLeft className="h-4 w-4" />
-          Previous
+          ก่อนหน้า
         </Button>
         <div className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          หน้า {currentPage} จาก {totalPages}
         </div>
         <Button
           variant="outline"
@@ -119,7 +119,7 @@ export function Transaction() {
           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages}
         >
-          Next
+          ถัดไป
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
@@ -127,9 +127,9 @@ export function Transaction() {
       <Dialog open={!!selectedTransaction} onOpenChange={(open) => !open && setSelectedTransaction(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Transaction Details</DialogTitle>
+            <DialogTitle>รายละเอียดรายการ</DialogTitle>
             <DialogDescription>
-              Transaction Reference: {selectedTransaction?.data.transRef}
+              เลขที่อ้างอิง: {selectedTransaction?.data.transRef}
             </DialogDescription>
           </DialogHeader>
           {selectedTransaction && <TransactionDetail transaction={selectedTransaction} />}

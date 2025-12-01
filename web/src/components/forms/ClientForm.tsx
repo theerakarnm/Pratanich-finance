@@ -23,13 +23,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const clientSchema = z.object({
-  citizen_id: z.string().length(13, "Citizen ID must be 13 digits"),
-  title_name: z.string().min(1, "Title is required"),
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  date_of_birth: z.string().min(1, "Date of birth is required"), // Keep as string for simplicity for now, can enhance with Calendar later
-  mobile_number: z.string().min(10, "Mobile number must be at least 10 digits"),
-  email: z.string().email("Invalid email address"),
+  citizen_id: z.string().length(13, "เลขบัตรประชาชนต้องมี 13 หลัก"),
+  title_name: z.string().min(1, "กรุณากรอกคำนำหน้า"),
+  first_name: z.string().min(1, "กรุณากรอกชื่อ"),
+  last_name: z.string().min(1, "กรุณากรอกนามสกุล"),
+  date_of_birth: z.string().min(1, "กรุณากรอกวันเกิด"), // Keep as string for simplicity for now, can enhance with Calendar later
+  mobile_number: z.string().min(10, "เบอร์โทรศัพท์ต้องมีอย่างน้อย 10 หลัก"),
+  email: z.string().email("อีเมลไม่ถูกต้อง"),
   line_id: z.string().optional(),
 });
 
@@ -59,7 +59,7 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>{isEditing ? "Edit Client" : "Create New Client"}</CardTitle>
+        <CardTitle>{isEditing ? "แก้ไขข้อมูลลูกค้า" : "สร้างลูกค้าใหม่"}</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -70,7 +70,7 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="citizen_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Citizen ID</FormLabel>
+                    <FormLabel>เลขบัตรประชาชน</FormLabel>
                     <FormControl>
                       <Input placeholder="1234567890123" {...field} />
                     </FormControl>
@@ -84,17 +84,17 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="title_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>คำนำหน้า</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select title" />
+                          <SelectValue placeholder="เลือกคำนำหน้า" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Mr.">Mr.</SelectItem>
-                        <SelectItem value="Mrs.">Mrs.</SelectItem>
-                        <SelectItem value="Ms.">Ms.</SelectItem>
+                        <SelectItem value="Mr.">นาย</SelectItem>
+                        <SelectItem value="Mrs.">นาง</SelectItem>
+                        <SelectItem value="Ms.">นางสาว</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -107,9 +107,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>ชื่อ</FormLabel>
                     <FormControl>
-                      <Input placeholder="John" {...field} />
+                      <Input placeholder="สมชาย" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -121,9 +121,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>นามสกุล</FormLabel>
                     <FormControl>
-                      <Input placeholder="Doe" {...field} />
+                      <Input placeholder="ใจดี" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -135,14 +135,14 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="date_of_birth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date of Birth</FormLabel>
+                    <FormLabel>วันเกิด</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
                           field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                         }
-                        placeholder="Pick a date"
+                        placeholder="เลือกวันที่"
                       />
                     </FormControl>
                     <FormMessage />
@@ -155,7 +155,7 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="mobile_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Mobile Number</FormLabel>
+                    <FormLabel>เบอร์โทรศัพท์</FormLabel>
                     <FormControl>
                       <Input placeholder="0812345678" {...field} />
                     </FormControl>
@@ -169,9 +169,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>อีเมล</FormLabel>
                     <FormControl>
-                      <Input placeholder="john@example.com" {...field} />
+                      <Input placeholder="somchai@example.com" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -195,9 +195,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                Cancel
+                ยกเลิก
               </Button>
-              <Button type="submit">{isEditing ? "Update Client" : "Create Client"}</Button>
+              <Button type="submit">{isEditing ? "อัพเดทข้อมูลลูกค้า" : "สร้างลูกค้า"}</Button>
             </div>
           </form>
         </Form>

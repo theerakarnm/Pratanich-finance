@@ -15,22 +15,22 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Dashboard",
+    title: "แดชบอร์ด",
     url: "/admin/dashboard",
     icon: LayoutDashboard,
   },
   {
-    title: "Client Management",
+    title: "จัดการลูกค้า",
     url: "/admin/clients",
     icon: Users,
   },
   {
-    title: "Loan Contracts",
+    title: "สัญญาเงินกู้",
     url: "/admin/loans",
     icon: FileText,
   },
   {
-    title: "Transactions",
+    title: "รายการทำรายการ",
     url: "/admin/transactions",
     icon: Activity,
   },
@@ -42,12 +42,12 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="flex items-center justify-center py-4">
-        <span className="text-xl font-bold text-primary group-data-[collapsible=icon]:hidden">Admin Portal</span>
-        <span className="text-xl font-bold text-primary hidden group-data-[collapsible=icon]:block">AP</span>
+        <span className="text-xl font-bold text-primary group-data-[collapsible=icon]:hidden">ระบบผู้ดูแล</span>
+        <span className="text-xl font-bold text-primary hidden group-data-[collapsible=icon]:block">รด</span>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>เมนู</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (

@@ -11,12 +11,18 @@ import {
   RateLimitExceededError,
 } from "./connect.errors";
 import type { LineProfile, VerificationResult } from "./connect.types";
+import logger from "../../core/logger";
 
 export class ConnectDomain {
   /**
    * Generate a new connect code for a client
    */
   async generateConnectCode(clientId: string) {
+    logger.info({
+      event: "connect_code_generation_started",
+      clientId,
+    });
+
     const maxRetries = 5;
     let attempts = 0;
 
@@ -37,11 +43,29 @@ export class ConnectDomain {
           is_used: false,
         });
 
+        logger.info({
+          event: "connect_code_generated",
+          clientId,
+          code: connectCode.code,
+          expiresAt: connectCode.expires_at.toISOString(),
+        });
+
         return connectCode;
       }
 
       attempts++;
+      logger.warn({
+        event: "connect_code_collision",
+        clientId,
+        attempt: attempts,
+      });
     }
+
+    logger.error({
+      event: "connect_code_generation_failed",
+      clientId,
+      reason: "max_retries_exceeded",
+    });
 
     throw new Error("Failed to generate unique connect code after multiple attempts");
   }
@@ -84,10 +108,23 @@ export class ConnectDomain {
    * Complete connection with LINE profile data
    */
   async completeConnection(code: string, lineProfile: LineProfile) {
+    logger.info({
+      event: "connection_attempt_started",
+      code,
+      lineUserId: lineProfile.userId,
+    });
+
     // Verify code first
     const verification = await this.verifyConnectCode(code);
     
     if (!verification.valid) {
+      logger.warn({
+        event: "connection_attempt_failed",
+        code,
+        lineUserId: lineProfile.userId,
+        reason: verification.error,
+      });
+
       if (verification.error === "Invalid connect code") {
         throw new ConnectCodeNotFoundError();
       } else if (verification.error === "Connect code has expired") {
@@ -104,6 +141,14 @@ export class ConnectDomain {
     const existingClient = await clientsRepository.findByLineUserId(lineProfile.userId);
     
     if (existingClient && existingClient.id !== clientId) {
+      logger.warn({
+        event: "connection_attempt_failed",
+        code,
+        lineUserId: lineProfile.userId,
+        clientId,
+        reason: "line_user_id_already_connected",
+        existingClientId: existingClient.id,
+      });
       throw new LineUserIdAlreadyConnectedError();
     }
 
@@ -117,6 +162,14 @@ export class ConnectDomain {
 
     // Mark connect code as used
     await connectRepository.markAsUsed(code);
+
+    logger.info({
+      event: "connection_completed",
+      code,
+      clientId,
+      lineUserId: lineProfile.userId,
+      lineDisplayName: lineProfile.displayName,
+    });
 
     return updatedClient;
   }
@@ -139,6 +192,14 @@ export class ConnectDomain {
     // Check if client is currently blocked
     if (rateLimit.blocked_until && rateLimit.blocked_until > now) {
       const retryAfter = Math.ceil((rateLimit.blocked_until.getTime() - now.getTime()) / 1000);
+      
+      logger.warn({
+        event: "rate_limit_blocked",
+        clientId,
+        blockedUntil: rateLimit.blocked_until.toISOString(),
+        retryAfter,
+      });
+
       throw new RateLimitExceededError(retryAfter);
     }
 
@@ -149,6 +210,12 @@ export class ConnectDomain {
     if (now > windowEnd) {
       // Window has expired, reset the counter
       await rateLimitRepository.reset(clientId);
+      
+      logger.info({
+        event: "rate_limit_reset",
+        clientId,
+      });
+
       return true;
     }
 
@@ -157,6 +224,16 @@ export class ConnectDomain {
       // Block the client
       await rateLimitRepository.blockClient(clientId, config.connect.rateLimitBlockMinutes);
       const retryAfter = config.connect.rateLimitBlockMinutes * 60;
+      
+      logger.warn({
+        event: "rate_limit_exceeded",
+        clientId,
+        attemptCount: rateLimit.attempt_count,
+        maxAttempts: config.connect.rateLimitMaxAttempts,
+        blockDurationMinutes: config.connect.rateLimitBlockMinutes,
+        retryAfter,
+      });
+
       throw new RateLimitExceededError(retryAfter);
     }
 
@@ -167,7 +244,14 @@ export class ConnectDomain {
    * Increment rate limit counter for a client
    */
   async incrementRateLimit(clientId: string): Promise<void> {
-    await rateLimitRepository.incrementAttempts(clientId);
+    const rateLimit = await rateLimitRepository.incrementAttempts(clientId);
+    
+    logger.info({
+      event: "rate_limit_incremented",
+      clientId,
+      attemptCount: rateLimit.attempt_count,
+      maxAttempts: config.connect.rateLimitMaxAttempts,
+    });
   }
 
   /**

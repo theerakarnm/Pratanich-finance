@@ -6,6 +6,7 @@ import { clientsDomain } from "../features/clients/clients.domain";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { auth } from "../libs/auth";
 import { ResponseBuilder } from "../core/response";
+import logger from "../core/logger";
 import {
   ConnectCodeNotFoundError,
   ConnectCodeExpiredError,
@@ -36,6 +37,7 @@ const completeConnectionSchema = z.object({
 // Admin endpoint: Generate connect code for a client
 connectRoutes.post("/clients/:clientId/connect-code", authMiddleware, async (c) => {
   const clientId = c.req.param("clientId");
+  const requestId = c.req.header('x-request-id');
   
   try {
     // Verify client exists
@@ -44,12 +46,26 @@ connectRoutes.post("/clients/:clientId/connect-code", authMiddleware, async (c) 
     // Generate connect code
     const connectCode = await connectDomain.generateConnectCode(clientId);
     
+    logger.info({
+      event: "admin_connect_code_created",
+      clientId,
+      code: connectCode.code,
+      requestId,
+    });
+    
     return ResponseBuilder.created(c, {
       code: connectCode.code,
       expiresAt: connectCode.expires_at.toISOString(),
       clientId: connectCode.client_id,
     });
   } catch (error: any) {
+    logger.error({
+      event: "admin_connect_code_creation_failed",
+      clientId,
+      error: error.message,
+      requestId,
+    });
+
     if (error.message === "Client not found") {
       return ResponseBuilder.error(c, error.message, 404);
     }
@@ -112,12 +128,26 @@ connectRoutes.delete("/connect-codes/:code", authMiddleware, async (c) => {
 // Client-facing endpoint: Verify connect code
 connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) => {
   const { code } = c.req.valid("json");
+  const requestId = c.req.header('x-request-id');
   
   try {
+    logger.info({
+      event: "connect_code_verification_started",
+      code,
+      requestId,
+    });
+
     // Verify the connect code
     const result = await connectDomain.verifyConnectCode(code);
     
     if (!result.valid) {
+      logger.warn({
+        event: "connect_code_verification_failed",
+        code,
+        reason: result.error,
+        requestId,
+      });
+
       return ResponseBuilder.error(c, result.error || "Invalid connect code", 400);
     }
     
@@ -137,11 +167,25 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
       throw error;
     }
     
+    logger.info({
+      event: "connect_code_verified",
+      code,
+      clientId: result.clientId,
+      requestId,
+    });
+
     return ResponseBuilder.success(c, {
       valid: true,
       clientId: result.clientId,
     });
   } catch (error: any) {
+    logger.error({
+      event: "connect_code_verification_error",
+      code,
+      error: error.message,
+      requestId,
+    });
+
     return ResponseBuilder.error(c, error.message, 500);
   }
 });
@@ -149,6 +193,7 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
 // Client-facing endpoint: Complete connection with LINE profile
 connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), async (c) => {
   const { code, lineUserId, lineDisplayName, linePictureUrl } = c.req.valid("json");
+  const requestId = c.req.header('x-request-id');
   
   try {
     // Complete the connection
@@ -161,6 +206,15 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
     // Get loans summary to check if client has loans
     const loansSummary = await clientsDomain.getLoansSummary(client.id);
     
+    logger.info({
+      event: "connection_success",
+      code,
+      clientId: client.id,
+      lineUserId,
+      hasLoans: loansSummary.totalLoans > 0,
+      requestId,
+    });
+
     return ResponseBuilder.success(c, {
       success: true,
       clientId: client.id,
@@ -181,14 +235,42 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
         // Ignore errors during rate limit increment
       }
       
+      logger.warn({
+        event: "connection_failed",
+        code,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        requestId,
+      });
+
       return ResponseBuilder.error(c, error.message, 400);
     }
     
     if (error instanceof LineUserIdAlreadyConnectedError) {
+      logger.warn({
+        event: "connection_failed",
+        code,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        requestId,
+      });
+
       return ResponseBuilder.error(c, error.message, 409);
     }
     
     if (error instanceof RateLimitExceededError) {
+      logger.warn({
+        event: "connection_failed",
+        code,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        retryAfter: error.retryAfter,
+        requestId,
+      });
+
       return ResponseBuilder.error(
         c,
         error.message,
@@ -198,6 +280,14 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
       );
     }
     
+    logger.error({
+      event: "connection_error",
+      code,
+      lineUserId,
+      error: error.message,
+      requestId,
+    });
+
     return ResponseBuilder.error(c, error.message, 500);
   }
 });

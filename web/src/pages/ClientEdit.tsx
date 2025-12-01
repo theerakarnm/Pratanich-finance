@@ -50,16 +50,16 @@ export function ClientEdit() {
     if (!params?.id) return;
     try {
       await updateClient(params.id, data);
-      alert("Client updated successfully!");
+      alert("อัพเดทข้อมูลลูกค้าสำเร็จแล้ว!");
       setLocation("/admin/clients");
     } catch (err) {
       console.error("Failed to update client:", err);
-      alert("Failed to update client: " + (err instanceof Error ? err.message : "Unknown error"));
+      alert("ไม่สามารถอัพเดทข้อมูลลูกค้าได้: " + (err instanceof Error ? err.message : "ข้อผิดพลาดที่ไม่ทราบสาเหตุ"));
     }
   };
 
   if (!clientData && params?.id) {
-    return <div>Loading...</div>;
+    return <div>กำลังโหลด...</div>;
   }
 
   const isConnected = !!(client?.line_user_id);
@@ -67,13 +67,13 @@ export function ClientEdit() {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Edit Client</h1>
+        <h1 className="text-2xl font-bold">แก้ไขข้อมูลลูกค้า</h1>
       </div>
 
       {client && (
         <Card>
           <CardHeader>
-            <CardTitle>LINE Connection</CardTitle>
+            <CardTitle>การเชื่อมต่อ LINE</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">

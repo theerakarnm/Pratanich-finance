@@ -33,7 +33,7 @@ export function Dashboard() {
         setOutstandingBalance(totalOutstanding);
 
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
+        setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลแดชบอร์ดได้');
       } finally {
         setLoading(false);
       }
@@ -67,9 +67,9 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">แดชบอร์ด</h1>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-muted-foreground">Loading dashboard data...</div>
+          <div className="text-lg text-muted-foreground">กำลังโหลดข้อมูลแดชบอร์ด...</div>
         </div>
       </div>
     );
@@ -77,59 +77,59 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+      <h1 className="text-3xl font-bold tracking-tight">แดชบอร์ด</h1>
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4">
-          <div className="text-sm text-red-800">Error: {error}</div>
+          <div className="text-sm text-red-800">ข้อผิดพลาด: {error}</div>
         </div>
       )}
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+            <CardTitle className="text-sm font-medium">ลูกค้าทั้งหมด</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(totalClients, {
               decimalPlaces: 0
             })}</div>
-            <p className="text-xs text-muted-foreground">Registered clients</p>
+            <p className="text-xs text-muted-foreground">ลูกค้าที่ลงทะเบียน</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Loans</CardTitle>
+            <CardTitle className="text-sm font-medium">เงินกู้ทั้งหมด</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(totalLoans, {
               decimalPlaces: 0
             })}</div>
-            <p className="text-xs text-muted-foreground">Active loan contracts</p>
+            <p className="text-xs text-muted-foreground">สัญญาเงินกู้ที่ใช้งานอยู่</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding Balance</CardTitle>
+            <CardTitle className="text-sm font-medium">ยอดคงเหลือ</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(outstandingBalance)}</div>
-            <p className="text-xs text-muted-foreground">Total outstanding amount</p>
+            <p className="text-xs text-muted-foreground">ยอดคงเหลือทั้งหมด</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Transactions</CardTitle>
+            <CardTitle className="text-sm font-medium">รายการวันนี้</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatNumber(todayTransactions, {
               decimalPlaces: 0
             })}</div>
-            <p className="text-xs text-muted-foreground">Transactions today</p>
+            <p className="text-xs text-muted-foreground">รายการทำรายการวันนี้</p>
           </CardContent>
         </Card>
       </div>
@@ -137,7 +137,7 @@ export function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Loan Trends</CardTitle>
+            <CardTitle>แนวโน้มการกู้</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
             <div className="h-[300px]">
@@ -155,7 +155,7 @@ export function Dashboard() {
         </Card>
         <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>Transaction Volume</CardTitle>
+            <CardTitle>ปริมาณรายการ</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">

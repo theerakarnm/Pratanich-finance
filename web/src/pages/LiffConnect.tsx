@@ -33,7 +33,7 @@ export function LiffConnect() {
   const [isInitializing, setIsInitializing] = useState(true);
   const [liffError, setLiffError] = useState<string | null>(null);
   const [profile, setProfile] = useState<LineProfile | null>(null);
-  
+
   const [code, setCode] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -49,29 +49,37 @@ export function LiffConnect() {
       return;
     }
 
-    liff
-      .init({ liffId })
-      .then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return null;
-        }
-        
-        return liff.getProfile();
-      })
-      .then((profile) => {
-        if (profile) {
-          setProfile(profile);
-          // Check if user is already connected
-          checkExistingConnection(profile.userId);
-        }
-      })
-      .catch((error: Error) => {
-        setLiffError(error.toString());
-      })
-      .finally(() => {
-        setIsInitializing(false);
-      });
+    setProfile({
+      userId: 'test',
+      displayName: 'Theerakarn Maiwong',
+      pictureUrl: '',
+      statusMessage: 'Hello',
+    })
+    setIsInitializing(false);
+
+    // liff
+    //   .init({ liffId })
+    //   .then(() => {
+    //     if (!liff.isLoggedIn()) {
+    //       liff.login();
+    //       return null;
+    //     }
+
+    //     return liff.getProfile();
+    //   })
+    //   .then((profile) => {
+    //     if (profile) {
+    //       setProfile(profile);
+    //       // Check if user is already connected
+    //       checkExistingConnection(profile.userId);
+    //     }
+    //   })
+    //   .catch((error: Error) => {
+    //     setLiffError(error.toString());
+    //   })
+    //   .finally(() => {
+    //     setIsInitializing(false);
+    //   });
   }, []);
 
   // Check if LINE user is already connected
@@ -80,7 +88,7 @@ export function LiffConnect() {
       const response = await apiClient.get<{ clientId: string; firstName: string; lastName: string; connectedAt: string }>(
         `/api/connect/client/${lineUserId}`
       );
-      
+
       if (response.data) {
         // User is already connected, redirect to loan summary
         setLocation(`/liff/loans/${response.data.clientId}`);
@@ -95,15 +103,15 @@ export function LiffConnect() {
   const handleCodeChange = (e: Event) => {
     const input = e.target as HTMLInputElement;
     let value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    
+
     if (value.length > 8) {
       value = value.slice(0, 8);
     }
-    
+
     if (value.length > 4) {
       value = `${value.slice(0, 4)}-${value.slice(4)}`;
     }
-    
+
     setCode(value);
     setError(null);
   };
@@ -220,8 +228,8 @@ export function LiffConnect() {
           {profile && (
             <div className="mb-6 flex items-center gap-3 rounded-lg bg-green-50 p-3">
               {profile.pictureUrl && (
-                <img 
-                  src={profile.pictureUrl} 
+                <img
+                  src={profile.pictureUrl}
                   alt={profile.displayName}
                   className="h-10 w-10 rounded-full"
                 />

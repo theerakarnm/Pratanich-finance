@@ -45,7 +45,7 @@ export function ClientManagement() {
       setTotalPages(response.meta.totalPages);
       setTotal(response.meta.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch clients');
+      setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลลูกค้าได้');
       setClients([]);
     } finally {
       setLoading(false);
@@ -83,10 +83,10 @@ export function ClientManagement() {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight">Client Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search clients..."
+              placeholder="ค้นหาลูกค้า..."
               value={searchTerm}
               onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
               className="w-[300px]"
@@ -94,13 +94,13 @@ export function ClientManagement() {
             <Link href="/admin/clients/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                Create Client
+                สร้างลูกค้า
               </Button>
             </Link>
           </div>
         </div>
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-muted-foreground">Loading clients...</div>
+          <div className="text-lg text-muted-foreground">กำลังโหลดข้อมูลลูกค้า...</div>
         </div>
       </div>
     );
@@ -110,30 +110,30 @@ export function ClientManagement() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Client Management</h1>
-          <p className="text-sm text-muted-foreground">Total {total} clients</p>
+          <h1 className="text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
+          <p className="text-sm text-muted-foreground">ทั้งหมด {total} คน</p>
         </div>
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Search clients..."
+            placeholder="ค้นหาลูกค้า..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             className="w-[250px]"
           />
           <Select value={connectionFilter} onValueChange={setConnectionFilter}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Connection status" />
+              <SelectValue placeholder="สถานะการเชื่อมต่อ" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Clients</SelectItem>
-              <SelectItem value="connected">Connected</SelectItem>
-              <SelectItem value="not-connected">Not Connected</SelectItem>
+              <SelectItem value="all">ลูกค้าทั้งหมด</SelectItem>
+              <SelectItem value="connected">เชื่อมต่อแล้ว</SelectItem>
+              <SelectItem value="not-connected">ยังไม่เชื่อมต่อ</SelectItem>
             </SelectContent>
           </Select>
           <Link href="/admin/clients/new">
             <Button>
               <Plus className="mr-2 h-4 w-4" />
-              Create Client
+              สร้างลูกค้า
             </Button>
           </Link>
         </div>
@@ -141,7 +141,7 @@ export function ClientManagement() {
 
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 p-4">
-          <div className="text-sm text-red-800">Error: {error}</div>
+          <div className="text-sm text-red-800">ข้อผิดพลาด: {error}</div>
         </div>
       )}
 
@@ -149,29 +149,29 @@ export function ClientManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Citizen ID</TableHead>
-              <TableHead>Title</TableHead>
-              <TableHead>First Name</TableHead>
-              <TableHead>Last Name</TableHead>
-              <TableHead>Date of Birth</TableHead>
-              <TableHead>Mobile Number</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>LINE Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>เลขบัตรประชาชน</TableHead>
+              <TableHead>คำนำหน้า</TableHead>
+              <TableHead>ชื่อ</TableHead>
+              <TableHead>นามสกุล</TableHead>
+              <TableHead>วันเกิด</TableHead>
+              <TableHead>เบอร์โทรศัพท์</TableHead>
+              <TableHead>อีเมล</TableHead>
+              <TableHead>สถานะ LINE</TableHead>
+              <TableHead className="text-right">การกระทำ</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
-                  <div className="text-sm text-muted-foreground">Loading...</div>
+                  <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
                 </TableCell>
               </TableRow>
             ) : filteredClients.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">
-                    {searchTerm || connectionFilter !== 'all' ? 'No clients found matching your filters.' : 'No clients available.'}
+                    {searchTerm || connectionFilter !== 'all' ? 'ไม่พบลูกค้าที่ตรงกับตัวกรองของคุณ' : 'ไม่มีข้อมูลลูกค้า'}
                   </div>
                 </TableCell>
               </TableRow>
@@ -214,10 +214,10 @@ export function ClientManagement() {
           disabled={currentPage === 1 || loading}
         >
           <ChevronLeft className="h-4 w-4" />
-          Previous
+          ก่อนหน้า
         </Button>
         <div className="text-sm text-muted-foreground">
-          Page {currentPage} of {totalPages}
+          หน้า {currentPage} จาก {totalPages}
         </div>
         <Button
           variant="outline"
@@ -225,7 +225,7 @@ export function ClientManagement() {
           onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
           disabled={currentPage === totalPages || loading}
         >
-          Next
+          ถัดไป
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
