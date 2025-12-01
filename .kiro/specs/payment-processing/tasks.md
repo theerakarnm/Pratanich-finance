@@ -9,39 +9,39 @@
   - Run migration and verify schema changes
   - _Requirements: 4.1, 6.1, 6.3, 6.4_
 
-- [ ] 2. Implement Core Payment Domain Logic
-- [ ] 2.1 Create payment types and interfaces
+- [x] 2. Implement Core Payment Domain Logic
+- [x] 2.1 Create payment types and interfaces
   - Define TypeScript interfaces for ProcessPaymentRequest, PaymentAllocation, PaymentResult, TransactionWithDetails
   - Define error classes: PaymentValidationError, DuplicateTransactionError, LoanNotFoundError, PaymentMatchingError, InvalidLoanStatusError, PaymentProcessingError
   - _Requirements: 1.1, 1.2, 1.3, 1.5_
 
-- [ ] 2.2 Write property test for payment allocation
+- [x] 2.2 Write property test for payment allocation
   - **Property 3: Waterfall Allocation Order**
   - **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5**
 
-- [ ] 2.3 Implement waterfall allocation method
+- [x] 2.3 Implement waterfall allocation method
   - Create `allocatePayment()` function that applies waterfall logic (penalties → interest → principal)
   - Ensure allocation sum equals payment amount
   - Handle partial payments correctly
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 2.4 Write property test for interest calculation
+- [x] 2.4 Write property test for interest calculation
   - **Property 4: Interest Calculation Consistency**
   - **Validates: Requirements 3.1, 3.2, 3.4**
 
-- [ ] 2.5 Implement interest calculation
+- [x] 2.5 Implement interest calculation
   - Create `calculateAccruedInterest()` function using formula: (principal × rate × days) / 365
   - Round result to 2 decimal places
   - Handle date range from last_payment_date (or loan start date) to current date
   - _Requirements: 3.1, 3.2, 3.4_
 
-- [ ] 2.6 Write property test for status transitions
+- [x] 2.6 Write property test for status transitions
   - **Property 7: Loan Status Transition to Closed**
   - **Property 8: Loan Status Transition from Overdue to Active**
   - **Property 9: Status Preservation for Partial Payments**
   - **Validates: Requirements 5.1, 5.2, 5.3, 5.4**
 
-- [ ] 2.7 Implement loan status determination logic
+- [x] 2.7 Implement loan status determination logic
   - Create `determineLoanStatus()` function that evaluates status transitions
   - Handle Active → Closed when balance reaches zero
   - Handle Overdue → Active when overdue amounts cleared

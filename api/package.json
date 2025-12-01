@@ -33,7 +33,8 @@
     "@types/bcrypt": "^6.0.0",
     "@types/bun": "latest",
     "@types/pg": "^8.15.6",
-    "drizzle-kit": "^0.31.7"
+    "drizzle-kit": "^0.31.7",
+    "fast-check": "^4.3.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
