@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [-] 1. Database Schema Setup
+- [x] 1. Database Schema Setup
   - Create database migration for new tables and fields
   - Add `transactions` table with all specified fields
   - Add `pending_payments` table for unmatched payments
