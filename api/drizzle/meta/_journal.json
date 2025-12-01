@@ -22,6 +22,20 @@
       "when": 1763885620141,
       "tag": "0002_bumpy_firebrand",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1764600255195,
+      "tag": "0003_premium_mojo",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764600289699,
+      "tag": "0004_bumpy_colonel_america",
+      "breakpoints": true
     }
   ]
 }

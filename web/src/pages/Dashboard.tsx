@@ -116,7 +116,7 @@ export function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(outstandingBalance)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(outstandingBalance || 0)}</div>
             <p className="text-xs text-muted-foreground">ยอดคงเหลือทั้งหมด</p>
           </CardContent>
         </Card>
@@ -126,7 +126,7 @@ export function Dashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatNumber(todayTransactions, {
+            <div className="text-2xl font-bold">{formatNumber(todayTransactions ?? 0, {
               decimalPlaces: 0
             })}</div>
             <p className="text-xs text-muted-foreground">รายการทำรายการวันนี้</p>

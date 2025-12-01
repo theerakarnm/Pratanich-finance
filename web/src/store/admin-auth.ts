@@ -39,27 +39,21 @@ export const useAdminAuthStore = create<AdminAuthState>()(
             throw new Error('Authentication failed: No data returned');
           }
 
-          const session = await authClient.getSession();
-
-          // We need to fetch the session to get the user role because signIn might not return full user details depending on config
-          // However, better-auth usually returns session and user on sign in.
-          // Let's double check if we need to fetch session or if data contains it.
-          // The data object from signIn.email typically contains { user: User, session: Session }
 
           // Check if user has admin role
           // @ts-ignore - better-auth types might need to be inferred or casted if not fully set up yet
-          if (session.data?.user.role !== 'admin') {
+          if (!data.user) {
             // If not admin, sign out immediately
             await authClient.signOut();
-            throw new Error('Unauthorized: Admin access required');
+            throw new Error('Unauthorized: No session data found');
           }
 
           set({
             user: {
-              id: session.data.user.id,
-              email: session.data.user.email,
-              name: session.data.user.name || 'Admin User',
-              role: session.data.user.role,
+              id: data.user.id,
+              email: data.user.email,
+              name: data.user.name || 'Admin User',
+              role: 'admin',
             },
             isAuthenticated: true,
           });
@@ -93,6 +87,12 @@ export const useAdminAuthStore = create<AdminAuthState>()(
             set({ user: null, isAuthenticated: false, isLoading: false });
             return
           }
+
+          if (data.user.role !== 'admin') {
+            await authClient.signOut();
+            throw new Error('Unauthorized: Admin role required');
+          }
+
           set({
             user: {
               id: data.user.id,

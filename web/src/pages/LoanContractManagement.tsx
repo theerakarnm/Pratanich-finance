@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { getLoans, type Loan } from '@/lib/api-client';
+import { getLoans, deleteLoan, type Loan } from '@/lib/api-client';
 import {
   Table,
   TableBody,
@@ -10,9 +10,18 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Link } from 'wouter';
-import { ChevronLeft, ChevronRight, Edit, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from '@/lib/formatter';
 
 export function LoanContractManagement() {
@@ -23,6 +32,8 @@ export function LoanContractManagement() {
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [loanToDelete, setLoanToDelete] = useState<Loan | null>(null);
   const itemsPerPage = 10;
 
   const fetchLoans = async (page: number = currentPage, search: string = searchTerm) => {
@@ -62,6 +73,30 @@ export function LoanContractManagement() {
     fetchLoans(currentPage, searchTerm);
   }, [currentPage]);
 
+  const handleDeleteClick = (loan: Loan) => {
+    setLoanToDelete(loan);
+    setShowDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!loanToDelete) return;
+
+    try {
+      await deleteLoan(loanToDelete.id);
+      setShowDeleteDialog(false);
+      setLoanToDelete(null);
+      // Refresh the list after deletion
+      await fetchLoans(currentPage, searchTerm);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'ไม่สามารถลบสัญญาเงินกู้ได้');
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteDialog(false);
+    setLoanToDelete(null);
+  };
 
   if (loading && loans.length === 0) {
     return (
@@ -172,11 +207,20 @@ export function LoanContractManagement() {
                   </TableCell>
                   <TableCell className='text-right'>{formatCurrency(loan.outstanding_balance)}</TableCell>
                   <TableCell className="text-right">
-                    <Link href={`/admin/loans/${loan.id}/edit`}>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
+                    <div className="flex items-center justify-end gap-2">
+                      <Link href={`/admin/loans/${loan.id}/edit`}>
+                        <Button variant="ghost" size="icon">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteClick(loan)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-600" />
                       </Button>
-                    </Link>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -208,6 +252,27 @@ export function LoanContractManagement() {
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>ยืนยันการลบสัญญาเงินกู้</AlertDialogTitle>
+            <AlertDialogDescription>
+              คุณแน่ใจหรือไม่ว่าต้องการลบสัญญาเงินกู้ {loanToDelete?.contract_number}?
+              การดำเนินการนี้ไม่สามารถย้อนกลับได้
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>ยกเลิก</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              ลบ
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

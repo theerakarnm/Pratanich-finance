@@ -83,11 +83,11 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="client_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Client</FormLabel>
+                    <FormLabel>ลูกค้า</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select client" />
+                          <SelectValue placeholder="เลือกลูกค้า" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -107,7 +107,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="contract_number"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contract Number</FormLabel>
+                    <FormLabel>เลขที่สัญญา</FormLabel>
                     <FormControl>
                       <Input placeholder="LN2023110001" {...field} />
                     </FormControl>
@@ -121,9 +121,9 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="loan_type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Loan Type</FormLabel>
+                    <FormLabel>ประเภทสินเชื่อ</FormLabel>
                     <FormControl>
-                      <Input placeholder="Personal Loan" {...field} />
+                      <Input placeholder="สินเชื่อส่วนบุคคล" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -135,17 +135,17 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="contract_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>สถานะ</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="เลือกสถานะ" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Closed">Closed</SelectItem>
-                        <SelectItem value="Overdue">Overdue</SelectItem>
+                        <SelectItem value="Active">ปกติ</SelectItem>
+                        <SelectItem value="Closed">ปิดบัญชี</SelectItem>
+                        <SelectItem value="Overdue">ค้างชำระ</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -158,7 +158,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="principal_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Principal Amount</FormLabel>
+                    <FormLabel>ยอดเงินต้น</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -172,7 +172,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="approved_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Approved Amount</FormLabel>
+                    <FormLabel>ยอดอนุมัติ</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -186,7 +186,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="interest_rate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Interest Rate (%)</FormLabel>
+                    <FormLabel>อัตราดอกเบี้ย (%)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
@@ -200,7 +200,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="term_months"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Term (Months)</FormLabel>
+                    <FormLabel>ระยะเวลา (เดือน)</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -214,7 +214,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="installment_amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Installment Amount</FormLabel>
+                    <FormLabel>ยอดผ่อนชำระ</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -228,7 +228,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="due_day"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Due Day</FormLabel>
+                    <FormLabel>วันครบกำหนดชำระ</FormLabel>
                     <FormControl>
                       <Input type="number" min="1" max="31" {...field} />
                     </FormControl>
@@ -242,14 +242,14 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="contract_start_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Date</FormLabel>
+                    <FormLabel>วันเริ่มสัญญา</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
                           field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                         }
-                        placeholder="Pick a start date"
+                        placeholder="เลือกวันเริ่มต้น"
                       />
                     </FormControl>
                     <FormMessage />
@@ -262,14 +262,14 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="contract_end_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Date</FormLabel>
+                    <FormLabel>วันสิ้นสุดสัญญา</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value ? new Date(field.value) : undefined}
                         onChange={(date) =>
                           field.onChange(date ? format(date, "yyyy-MM-dd") : "")
                         }
-                        placeholder="Pick an end date"
+                        placeholder="เลือกวันสิ้นสุด"
                       />
                     </FormControl>
                     <FormMessage />
@@ -282,7 +282,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="outstanding_balance"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Outstanding Balance</FormLabel>
+                    <FormLabel>ยอดคงเหลือ</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -296,7 +296,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                 name="overdue_days"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Overdue Days</FormLabel>
+                    <FormLabel>จำนวนวันที่ค้างชำระ</FormLabel>
                     <FormControl>
                       <Input type="number" {...field} />
                     </FormControl>
@@ -308,9 +308,9 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                Cancel
+                ยกเลิก
               </Button>
-              <Button type="submit">{isEditing ? "Update Contract" : "Create Contract"}</Button>
+              <Button type="submit">{isEditing ? "บันทึกการแก้ไข" : "สร้างสัญญา"}</Button>
             </div>
           </form>
         </Form>

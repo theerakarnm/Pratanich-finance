@@ -19,7 +19,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
     console.log('Auth Guard User:', user);
 
-    // Redirect to login if not authenticated
+    // Redirect to login if not authenticated 
     if (!isAuthenticated) {
       navigate('/auth/login', { replace: true });
       return;
