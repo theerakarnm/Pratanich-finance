@@ -1,5 +1,5 @@
 {
-  "id": "13f02949-c0c9-400b-93da-b57ca3658131",
+  "id": "936c944d-a855-41fe-a1a1-3ffe94f3f866",
   "prevId": "19cf97ac-a62d-4663-a5f8-92a7a89219f0",
   "version": "7",
   "dialect": "postgresql",
@@ -533,7 +533,38 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_connect_codes_code": {
+          "name": "idx_connect_codes_code",
+          "columns": [
+            {
+              "expression": "code",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_connect_codes_client_id": {
+          "name": "idx_connect_codes_client_id",
+          "columns": [
+            {
+              "expression": "client_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "connect_codes_client_id_clients_id_fk": {
           "name": "connect_codes_client_id_clients_id_fk",
@@ -600,7 +631,23 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_connect_rate_limit_client_id": {
+          "name": "idx_connect_rate_limit_client_id",
+          "columns": [
+            {
+              "expression": "client_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "connect_rate_limit_client_id_clients_id_fk": {
           "name": "connect_rate_limit_client_id_clients_id_fk",
