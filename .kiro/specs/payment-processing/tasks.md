@@ -48,8 +48,8 @@
   - Preserve status for partial payments
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ] 3. Implement Payment Repository Layer
-- [ ] 3.1 Create payment repository with transaction methods
+- [x] 3. Implement Payment Repository Layer
+- [x] 3.1 Create payment repository with transaction methods
   - Implement `findByTransactionRef()` to check for duplicates
   - Implement `processPaymentTransaction()` with ACID transaction and row-level locking (FOR UPDATE)
   - Implement `createTransaction()` to insert transaction records
@@ -72,7 +72,7 @@
   - **Property 20: Lock Release After Transaction**
   - **Validates: Requirements 10.1, 10.4, 10.5**
 
-- [ ] 4. Implement Payment Matching Service
+- [-] 4. Implement Payment Matching Service
 - [ ] 4.1 Create payment matching service
   - Implement `findLoanForPayment()` with multiple matching strategies
   - Strategy 1: Extract contract number from sender info/notes
@@ -125,23 +125,23 @@
   - Implement proper error handling and logging
   - _Requirements: 1.1, 1.2, 1.3, 1.5, 2.1, 3.1, 4.1, 5.1, 6.1, 9.1_
 
-- [ ]* 7.2 Write property test for validation side effects
+- [ ] 7.2 Write property test for validation side effects
   - **Property 2: Validation Prevents Side Effects**
   - **Validates: Requirements 1.3, 1.5, 6.5**
 
-- [ ]* 7.3 Write property test for last payment date update
+- [ ] 7.3 Write property test for last payment date update
   - **Property 5: Last Payment Date Update**
   - **Validates: Requirements 3.5**
 
-- [ ]* 7.4 Write property test for status change audit
+- [ ] 7.4 Write property test for status change audit
   - **Property 10: Status Change Audit Trail**
   - **Validates: Requirements 5.5**
 
-- [ ]* 7.5 Write property test for transaction record completeness
+- [ ] 7.5 Write property test for transaction record completeness
   - **Property 11: Transaction Record Completeness**
   - **Validates: Requirements 6.1, 6.3**
 
-- [ ]* 7.6 Write property test for UTC timestamp storage
+- [ ] 7.6 Write property test for UTC timestamp storage
   - **Property 12: UTC Timestamp Storage**
   - **Validates: Requirements 6.4**
 
