@@ -73,7 +73,7 @@
   - **Validates: Requirements 10.1, 10.4, 10.5**
 
 - [-] 4. Implement Payment Matching Service
-- [ ] 4.1 Create payment matching service
+- [x] 4.1 Create payment matching service
   - Implement `findLoanForPayment()` with multiple matching strategies
   - Strategy 1: Extract contract number from sender info/notes
   - Strategy 2: Match by client's LINE user ID (via connect_codes table)
