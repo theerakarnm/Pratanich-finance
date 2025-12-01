@@ -72,7 +72,7 @@
   - **Property 20: Lock Release After Transaction**
   - **Validates: Requirements 10.1, 10.4, 10.5**
 
-- [-] 4. Implement Payment Matching Service
+- [x] 4. Implement Payment Matching Service
 - [x] 4.1 Create payment matching service
   - Implement `findLoanForPayment()` with multiple matching strategies
   - Strategy 1: Extract contract number from sender info/notes
@@ -88,13 +88,13 @@
   - Test error handling for no match and multiple matches
   - _Requirements: 1.3_
 
-- [ ] 5. Implement Receipt Generation
-- [ ] 5.1 Set up PDF generation with pdfkit
+- [-] 5. Implement Receipt Generation
+- [x] 5.1 Set up PDF generation with pdfkit
   - Install pdfkit and @types/pdfkit
   - Create receipt template with company branding
   - _Requirements: 7.1_
 
-- [ ] 5.2 Create receipt generator service
+- [-] 5.2 Create receipt generator service
   - Implement `generateReceipt()` to create PDF with transaction details
   - Include: transaction ref ID, payment date, amount, allocation breakdown, remaining balance, loan details, client info
   - Implement `saveReceipt()` to save PDF to file system at /uploads/receipts/{year}/{month}/{transactionId}.pdf

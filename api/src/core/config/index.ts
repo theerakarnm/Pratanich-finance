@@ -13,6 +13,8 @@ const envSchema = z.object({
   CONNECT_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('5').transform(Number).pipe(z.number().positive()),
   CONNECT_RATE_LIMIT_WINDOW_MINUTES: z.string().default('15').transform(Number).pipe(z.number().positive()),
   CONNECT_RATE_LIMIT_BLOCK_MINUTES: z.string().default('15').transform(Number).pipe(z.number().positive()),
+  RECEIPT_STORAGE_PATH: z.string().default('/uploads/receipts'),
+  PAYMENT_LOCK_TIMEOUT_MS: z.string().default('5000').transform(Number).pipe(z.number().positive()),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
@@ -57,6 +59,10 @@ export const config = {
     rateLimitMaxAttempts: env.CONNECT_RATE_LIMIT_MAX_ATTEMPTS,
     rateLimitWindowMinutes: env.CONNECT_RATE_LIMIT_WINDOW_MINUTES,
     rateLimitBlockMinutes: env.CONNECT_RATE_LIMIT_BLOCK_MINUTES,
+  },
+  payment: {
+    receiptStoragePath: env.RECEIPT_STORAGE_PATH,
+    lockTimeoutMs: env.PAYMENT_LOCK_TIMEOUT_MS,
   },
   env: env.NODE_ENV,
 };
