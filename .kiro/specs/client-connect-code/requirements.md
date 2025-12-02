@@ -17,7 +17,7 @@ This document specifies the requirements for a Client Connection System that ena
 
 ### Requirement 1
 
-**User Story:** As an admin, I want to generate unique connect codes for clients, so that clients can securely link their LINE accounts to the system
+**User Story:** As an admin, I want to generate unique connect codes for clients, so that clients can securely link their LINE accounts to the system using admin-generated codes
 
 #### Acceptance Criteria
 

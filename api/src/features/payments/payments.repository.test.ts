@@ -137,6 +137,7 @@ describe("Payment Repository", () => {
       penalties_paid: "0.00",
       last_payment_date: new Date(),
       last_payment_amount: "500.00",
+      total_penalties: "0.00",
     };
 
     const result = await paymentRepository.processPaymentTransaction(
@@ -177,6 +178,7 @@ describe("Payment Repository", () => {
       penalties_paid: "0.00",
       last_payment_date: new Date(),
       last_payment_amount: "500.00",
+      total_penalties: "0.00",
     };
 
     // This should throw an error and rollback

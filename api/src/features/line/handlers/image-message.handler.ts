@@ -131,7 +131,6 @@ export class ImageMessageHandler implements EventHandler {
     const messageId = imageMessage.id;
     const userId = context.userId;
     const replyToken = context.replyToken;
-    const contentProvider = imageMessage.contentProvider;
 
     try {
       // Send immediate acknowledgment message (Requirement 10.1)

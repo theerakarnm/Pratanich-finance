@@ -114,7 +114,6 @@ export class FlexMessageBuilder {
     }
   ): FlexButton {
     const flexAction: FlexAction = {
-      type: action.type,
       label,
       ...action,
     };
@@ -287,7 +286,7 @@ export class FlexMessageBuilder {
         // These components don't have required fields beyond type
         break;
       default:
-        throw new LineMessageError(`Unknown component type at ${path}: ${component.type}`);
+        throw new LineMessageError(`Unknown component type at ${path}: ${(component as any).type}`);
     }
   }
 }

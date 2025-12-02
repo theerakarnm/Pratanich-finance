@@ -25,7 +25,8 @@ describe('Flex Message Templates', () => {
     expect(message.header?.type).toBe('box');
     expect(message.body?.type).toBe('box');
     expect(message.footer?.type).toBe('box');
-    expect(message.hero?.type).toBe('image');
+    // New Loan message doesn't have a hero image, it has QR code in footer
+    expect(message.hero).toBeUndefined();
   });
 
   it('should create a valid Billing message', () => {
@@ -99,6 +100,7 @@ describe('Flex Message Templates', () => {
     expect(message.type).toBe('bubble');
     expect(message.header).toBeDefined();
     expect(message.body).toBeDefined();
-    expect(message.hero).toBeDefined();
+    // Overdue message doesn't have a hero image, it has QR code in footer
+    expect(message.hero).toBeUndefined();
   });
 });

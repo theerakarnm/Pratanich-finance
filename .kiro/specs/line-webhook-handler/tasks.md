@@ -149,7 +149,7 @@
   - **Property 21: Payment Completion Logging**
   - **Validates: Requirements 7.5**
 
-- [ ] 9. Implement duplicate transaction handling
+- [-] 9. Implement duplicate transaction handling
   - Rely on Payment Domain's duplicate detection (no changes needed in handler)
   - When DuplicateTransactionError is caught, extract transaction details
   - Send user message with original transaction reference and ID
@@ -172,7 +172,7 @@
   - **Property 25: Duplicate Attempt Logging**
   - **Validates: Requirements 8.5**
 
-- [ ] 10. Refactor main handle() method to orchestrate complete workflow
+- [x] 10. Refactor main handle() method to orchestrate complete workflow
   - Remove old SlipOK verification code that only displays results
   - Add immediate acknowledgment message: "ได้รับรูปภาพของคุณเรียบร้อยแล้ว กำลังดำเนินการตรวจสอบ"
   - Call extractAndVerifySlip() and handle null result
@@ -186,14 +186,14 @@
   - **Property 30: Immediate Acknowledgment**
   - **Validates: Requirements 10.1**
 
-- [ ] 11. Update handler instantiation in line.router.ts
+- [x] 11. Update handler instantiation in line.router.ts
   - Import PaymentDomain, PaymentMatchingService, PendingPaymentsRepository
   - Create instances of these services
   - Pass instances to ImageMessageHandler constructor
   - Ensure proper dependency injection
   - _Requirements: All requirements - wiring_
 
-- [ ] 12. Checkpoint - Ensure all tests pass
+- [x] 12. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ]* 13. Write integration tests for end-to-end flow
