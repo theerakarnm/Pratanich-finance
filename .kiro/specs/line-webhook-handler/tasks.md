@@ -1,12 +1,12 @@
 # Implementation Plan
 
-- [-] 1. Refactor ImageMessageHandler constructor to accept payment dependencies
+- [x] 1. Refactor ImageMessageHandler constructor to accept payment dependencies
   - Add PaymentDomain, PaymentMatchingService, and PendingPaymentsRepository as constructor parameters
   - Update the handler instantiation in line.router.ts to inject these dependencies
   - Ensure backward compatibility with existing image handling functionality
   - _Requirements: All requirements - foundational change_
 
-- [ ] 2. Implement QR code extraction and SlipOK verification flow
+- [x] 2. Implement QR code extraction and SlipOK verification flow
   - Create extractAndVerifySlip() private method
   - Call readQRCode() utility to extract QR data from image buffer
   - Handle case where no QR code is found (send user message and return null)
@@ -24,7 +24,7 @@
   - **Property 3: SlipOK Data Extraction Completeness**
   - **Validates: Requirements 2.2**
 
-- [ ] 3. Implement payment matching logic
+- [x] 3. Implement payment matching logic
   - Create matchPaymentToLoan() private method
   - Call PaymentMatchingService.findLoanForPayment() with SlipOK data and LINE user ID
   - Handle PaymentMatchingError when no loan can be matched
@@ -44,7 +44,7 @@
   - **Property 6: Multiple Loan Selection**
   - **Validates: Requirements 3.4**
 
-- [ ] 4. Implement unmatched payment handling
+- [x] 4. Implement unmatched payment handling
   - Create handleUnmatchedPayment() private method
   - Parse SlipOK date/time into Date object
   - Create pending payment record via PendingPaymentsRepository.create()
@@ -56,7 +56,7 @@
   - **Property 14: Matching Failure Creates Pending Payment**
   - **Validates: Requirements 6.3**
 
-- [ ] 5. Implement payment processing integration
+- [x] 5. Implement payment processing integration
   - Create processPayment() private method
   - Parse SlipOK date/time strings into Date object
   - Build ProcessPaymentRequest with all required fields
@@ -78,7 +78,7 @@
   - **Property 9: Payment Result Completeness**
   - **Validates: Requirements 4.3**
 
-- [ ] 6. Implement payment confirmation messaging
+- [x] 6. Implement payment confirmation messaging
   - Create sendPaymentConfirmation() private method
   - Format confirmation message with payment amount, allocation breakdown, remaining balance, and transaction reference
   - Send confirmation via replyUtil.replyText()
@@ -95,7 +95,7 @@
   - **Property 11: Confirmation Message Completeness**
   - **Validates: Requirements 5.2**
 
-- [ ] 7. Implement comprehensive error handling
+- [x] 7. Implement comprehensive error handling
   - Update sendErrorMessage() method to handle all error types
   - Map error types to user-friendly Thai messages
   - Ensure all errors are logged with required context (userId, messageId, error details)
@@ -119,7 +119,7 @@
   - **Property 16: Notification Failure Resilience**
   - **Validates: Requirements 6.5**
 
-- [ ] 8. Implement comprehensive logging throughout workflow
+- [x] 8. Implement comprehensive logging throughout workflow
   - Add structured logging at each major step
   - Log image message receipt with userId, messageId, imageSize
   - Log QR extraction result (success/failure)
