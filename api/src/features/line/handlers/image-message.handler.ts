@@ -5,6 +5,9 @@ import type { LineMessagingClient } from '../line.client';
 import type { LineReplyUtil } from '../utils/line-reply.util';
 import { readQRCode } from '../../../utils/qrcode';
 import { SlipOKService } from '../../slipok/slipok.service';
+import type { PaymentDomain } from '../../payments/payments.domain';
+import type { PaymentMatchingService } from '../../payments/payment-matching.service';
+import type { PendingPaymentsRepository } from '../../payments/pending-payments.repository';
 
 /**
  * Fallback error messages for image message handling
@@ -27,7 +30,10 @@ export class ImageMessageHandler implements EventHandler {
 
   constructor(
     private readonly client: LineMessagingClient,
-    private readonly replyUtil: LineReplyUtil
+    private readonly replyUtil: LineReplyUtil,
+    private readonly paymentDomain: PaymentDomain,
+    private readonly matchingService: PaymentMatchingService,
+    private readonly pendingPaymentsRepository: PendingPaymentsRepository
   ) { }
 
   /**

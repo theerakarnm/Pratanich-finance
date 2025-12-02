@@ -13,6 +13,9 @@ import {
   PostbackHandler,
 } from '../features/line/handlers';
 import type { LineWebhookBody } from '../features/line/line.types';
+import { paymentDomain } from '../features/payments/payments.domain';
+import { paymentMatchingService } from '../features/payments/payment-matching.service';
+import { PendingPaymentsRepository } from '../features/payments/pending-payments.repository';
 
 // Define context variables for LINE routes
 type LineVariables = {
@@ -29,13 +32,24 @@ const lineClient = new LineMessagingClient(
 
 const lineReplyUtil = new LineReplyUtil(lineClient);
 
+// Initialize payment dependencies
+const pendingPaymentsRepository = new PendingPaymentsRepository();
+
 // Create event router and register handlers
 const eventRouter = new LineEventRouter();
 const lineDomain = new LineDomain(lineClient, lineReplyUtil, eventRouter);
 
 // Register event handlers
 eventRouter.registerHandler(new TextMessageHandler(lineReplyUtil));
-eventRouter.registerHandler(new ImageMessageHandler(lineClient, lineReplyUtil));
+eventRouter.registerHandler(
+  new ImageMessageHandler(
+    lineClient,
+    lineReplyUtil,
+    paymentDomain,
+    paymentMatchingService,
+    pendingPaymentsRepository
+  )
+);
 eventRouter.registerHandler(new PostbackHandler(lineReplyUtil));
 
 logger.info(
