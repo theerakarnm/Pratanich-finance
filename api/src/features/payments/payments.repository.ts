@@ -36,6 +36,7 @@ export interface LoanUpdates {
   principal_paid: string;
   interest_paid: string;
   penalties_paid: string;
+  total_penalties: string;
   last_payment_date: Date;
   last_payment_amount: string;
   contract_status?: "Active" | "Closed" | "Overdue";

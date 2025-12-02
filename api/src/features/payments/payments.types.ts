@@ -1,6 +1,7 @@
 import type { transactions } from "../../core/database/schema/transactions.schema";
 import type { loans } from "../../core/database/schema/loans.schema";
 import type { clients } from "../../core/database/schema/clients.schema";
+import type { pendingPayments } from "../../core/database/schema/pending-payments.schema";
 
 /**
  * Request to process a payment for a loan contract
@@ -67,3 +68,8 @@ export interface LoanClosedNotificationData {
   totalPaid: number;
   finalPaymentDate: Date;
 }
+
+/**
+ * Insert type for pending payments
+ */
+export type PendingPaymentInsert = typeof pendingPayments.$inferInsert;

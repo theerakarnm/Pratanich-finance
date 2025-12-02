@@ -88,13 +88,13 @@
   - Test error handling for no match and multiple matches
   - _Requirements: 1.3_
 
-- [-] 5. Implement Receipt Generation
+- [x] 5. Implement Receipt Generation
 - [x] 5.1 Set up PDF generation with pdfkit
   - Install pdfkit and @types/pdfkit
   - Create receipt template with company branding
   - _Requirements: 7.1_
 
-- [-] 5.2 Create receipt generator service
+- [x] 5.2 Create receipt generator service
   - Implement `generateReceipt()` to create PDF with transaction details
   - Include: transaction ref ID, payment date, amount, allocation breakdown, remaining balance, loan details, client info
   - Implement `saveReceipt()` to save PDF to file system at /uploads/receipts/{year}/{month}/{transactionId}.pdf
@@ -105,8 +105,8 @@
   - **Property 13: Receipt Generation and Storage**
   - **Validates: Requirements 7.1, 7.2, 7.5**
 
-- [ ] 6. Implement Payment Notification Service
-- [ ] 6.1 Create payment notification service
+- [x] 6. Implement Payment Notification Service
+- [x] 6.1 Create payment notification service
   - Implement `sendPaymentConfirmation()` using existing LineMessagingClient
   - Format message with payment amount, allocation breakdown, remaining balance, receipt link
   - Implement `sendLoanClosedNotification()` for paid-off loans with congratulatory message
@@ -118,8 +118,8 @@
   - **Property 15: Notification Failure Resilience**
   - **Validates: Requirements 8.1, 8.2, 8.4**
 
-- [ ] 7. Implement Main Payment Processing Orchestration
-- [ ] 7.1 Create payment domain class
+- [x] 7. Implement Main Payment Processing Orchestration
+- [x] 7.1 Create payment domain class
   - Implement `processPayment()` method that orchestrates the full workflow
   - Call validation, interest calculation, allocation, repository transaction, status update, receipt generation, notification
   - Implement proper error handling and logging
@@ -145,8 +145,8 @@
   - **Property 12: UTC Timestamp Storage**
   - **Validates: Requirements 6.4**
 
-- [ ] 8. Implement SlipOK Webhook Handler
-- [ ] 8.1 Create webhook route handler
+- [x] 8. Implement SlipOK Webhook Handler
+- [x] 8.1 Create webhook route handler
   - Create POST /api/webhooks/slipok endpoint
   - Parse SlipOK webhook payload
   - Check for duplicate transaction (return 200 if already processed)
@@ -163,13 +163,13 @@
   - Test error scenarios
   - _Requirements: 1.1, 1.2, 1.3_
 
-- [ ] 9. Implement Pending Payments Management
-- [ ] 9.1 Create pending payments repository
+- [x] 9. Implement Pending Payments Management
+- [x] 9.1 Create pending payments repository
   - Implement methods to create, update, and query pending payments
   - Implement method to manually match pending payment to loan
   - _Requirements: 1.3_
 
-- [ ] 9.2 Create admin endpoints for pending payments
+- [x] 9.2 Create admin endpoints for pending payments
   - GET /api/admin/pending-payments - List unmatched payments
   - POST /api/admin/pending-payments/:id/match - Manually match to loan
   - POST /api/admin/pending-payments/:id/process - Process matched payment
@@ -181,8 +181,8 @@
   - Test processing matched payments
   - _Requirements: 1.3_
 
-- [ ] 10. Implement Payment History and Query APIs
-- [ ] 10.1 Create payment query endpoints
+- [x] 10. Implement Payment History and Query APIs
+- [x] 10.1 Create payment query endpoints
   - GET /api/payments/:id - Get payment details
   - GET /api/payments/history/:loanId - Get payment history with pagination
   - GET /api/payments/receipt/:id - Download receipt PDF
