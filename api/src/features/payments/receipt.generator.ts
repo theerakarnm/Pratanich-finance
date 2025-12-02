@@ -12,7 +12,7 @@ import logger from "../../core/logger";
 export class ReceiptGenerator {
   private readonly storagePath: string;
 
-  constructor(storagePath: string = "/uploads/receipts") {
+  constructor(storagePath: string = "./uploads/receipts") {
     this.storagePath = storagePath;
   }
 

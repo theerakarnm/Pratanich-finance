@@ -207,19 +207,19 @@
   - **Property 16: Payment Operation Logging**
   - **Validates: Requirements 9.1, 9.2, 9.3, 9.4**
 
-- [ ] 12. Configuration and Environment Setup
-- [ ] 12.1 Add environment variables
+- [x] 12. Configuration and Environment Setup
+- [x] 12.1 Add environment variables
   - Add RECEIPT_STORAGE_PATH to config
   - Add PAYMENT_LOCK_TIMEOUT_MS to config
   - Update .env.example with new variables
   - _Requirements: 7.5, 10.1_
 
-- [ ] 12.2 Create receipt storage directory structure
+- [x] 12.2 Create receipt storage directory structure
   - Ensure /uploads/receipts directory exists
   - Create subdirectories by year/month as needed
   - _Requirements: 7.5_
 
-- [ ] 13. Checkpoint - Ensure all tests pass
+- [-] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Integration Testing and Manual Testing
