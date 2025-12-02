@@ -127,6 +127,18 @@ export class LoansRepository {
 
     return result;
   }
+
+  async findByClientAndContractNumber(clientId: string, contractNumber: string) {
+    const result = await db
+      .select()
+      .from(loans)
+      .where(
+        sql`${loans.client_id} = ${clientId} AND ${loans.contract_number} = ${contractNumber} AND ${loans.deleted_at} IS NULL`
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
 }
 
 export const loansRepository = new LoansRepository();

@@ -13,6 +13,7 @@ import {
   ConnectCodeAlreadyUsedError,
   LineUserIdAlreadyConnectedError,
   RateLimitExceededError,
+  InvalidPhoneOrContractError,
 } from "../features/connect/connect.errors";
 
 const connectRoutes = new Hono<{
@@ -29,6 +30,19 @@ const verifyCodeSchema = z.object({
 
 const completeConnectionSchema = z.object({
   code: z.string().min(1, "Connect code is required"),
+  lineUserId: z.string().min(1, "LINE user ID is required"),
+  lineDisplayName: z.string().min(1, "LINE display name is required"),
+  linePictureUrl: z.string().optional(),
+});
+
+const verifyPhoneSchema = z.object({
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  contractNumber: z.string().min(1, "Contract number is required"),
+});
+
+const completePhoneConnectionSchema = z.object({
+  phoneNumber: z.string().min(1, "Phone number is required"),
+  contractNumber: z.string().min(1, "Contract number is required"),
   lineUserId: z.string().min(1, "LINE user ID is required"),
   lineDisplayName: z.string().min(1, "LINE display name is required"),
   linePictureUrl: z.string().optional(),
@@ -326,6 +340,180 @@ connectRoutes.get("/clients/:clientId/loans/summary", async (c) => {
     if (error.message === "Client not found") {
       return ResponseBuilder.error(c, error.message, 404);
     }
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Verify phone and contract number
+connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async (c) => {
+  const { phoneNumber, contractNumber } = c.req.valid("json");
+  const requestId = c.req.header('x-request-id');
+  
+  try {
+    logger.info({
+      event: "phone_contract_verification_started",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      requestId,
+    });
+
+    // Verify phone and contract
+    const result = await connectDomain.verifyPhoneAndContract(phoneNumber, contractNumber);
+    
+    if (!result.valid) {
+      logger.warn({
+        event: "phone_contract_verification_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        reason: result.error,
+        requestId,
+      });
+
+      return ResponseBuilder.error(c, result.error || "Invalid mobile phone number or contract number", 400);
+    }
+    
+    // Check rate limit before allowing connection
+    try {
+      await connectDomain.checkRateLimit(result.clientId!);
+    } catch (error: any) {
+      if (error instanceof RateLimitExceededError) {
+        return ResponseBuilder.error(
+          c,
+          error.message,
+          429,
+          "RATE_LIMIT_EXCEEDED",
+          { retryAfter: error.retryAfter }
+        );
+      }
+      throw error;
+    }
+    
+    logger.info({
+      event: "phone_contract_verified",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      clientId: result.clientId,
+      requestId,
+    });
+
+    return ResponseBuilder.success(c, {
+      valid: true,
+      clientId: result.clientId,
+    });
+  } catch (error: any) {
+    logger.error({
+      event: "phone_contract_verification_error",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      error: error.message,
+      requestId,
+    });
+
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Complete connection with phone and contract
+connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnectionSchema), async (c) => {
+  const { phoneNumber, contractNumber, lineUserId, lineDisplayName, linePictureUrl } = c.req.valid("json");
+  const requestId = c.req.header('x-request-id');
+  
+  try {
+    // Complete the phone connection
+    const client = await connectDomain.completePhoneConnection(phoneNumber, contractNumber, {
+      userId: lineUserId,
+      displayName: lineDisplayName,
+      pictureUrl: linePictureUrl,
+    });
+    
+    // Get loans summary to check if client has loans
+    const loansSummary = await clientsDomain.getLoansSummary(client.id);
+    
+    logger.info({
+      event: "phone_connection_success",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      clientId: client.id,
+      lineUserId,
+      hasLoans: loansSummary.totalLoans > 0,
+      requestId,
+    });
+
+    return ResponseBuilder.success(c, {
+      success: true,
+      clientId: client.id,
+      hasLoans: loansSummary.totalLoans > 0,
+    });
+  } catch (error: any) {
+    // Increment rate limit on failed attempts
+    if (error instanceof InvalidPhoneOrContractError) {
+      // Try to get client ID for rate limiting
+      try {
+        const verification = await connectDomain.verifyPhoneAndContract(phoneNumber, contractNumber);
+        if (verification.clientId) {
+          await connectDomain.incrementRateLimit(verification.clientId);
+        }
+      } catch {
+        // Ignore errors during rate limit increment
+      }
+      
+      logger.warn({
+        event: "phone_connection_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        requestId,
+      });
+
+      return ResponseBuilder.error(c, error.message, 400);
+    }
+    
+    if (error instanceof LineUserIdAlreadyConnectedError) {
+      logger.warn({
+        event: "phone_connection_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        requestId,
+      });
+
+      return ResponseBuilder.error(c, error.message, 409);
+    }
+    
+    if (error instanceof RateLimitExceededError) {
+      logger.warn({
+        event: "phone_connection_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        lineUserId,
+        error: error.message,
+        errorType: error.name,
+        retryAfter: error.retryAfter,
+        requestId,
+      });
+
+      return ResponseBuilder.error(
+        c,
+        error.message,
+        429,
+        "RATE_LIMIT_EXCEEDED",
+        { retryAfter: error.retryAfter }
+      );
+    }
+    
+    logger.error({
+      event: "phone_connection_error",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      lineUserId,
+      error: error.message,
+      requestId,
+    });
+
     return ResponseBuilder.error(c, error.message, 500);
   }
 });

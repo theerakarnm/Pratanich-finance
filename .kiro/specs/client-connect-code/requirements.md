@@ -98,3 +98,32 @@ This document specifies the requirements for a Client Connection System that ena
 3. IF a LINE User ID is already associated with another client, THEN THE LMS SHALL return an error message stating "This LINE account is already connected to another client"
 4. THE LMS SHALL validate that LINE User ID is not null or empty before saving to the database
 5. THE LMS SHALL maintain referential integrity between client records and their associated LINE profile data
+
+### Requirement 8
+
+**User Story:** As a client, I want to connect my LINE account using my mobile phone number and loan contract number, so that I can access the system without needing an admin-generated code
+
+#### Acceptance Criteria
+
+1. WHEN a client opens the Client Portal, THE LIFF Application SHALL provide an option to connect using mobile phone and contract number
+2. WHEN a client submits mobile phone and contract number, THE LMS SHALL validate that both fields are provided
+3. WHEN validating connection credentials, THE LMS SHALL search for a client with the provided mobile phone number
+4. WHEN a client is found by mobile phone, THE LMS SHALL verify that the client has at least one active loan contract with the provided contract number
+5. IF no client is found with the mobile phone number, THEN THE LMS SHALL return an error message stating "Invalid mobile phone number or contract number"
+6. IF the client exists but has no loan contract matching the provided contract number, THEN THE LMS SHALL return an error message stating "Invalid mobile phone number or contract number"
+7. IF the mobile phone and contract number match, THE LMS SHALL retrieve the client's LINE User ID from the LIFF API
+8. WHEN LINE profile data is retrieved, THE LMS SHALL save the LINE User ID, display name, and picture URL to the client record
+9. WHEN connection is successful, THE LMS SHALL record the connection timestamp in the client record
+10. THE LMS SHALL enforce the same rate limiting rules for phone/contract connections as for connect code connections (5 attempts per 15 minutes)
+
+### Requirement 9
+
+**User Story:** As a client, I want the system to accept my mobile phone number in multiple formats, so that I can connect successfully regardless of how I enter my phone number
+
+#### Acceptance Criteria
+
+1. THE LMS SHALL normalize mobile phone numbers by removing spaces, dashes, and parentheses before validation
+2. THE LMS SHALL accept mobile phone numbers with or without country code prefix (+66 or 66)
+3. THE LMS SHALL accept mobile phone numbers starting with 0 (Thai format) or without leading 0
+4. WHEN normalizing phone numbers, THE LMS SHALL convert all formats to a consistent format for database comparison
+5. THE LMS SHALL match phone numbers regardless of formatting differences (e.g., "081-234-5678", "0812345678", "+66812345678" should all match)

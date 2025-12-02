@@ -35,3 +35,10 @@ export class RateLimitExceededError extends Error {
     this.retryAfter = retryAfter;
   }
 }
+
+export class InvalidPhoneOrContractError extends Error {
+  constructor() {
+    super("Invalid mobile phone number or contract number");
+    this.name = "InvalidPhoneOrContractError";
+  }
+}

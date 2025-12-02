@@ -2,13 +2,15 @@ import { config } from "../../core/config";
 import { connectRepository } from "./connect.repository";
 import { rateLimitRepository } from "./rate-limit.repository";
 import { clientsRepository } from "../clients/clients.repository";
-import { generateConnectCode, calculateExpirationDate } from "./connect.utils";
+import { loansRepository } from "../loans/loans.repository";
+import { generateConnectCode, calculateExpirationDate, normalizePhoneNumber } from "./connect.utils";
 import {
   ConnectCodeNotFoundError,
   ConnectCodeExpiredError,
   ConnectCodeAlreadyUsedError,
   LineUserIdAlreadyConnectedError,
   RateLimitExceededError,
+  InvalidPhoneOrContractError,
 } from "./connect.errors";
 import type { LineProfile, VerificationResult } from "./connect.types";
 import logger from "../../core/logger";
@@ -273,6 +275,136 @@ export class ConnectDomain {
     }
     
     await connectRepository.delete(code);
+  }
+
+  /**
+   * Verify phone number and contract number
+   */
+  async verifyPhoneAndContract(phoneNumber: string, contractNumber: string): Promise<VerificationResult> {
+    logger.info({
+      event: "phone_contract_verification_started",
+      phoneNumber: phoneNumber.slice(-4), // Log only last 4 digits for privacy
+      contractNumber,
+    });
+
+    // Normalize phone number
+    const normalizedPhone = normalizePhoneNumber(phoneNumber);
+    
+    if (!normalizedPhone) {
+      logger.warn({
+        event: "phone_contract_verification_failed",
+        reason: "invalid_phone_format",
+      });
+      return {
+        valid: false,
+        error: "Invalid mobile phone number or contract number",
+      };
+    }
+
+    // Find client by normalized phone number
+    const client = await clientsRepository.findByNormalizedPhone(normalizedPhone);
+    
+    if (!client) {
+      logger.warn({
+        event: "phone_contract_verification_failed",
+        reason: "client_not_found",
+        normalizedPhone: normalizedPhone.slice(-4),
+      });
+      return {
+        valid: false,
+        error: "Invalid mobile phone number or contract number",
+      };
+    }
+
+    // Verify client has loan with contract number
+    const loan = await loansRepository.findByClientAndContractNumber(client.id, contractNumber);
+    
+    if (!loan) {
+      logger.warn({
+        event: "phone_contract_verification_failed",
+        reason: "contract_not_found",
+        clientId: client.id,
+        contractNumber,
+      });
+      return {
+        valid: false,
+        error: "Invalid mobile phone number or contract number",
+      };
+    }
+
+    logger.info({
+      event: "phone_contract_verified",
+      clientId: client.id,
+      contractNumber,
+    });
+
+    return {
+      valid: true,
+      clientId: client.id,
+    };
+  }
+
+  /**
+   * Complete connection using phone and contract number
+   */
+  async completePhoneConnection(phoneNumber: string, contractNumber: string, lineProfile: LineProfile) {
+    logger.info({
+      event: "phone_connection_attempt_started",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      lineUserId: lineProfile.userId,
+    });
+
+    // Verify phone and contract first
+    const verification = await this.verifyPhoneAndContract(phoneNumber, contractNumber);
+    
+    if (!verification.valid) {
+      logger.warn({
+        event: "phone_connection_attempt_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        lineUserId: lineProfile.userId,
+        reason: verification.error,
+      });
+      throw new InvalidPhoneOrContractError();
+    }
+
+    const clientId = verification.clientId!;
+
+    // Check if LINE user ID is already connected to another client
+    const existingClient = await clientsRepository.findByLineUserId(lineProfile.userId);
+    
+    if (existingClient && existingClient.id !== clientId) {
+      logger.warn({
+        event: "phone_connection_attempt_failed",
+        phoneNumber: phoneNumber.slice(-4),
+        contractNumber,
+        lineUserId: lineProfile.userId,
+        clientId,
+        reason: "line_user_id_already_connected",
+        existingClientId: existingClient.id,
+      });
+      throw new LineUserIdAlreadyConnectedError();
+    }
+
+    // Update client with LINE profile data
+    const updatedClient = await clientsRepository.updateLineProfile(clientId, {
+      line_user_id: lineProfile.userId,
+      line_display_name: lineProfile.displayName,
+      line_picture_url: lineProfile.pictureUrl || null,
+      connected_at: new Date(),
+    });
+
+    logger.info({
+      event: "phone_connection_completed",
+      phoneNumber: phoneNumber.slice(-4),
+      contractNumber,
+      clientId,
+      lineUserId: lineProfile.userId,
+      lineDisplayName: lineProfile.displayName,
+    });
+
+    return updatedClient;
   }
 }
 

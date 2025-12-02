@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 
@@ -35,9 +36,12 @@ export function LiffConnect() {
   const [profile, setProfile] = useState<LineProfile | null>(null);
 
   const [code, setCode] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [contractNumber, setContractNumber] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('code');
 
   // Initialize LIFF
   useEffect(() => {
@@ -187,10 +191,87 @@ export function LiffConnect() {
     }
   };
 
+  // Verify phone and contract
+  const handleVerifyPhone = async () => {
+    if (!phoneNumber || !contractNumber) {
+      setError('Please enter both phone number and contract number');
+      return;
+    }
+
+    setIsVerifying(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.post<VerifyConnectCodeResponse>('/api/connect/verify-phone', {
+        phoneNumber,
+        contractNumber,
+      });
+
+      if (response.data.valid && response.data.clientId) {
+        // Automatically proceed to complete connection
+        await handleCompletePhoneConnection(response.data.clientId);
+      } else {
+        setError(response.data.error || 'Invalid phone number or contract number');
+      }
+    } catch (error: any) {
+      if (error.message) {
+        setError(error.message);
+      } else {
+        setError('Failed to verify credentials. Please try again.');
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Complete phone connection with LINE profile
+  const handleCompletePhoneConnection = async (_clientId: string) => {
+    if (!profile) {
+      setError('LINE profile not available. Please try again.');
+      return;
+    }
+
+    setIsConnecting(true);
+    setError(null);
+
+    try {
+      const response = await apiClient.post<CompleteConnectionResponse>('/api/connect/complete-phone', {
+        phoneNumber,
+        contractNumber,
+        lineUserId: profile.userId,
+        lineDisplayName: profile.displayName,
+        linePictureUrl: profile.pictureUrl,
+      });
+
+      if (response.data.success) {
+        // Redirect to loan summary page
+        setLocation(`/liff/loans/${response.data.clientId}`);
+      }
+    } catch (error: any) {
+      if (error.message) {
+        // Check for rate limit error
+        if (error.code === 'RATE_LIMIT_EXCEEDED' && error.details?.retryAfter) {
+          const minutes = Math.ceil(error.details.retryAfter / 60);
+          setError(`Too many attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+        } else {
+          setError(error.message);
+        }
+      } else {
+        setError('Failed to complete connection. Please try again.');
+      }
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   // Handle form submission
   const handleSubmit = (e: Event) => {
     e.preventDefault();
-    handleVerifyCode();
+    if (activeTab === 'code') {
+      handleVerifyCode();
+    } else {
+      handleVerifyPhone();
+    }
   };
 
   // Loading state
@@ -219,9 +300,9 @@ export function LiffConnect() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Connect Your Account</CardTitle>
+          <CardTitle>เชื่อมต่อบัญชีของคุณ</CardTitle>
           <CardDescription>
-            Enter the connect code provided by your loan officer to link your LINE account
+            เลือกวิธีการเชื่อมต่อบัญชี LINE ของคุณกับระบบ
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -239,53 +320,124 @@ export function LiffConnect() {
                   {profile.displayName}
                 </p>
                 <p className="text-xs text-green-700">
-                  LINE account ready
+                  บัญชี LINE พร้อมใช้งาน
                 </p>
               </div>
               <CheckCircle2 className="h-5 w-5 text-green-600" />
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="code">Connect Code</Label>
-              <Input
-                id="code"
-                type="text"
-                placeholder="XXXX-XXXX"
-                value={code}
-                onInput={handleCodeChange}
-                disabled={isVerifying || isConnecting}
-                className="text-center text-lg font-mono tracking-wider"
-                maxLength={9}
-              />
-              <p className="text-xs text-gray-500">
-                Enter the 8-character code provided by your loan officer
-              </p>
-            </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="code">รหัสเชื่อมต่อ</TabsTrigger>
+              <TabsTrigger value="phone">เบอร์โทร + สัญญา</TabsTrigger>
+            </TabsList>
 
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+            <TabsContent value="code">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="code">รหัสเชื่อมต่อ</Label>
+                  <Input
+                    id="code"
+                    type="text"
+                    placeholder="XXXX-XXXX"
+                    value={code}
+                    onInput={handleCodeChange}
+                    disabled={isVerifying || isConnecting}
+                    className="text-center text-lg font-mono tracking-wider"
+                    maxLength={9}
+                  />
+                  <p className="text-xs text-gray-500">
+                    กรอกรหัส 8 หลักที่ได้รับจากเจ้าหน้าที่
+                  </p>
+                </div>
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={!code || code.replace('-', '').length !== 8 || isVerifying || isConnecting}
-            >
-              {isVerifying || isConnecting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {isVerifying ? 'Verifying...' : 'Connecting...'}
-                </>
-              ) : (
-                'Connect Account'
-              )}
-            </Button>
-          </form>
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!code || code.replace('-', '').length !== 8 || isVerifying || isConnecting}
+                >
+                  {isVerifying || isConnecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isVerifying ? 'กำลังตรวจสอบ...' : 'กำลังเชื่อมต่อ...'}
+                    </>
+                  ) : (
+                    'เชื่อมต่อบัญชี'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+
+            <TabsContent value="phone">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="phone">เบอร์โทรศัพท์มือถือ</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="081-234-5678"
+                    value={phoneNumber}
+                    onInput={(e) => {
+                      setPhoneNumber((e.target as HTMLInputElement).value);
+                      setError(null);
+                    }}
+                    disabled={isVerifying || isConnecting}
+                  />
+                  <p className="text-xs text-gray-500">
+                    กรอกเบอร์โทรที่ลงทะเบียนไว้กับระบบ
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="contract">เลขที่สัญญา</Label>
+                  <Input
+                    id="contract"
+                    type="text"
+                    placeholder="เลขที่สัญญาเงินกู้"
+                    value={contractNumber}
+                    onInput={(e) => {
+                      setContractNumber((e.target as HTMLInputElement).value);
+                      setError(null);
+                    }}
+                    disabled={isVerifying || isConnecting}
+                  />
+                  <p className="text-xs text-gray-500">
+                    กรอกเลขที่สัญญาเงินกู้ของคุณ
+                  </p>
+                </div>
+
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={!phoneNumber || !contractNumber || isVerifying || isConnecting}
+                >
+                  {isVerifying || isConnecting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {isVerifying ? 'กำลังตรวจสอบ...' : 'กำลังเชื่อมต่อ...'}
+                    </>
+                  ) : (
+                    'เชื่อมต่อบัญชี'
+                  )}
+                </Button>
+              </form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

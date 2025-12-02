@@ -198,3 +198,94 @@
   - Write tests for GET /api/clients/:clientId/loans/summary (with loans, without loans)
   - Set up test database and fixtures for integration testing
   - _Requirements: 1.1, 1.2, 3.2, 3.3, 3.4, 3.5, 4.1, 4.2, 4.3, 5.1, 5.2, 5.3, 7.2, 7.3_
+
+- [x] 13. Implement phone number normalization utility
+  - Create `normalizePhoneNumber` function in connect.utils.ts
+  - Remove spaces, dashes, parentheses, and other formatting characters
+  - Handle Thai country code (+66, 66) and convert to standard format
+  - Handle leading zero (0) in Thai phone numbers
+  - Return normalized phone number for database comparison
+  - Add unit tests for various phone number formats
+  - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+
+- [x] 14. Extend connect domain with phone/contract verification
+  - [x] 14.1 Add method to verify phone and contract number
+    - Create `verifyPhoneAndContract` method in ConnectDomain
+    - Normalize phone number using utility function
+    - Query clients repository to find client by normalized phone number
+    - Query loans repository to verify client has active loan with contract number
+    - Return verification result with client ID if valid
+    - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.6_
+  - [x] 14.2 Add method to complete phone/contract connection
+    - Create `completePhoneConnection` method in ConnectDomain
+    - Verify phone and contract number first
+    - Check for duplicate LINE user ID
+    - Update client with LINE profile data
+    - Record connection timestamp
+    - Apply rate limiting
+    - _Requirements: 8.7, 8.8, 8.9, 8.10_
+
+- [x] 15. Extend clients repository with phone lookup
+  - Add `findByNormalizedPhone` method to ClientsRepository
+  - Query clients table using normalized phone number
+  - Support matching against mobile_number field with normalization
+  - Return client record if found, null otherwise
+  - _Requirements: 8.3, 9.5_
+
+- [x] 16. Extend loans repository with contract verification
+  - Add `findByClientAndContractNumber` method to LoansRepository
+  - Query loans table for specific client ID and contract number
+  - Filter for non-deleted loans only
+  - Return loan record if found, null otherwise
+  - _Requirements: 8.4, 8.6_
+
+- [x] 17. Create custom error classes for phone/contract connection
+  - Define `InvalidPhoneOrContractError` for failed verification
+  - Extend existing error handling in connect.errors.ts
+  - _Requirements: 8.5, 8.6_
+
+- [x] 18. Create API endpoints for phone/contract connection
+  - [x] 18.1 Implement POST /api/connect/verify-phone endpoint
+    - Create route handler with phone and contract number validation using Zod
+    - Call connect domain to verify phone and contract
+    - Return validation result with client ID if valid
+    - Apply rate limiting before verification
+    - _Requirements: 8.2, 8.3, 8.4, 8.5, 8.6, 8.10_
+  - [x] 18.2 Implement POST /api/connect/complete-phone endpoint
+    - Create route handler with phone, contract, and LINE profile validation using Zod
+    - Call connect domain to complete phone connection
+    - Check for duplicate LINE user ID
+    - Return success response with client ID and hasLoans flag
+    - Increment rate limit counter on failed attempts
+    - _Requirements: 8.7, 8.8, 8.9, 8.10_
+
+- [x] 19. Update LIFF portal with phone/contract connection UI
+  - [x] 19.1 Update LiffConnect page with connection method selection
+    - Add tabs or toggle to switch between "Connect Code" and "Phone + Contract" methods
+    - Display appropriate input form based on selected method
+    - _Requirements: 8.1_
+  - [x] 19.2 Create phone/contract input form
+    - Add mobile phone number input field with Thai format placeholder
+    - Add contract number input field
+    - Implement form validation for both fields
+    - Call POST /api/connect/verify-phone to validate credentials
+    - Retrieve LINE profile using liff.getProfile()
+    - Call POST /api/connect/complete-phone with credentials and profile data
+    - Display appropriate error messages for invalid credentials
+    - Show rate limit error with retry time when applicable
+    - Redirect to loan summary page on successful connection
+    - _Requirements: 8.1, 8.2, 8.5, 8.6, 8.7, 8.8, 8.9, 8.10_
+
+- [x] 20. Add logging for phone/contract connection flow
+  - Add structured logging for phone/contract verification attempts
+  - Add logging for successful and failed phone/contract connections
+  - Add logging for rate limit violations in phone/contract flow
+  - Include normalized phone number and contract number in log context
+  - _Requirements: 8.10_
+
+- [ ] 21. Update documentation
+  - Update API documentation with new phone/contract endpoints
+  - Document phone number normalization rules
+  - Add examples of accepted phone number formats
+  - Update LIFF integration guide with new connection method
+  - _Requirements: 8.1, 9.1, 9.2, 9.3, 9.4, 9.5_

@@ -142,6 +142,18 @@ export class ClientsRepository {
       .offset(offset)
       .orderBy(desc(clients.created_at));
   }
+
+  async findByNormalizedPhone(normalizedPhone: string) {
+    const result = await db
+      .select()
+      .from(clients)
+      .where(
+        sql`${clients.mobile_number} = ${normalizedPhone} AND ${clients.deleted_at} IS NULL`
+      )
+      .limit(1);
+
+    return result[0] || null;
+  }
 }
 
 export const clientsRepository = new ClientsRepository();

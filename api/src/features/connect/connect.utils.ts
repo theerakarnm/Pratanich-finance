@@ -25,3 +25,39 @@ export function calculateExpirationDate(days: number): Date {
   expiresAt.setDate(expiresAt.getDate() + days);
   return expiresAt;
 }
+
+/**
+ * Normalize Thai mobile phone number to consistent format
+ * Handles various input formats:
+ * - With/without country code (+66, 66)
+ * - With/without leading 0
+ * - With spaces, dashes, parentheses
+ * 
+ * Returns normalized format: 10 digits starting with 0 (e.g., "0812345678")
+ * 
+ * @param phoneNumber - Phone number in any format
+ * @returns Normalized phone number or null if invalid
+ */
+export function normalizePhoneNumber(phoneNumber: string): string | null {
+  if (!phoneNumber) return null;
+
+  // Remove all non-digit characters (spaces, dashes, parentheses, etc.)
+  let normalized = phoneNumber.replace(/\D/g, "");
+
+  // Handle country code +66 or 66
+  if (normalized.startsWith("66")) {
+    normalized = "0" + normalized.slice(2);
+  }
+
+  // Ensure it starts with 0 and has 10 digits (Thai mobile format)
+  if (!normalized.startsWith("0")) {
+    normalized = "0" + normalized;
+  }
+
+  // Validate Thai mobile number format (10 digits starting with 0)
+  if (normalized.length !== 10 || !normalized.startsWith("0")) {
+    return null;
+  }
+
+  return normalized;
+}
