@@ -60,4 +60,3 @@ This is a backend API boilerplate built with Hono, Drizzle ORM, PostgreSQL, and 
 - `src/features`: Domain features (e.g., users)
 - `src/middleware`: Global middleware
 - `src/routes`: API routes
-# ekoe-api
