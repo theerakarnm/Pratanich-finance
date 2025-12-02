@@ -219,10 +219,10 @@
   - Create subdirectories by year/month as needed
   - _Requirements: 7.5_
 
-- [-] 13. Checkpoint - Ensure all tests pass
+- [x] 13. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Integration Testing and Manual Testing
+- [x] 14. Integration Testing and Manual Testing
 - [ ]* 14.1 Write end-to-end integration tests
   - Test complete payment flow from webhook to notification
   - Test with real database (test environment)
@@ -239,5 +239,5 @@
   - Verify database transactions and rollbacks
   - _Requirements: All_
 
-- [ ] 15. Final Checkpoint - Ensure all tests pass
+- [x] 15. Final Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
