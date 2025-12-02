@@ -4,6 +4,7 @@ import { transactions } from "../../core/database/schema/transactions.schema";
 import { loans } from "../../core/database/schema/loans.schema";
 import { clients } from "../../core/database/schema/clients.schema";
 import type { TransactionWithDetails } from "./payments.types";
+import logger from "../../core/logger";
 
 /**
  * Data for inserting a new transaction
@@ -51,13 +52,32 @@ export class PaymentRepository {
    * @returns Transaction if found, null otherwise
    */
   async findByTransactionRef(transactionRef: string): Promise<typeof transactions.$inferSelect | null> {
+    logger.info(
+      { transactionRef },
+      "Checking for duplicate transaction"
+    );
+
     const result = await db
       .select()
       .from(transactions)
       .where(eq(transactions.transaction_ref_id, transactionRef))
       .limit(1);
 
-    return result[0] || null;
+    const found = result[0] || null;
+
+    if (found) {
+      logger.info(
+        { transactionRef, transactionId: found.id },
+        "Duplicate transaction found"
+      );
+    } else {
+      logger.info(
+        { transactionRef },
+        "No duplicate transaction found"
+      );
+    }
+
+    return found;
   }
 
   /**
@@ -76,37 +96,122 @@ export class PaymentRepository {
     transactionData: TransactionInsert,
     loanUpdates: LoanUpdates
   ): Promise<typeof transactions.$inferSelect> {
-    return await db.transaction(async (tx) => {
-      // Step 1: Acquire row-level lock on the loan record
-      // FOR UPDATE ensures no other transaction can modify this loan until we commit
-      const lockedLoan = await tx
-        .select()
-        .from(loans)
-        .where(eq(loans.id, loanId))
-        .for("update")
-        .limit(1);
+    logger.info(
+      {
+        loanId,
+        transactionRefId: transactionData.transaction_ref_id,
+        amount: transactionData.amount,
+      },
+      "Starting ACID transaction for payment processing"
+    );
 
-      if (!lockedLoan[0]) {
-        throw new Error(`Loan ${loanId} not found`);
-      }
+    try {
+      const result = await db.transaction(async (tx) => {
+        // Step 1: Acquire row-level lock on the loan record
+        // FOR UPDATE ensures no other transaction can modify this loan until we commit
+        logger.info(
+          { loanId },
+          "Acquiring row-level lock on loan record"
+        );
 
-      // Step 2: Update loan balances and status
-      await tx
-        .update(loans)
-        .set({
-          ...loanUpdates,
-          updated_at: new Date(),
-        })
-        .where(eq(loans.id, loanId));
+        const lockedLoan = await tx
+          .select()
+          .from(loans)
+          .where(eq(loans.id, loanId))
+          .for("update")
+          .limit(1);
 
-      // Step 3: Insert transaction record
-      const result = await tx
-        .insert(transactions)
-        .values(transactionData)
-        .returning();
+        if (!lockedLoan[0]) {
+          logger.error({ loanId }, "Loan not found during transaction");
+          throw new Error(`Loan ${loanId} not found`);
+        }
 
-      return result[0];
-    });
+        logger.info(
+          { loanId },
+          "Lock acquired successfully"
+        );
+
+        // Step 2: Update loan balances and status
+        logger.info(
+          {
+            loanId,
+            updates: {
+              outstanding_balance: loanUpdates.outstanding_balance,
+              principal_paid: loanUpdates.principal_paid,
+              interest_paid: loanUpdates.interest_paid,
+              penalties_paid: loanUpdates.penalties_paid,
+              contract_status: loanUpdates.contract_status,
+            },
+          },
+          "Updating loan balances and status"
+        );
+
+        await tx
+          .update(loans)
+          .set({
+            ...loanUpdates,
+            updated_at: new Date(),
+          })
+          .where(eq(loans.id, loanId));
+
+        logger.info(
+          { loanId },
+          "Loan updated successfully"
+        );
+
+        // Step 3: Insert transaction record
+        logger.info(
+          {
+            transactionRefId: transactionData.transaction_ref_id,
+            loanId,
+            amount: transactionData.amount,
+            allocation: {
+              toPenalties: transactionData.amount_to_penalties,
+              toInterest: transactionData.amount_to_interest,
+              toPrincipal: transactionData.amount_to_principal,
+            },
+          },
+          "Inserting transaction record"
+        );
+
+        const result = await tx
+          .insert(transactions)
+          .values(transactionData)
+          .returning();
+
+        logger.info(
+          {
+            transactionId: result[0].id,
+            transactionRefId: transactionData.transaction_ref_id,
+          },
+          "Transaction record inserted successfully"
+        );
+
+        return result[0];
+      });
+
+      logger.info(
+        {
+          loanId,
+          transactionId: result.id,
+          transactionRefId: transactionData.transaction_ref_id,
+        },
+        "ACID transaction committed successfully"
+      );
+
+      return result;
+    } catch (error) {
+      logger.error(
+        {
+          loanId,
+          transactionRefId: transactionData.transaction_ref_id,
+          error: error instanceof Error ? error.message : "Unknown error",
+          stack: error instanceof Error ? error.stack : undefined,
+        },
+        "ACID transaction failed - rolling back all changes"
+      );
+      throw error;
+    }
   }
 
   /**
@@ -118,10 +223,27 @@ export class PaymentRepository {
    * @returns Created transaction record
    */
   async createTransaction(data: TransactionInsert): Promise<typeof transactions.$inferSelect> {
+    logger.info(
+      {
+        transactionRefId: data.transaction_ref_id,
+        loanId: data.loan_id,
+        amount: data.amount,
+      },
+      "Creating transaction record (without ACID wrapper)"
+    );
+
     const result = await db
       .insert(transactions)
       .values(data)
       .returning();
+
+    logger.info(
+      {
+        transactionId: result[0].id,
+        transactionRefId: data.transaction_ref_id,
+      },
+      "Transaction record created"
+    );
 
     return result[0];
   }
@@ -138,6 +260,11 @@ export class PaymentRepository {
     limit: number,
     offset: number
   ): Promise<Array<typeof transactions.$inferSelect>> {
+    logger.info(
+      { loanId, limit, offset },
+      "Querying payment history"
+    );
+
     const result = await db
       .select()
       .from(transactions)
@@ -145,6 +272,11 @@ export class PaymentRepository {
       .orderBy(desc(transactions.payment_date))
       .limit(limit)
       .offset(offset);
+
+    logger.info(
+      { loanId, count: result.length, limit, offset },
+      "Payment history query completed"
+    );
 
     return result;
   }
@@ -155,12 +287,24 @@ export class PaymentRepository {
    * @returns Total number of transactions for the loan
    */
   async countPayments(loanId: string): Promise<number> {
+    logger.info(
+      { loanId },
+      "Counting total payments for loan"
+    );
+
     const result = await db
       .select({ count: sql<number>`COUNT(*)` })
       .from(transactions)
       .where(eq(transactions.loan_id, loanId));
 
-    return Number(result[0].count);
+    const count = Number(result[0].count);
+
+    logger.info(
+      { loanId, count },
+      "Payment count completed"
+    );
+
+    return count;
   }
 
   /**
@@ -169,6 +313,11 @@ export class PaymentRepository {
    * @returns Transaction with related loan and client data, or null if not found
    */
   async findById(transactionId: string): Promise<TransactionWithDetails | null> {
+    logger.info(
+      { transactionId },
+      "Fetching transaction with details"
+    );
+
     const result = await db
       .select({
         transaction: transactions,
@@ -182,8 +331,21 @@ export class PaymentRepository {
       .limit(1);
 
     if (!result[0] || !result[0].loan || !result[0].client) {
+      logger.warn(
+        { transactionId },
+        "Transaction not found or missing related data"
+      );
       return null;
     }
+
+    logger.info(
+      {
+        transactionId,
+        loanId: result[0].loan.id,
+        clientId: result[0].client.id,
+      },
+      "Transaction with details fetched successfully"
+    );
 
     return {
       transaction: result[0].transaction,

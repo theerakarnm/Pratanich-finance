@@ -4,17 +4,36 @@ import { loans } from '../../core/database/schema/loans.schema';
 import { clients } from '../../core/database/schema/clients.schema';
 import { eq, desc } from 'drizzle-orm';
 import type { PendingPaymentInsert } from './payments.types';
+import logger from '../../core/logger';
 
 export class PendingPaymentsRepository {
   /**
    * Create a pending payment record for unmatched payments
    */
   async create(data: PendingPaymentInsert) {
+    logger.info(
+      {
+        transactionRefId: data.transaction_ref_id,
+        amount: data.amount,
+        paymentDate: data.payment_date,
+        status: data.status,
+      },
+      "Creating pending payment record"
+    );
+
     const [pendingPayment] = await db
       .insert(pendingPayments)
       .values(data)
       .returning();
     
+    logger.info(
+      {
+        pendingPaymentId: pendingPayment.id,
+        transactionRefId: data.transaction_ref_id,
+      },
+      "Pending payment record created successfully"
+    );
+
     return pendingPayment;
   }
 
@@ -88,6 +107,15 @@ export class PendingPaymentsRepository {
    * Update pending payment status and matched loan
    */
   async updateMatch(id: string, loanId: string, matchedBy: string, adminNotes?: string) {
+    logger.info(
+      {
+        pendingPaymentId: id,
+        loanId,
+        matchedBy,
+      },
+      "Updating pending payment with matched loan"
+    );
+
     const [updated] = await db
       .update(pendingPayments)
       .set({
@@ -101,6 +129,15 @@ export class PendingPaymentsRepository {
       .where(eq(pendingPayments.id, id))
       .returning();
     
+    logger.info(
+      {
+        pendingPaymentId: id,
+        loanId,
+        transactionRefId: updated.transaction_ref_id,
+      },
+      "Pending payment matched successfully"
+    );
+
     return updated;
   }
 
@@ -108,6 +145,14 @@ export class PendingPaymentsRepository {
    * Mark pending payment as processed
    */
   async markProcessed(id: string, transactionId: string) {
+    logger.info(
+      {
+        pendingPaymentId: id,
+        transactionId,
+      },
+      "Marking pending payment as processed"
+    );
+
     const [updated] = await db
       .update(pendingPayments)
       .set({
@@ -119,6 +164,15 @@ export class PendingPaymentsRepository {
       .where(eq(pendingPayments.id, id))
       .returning();
     
+    logger.info(
+      {
+        pendingPaymentId: id,
+        transactionId,
+        transactionRefId: updated.transaction_ref_id,
+      },
+      "Pending payment marked as processed successfully"
+    );
+
     return updated;
   }
 
@@ -126,6 +180,14 @@ export class PendingPaymentsRepository {
    * Mark pending payment as rejected
    */
   async markRejected(id: string, adminNotes: string) {
+    logger.info(
+      {
+        pendingPaymentId: id,
+        adminNotes,
+      },
+      "Marking pending payment as rejected"
+    );
+
     const [updated] = await db
       .update(pendingPayments)
       .set({
@@ -136,6 +198,14 @@ export class PendingPaymentsRepository {
       .where(eq(pendingPayments.id, id))
       .returning();
     
+    logger.info(
+      {
+        pendingPaymentId: id,
+        transactionRefId: updated.transaction_ref_id,
+      },
+      "Pending payment marked as rejected"
+    );
+
     return updated;
   }
 
