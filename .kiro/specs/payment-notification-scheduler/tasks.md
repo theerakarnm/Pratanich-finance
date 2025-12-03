@@ -31,8 +31,8 @@
   - Test findByLoan() returns all notifications for a loan
   - _Requirements: 6.1, 6.4_
 
-- [ ] 4. Implement notification service for Flex Message generation
-- [ ] 4.1 Create NotificationService class
+- [x] 4. Implement notification service for Flex Message generation
+- [x] 4.1 Create NotificationService class
   - Implement createBillingNotification() using existing createBillingMessage template
   - Implement createWarningNotification() using existing createDueWarningMessage template
   - Implement createDueDateNotification() using existing createDueDateMessage template
@@ -218,7 +218,7 @@
   - Add environment variable checks for NOTIFICATION_ENABLED flag
   - _Requirements: 7.1_
 
-- [ ]* 10.2 Write integration tests for notification scheduler
+- [ ] 10.2 Write integration tests for notification scheduler
   - Test end-to-end notification flow with test database
   - Test cron job execution (manual trigger)
   - Test graceful shutdown
