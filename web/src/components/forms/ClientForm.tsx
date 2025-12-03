@@ -29,7 +29,7 @@ const clientSchema = z.object({
   last_name: z.string().min(1, "กรุณากรอกนามสกุล"),
   date_of_birth: z.string().min(1, "กรุณากรอกวันเกิด"), // Keep as string for simplicity for now, can enhance with Calendar later
   mobile_number: z.string().min(10, "เบอร์โทรศัพท์ต้องมีอย่างน้อย 10 หลัก"),
-  email: z.string().email("อีเมลไม่ถูกต้อง"),
+  email: z.email("อีเมลไม่ถูกต้อง").optional(),
   line_id: z.string().optional(),
 });
 
@@ -63,7 +63,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit, (data) => {
+            console.log(data)
+          })} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -72,7 +74,7 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                   <FormItem>
                     <FormLabel>เลขบัตรประชาชน</FormLabel>
                     <FormControl>
-                      <Input placeholder="1234567890123" {...field} />
+                      <Input placeholder="1234567890123" maxLength={13} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -85,7 +87,7 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>คำนำหน้า</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="เลือกคำนำหน้า" />
@@ -139,9 +141,9 @@ export function ClientForm({ initialData, onSubmit, isEditing = false }: ClientF
                     <FormControl>
                       <DatePicker
                         value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
+                        onChange={(date) => {
                           field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
+                        }}
                         placeholder="เลือกวันที่"
                       />
                     </FormControl>

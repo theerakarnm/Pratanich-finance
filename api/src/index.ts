@@ -13,7 +13,7 @@ const app = new Hono();
 // Global Middleware
 app.use('*', loggerMiddleware);
 app.use('*', cors({
-  origin: ['https://d0badd696350.ngrok-free.app', 'http://localhost:5555'], // Frontend URLs
+  origin: ['https://ce9ff195d422.ngrok-free.app', 'http://localhost:5555'], // Frontend URLs
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

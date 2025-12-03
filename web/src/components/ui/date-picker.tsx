@@ -1,4 +1,4 @@
-import * as ReactHook from "preact/hooks"
+import * as React from "react"
 import { CalendarIcon } from "lucide-react"
 import dayjs from "dayjs"
 import customParseFormat from "dayjs/plugin/customParseFormat"
@@ -49,26 +49,28 @@ export function DatePicker({
   placeholder = "Select date",
   className,
   disabled = false,
-}: DatePickerProps) {
-  const [open, setOpen] = ReactHook.useState(false)
-  const [alertOpen, setAlertOpen] = ReactHook.useState(false)
-  const [month, setMonth] = ReactHook.useState<Date | undefined>(value)
-  const [inputValue, setInputValue] = ReactHook.useState("")
+  startYear = new Date().getFullYear() - 100,
+  endYear = new Date().getFullYear() + 100,
+}: DatePickerProps & { startYear?: number; endYear?: number }) {
+  const [open, setOpen] = React.useState(false)
+  const [alertOpen, setAlertOpen] = React.useState(false)
+  const [month, setMonth] = React.useState<Date | undefined>(value)
+  const [inputValue, setInputValue] = React.useState("")
 
   // Sync input value when prop value changes
-  ReactHook.useEffect(() => {
+  React.useEffect(() => {
     setInputValue(formatDate(value))
     if (value) {
       setMonth(value)
     }
   }, [value])
 
-  const handleInputChange = (e: Event) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = (e.target as HTMLInputElement).value
     setInputValue(val)
   }
 
-  ReactHook.useEffect(() => {
+  React.useEffect(() => {
     const timer = setTimeout(() => {
       if (inputValue === "") {
         onChange?.(undefined)
@@ -133,13 +135,31 @@ export function DatePicker({
               mode="single"
               selected={value}
               captionLayout="dropdown"
+              fromYear={startYear}
+              toYear={endYear}
               month={month}
               onMonthChange={setMonth}
               onSelect={(date) => {
+                setInputValue(formatDate(date))
                 onChange?.(date)
                 setOpen(false)
               }}
             />
+            <div className="p-3 border-t border-border">
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-left font-normal"
+                onClick={() => {
+                  const today = new Date()
+                  setMonth(today)
+                  setInputValue(formatDate(today))
+                  onChange?.(today)
+                  setOpen(false)
+                }}
+              >
+                Today
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
 

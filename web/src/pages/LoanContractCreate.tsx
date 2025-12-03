@@ -25,12 +25,12 @@ export function LoanContractCreate() {
     try {
       setError(null);
       await createLoan(data);
-      alert("Loan Contract created successfully!");
+      alert("สร้างสัญญาเงินกู้สำเร็จแล้ว!");
       setLocation("/admin/loans");
     } catch (err) {
       console.error("Failed to create loan contract:", err);
       setError(err instanceof Error ? err.message : "Failed to create loan contract");
-      alert("Failed to create loan contract: " + (err instanceof Error ? err.message : "Unknown error"));
+      alert("ไม่สามารถสร้างสัญญาเงินกู้ได้: " + (err instanceof Error ? err.message : "ข้อผิดพลาดที่ไม่ทราบสาเหตุ"));
     }
   };
 

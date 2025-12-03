@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, CreditCard, TrendingUp, AlertCircle, History as HistoryIcon } from 'lucide-react';
 import dayjs from 'dayjs';
 
 interface LoanCardProps {
@@ -135,6 +136,15 @@ export function LoanCard({ loan }: LoanCardProps) {
             <span className="font-medium">Day {loan.dueDay} of each month</span>
           </div>
         </div>
+
+        <Button
+          className="w-full"
+          variant="outline"
+          onClick={() => window.location.href = `/liff/loans/${loan.id}/payments`}
+        >
+          <HistoryIcon className="mr-2 h-4 w-4" />
+          View Payment History
+        </Button>
       </CardContent>
     </Card>
   );

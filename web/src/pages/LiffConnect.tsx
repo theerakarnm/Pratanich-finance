@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'wouter';
-import liff from '@line/liff';
+// import liff from '@line/liff';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -87,21 +87,21 @@ export function LiffConnect() {
   }, []);
 
   // Check if LINE user is already connected
-  const checkExistingConnection = async (lineUserId: string) => {
-    try {
-      const response = await apiClient.get<{ clientId: string; firstName: string; lastName: string; connectedAt: string }>(
-        `/api/connect/client/${lineUserId}`
-      );
-
-      if (response.data) {
-        // User is already connected, redirect to loan summary
-        setLocation(`/liff/loans/${response.data.clientId}`);
-      }
-    } catch (error) {
-      // User not connected yet, continue with connect flow
-      console.log('User not connected yet');
-    }
-  };
+  // const checkExistingConnection = async (lineUserId: string) => {
+  //   try {
+  //     const response = await apiClient.get<{ clientId: string; firstName: string; lastName: string; connectedAt: string }>(
+  //       `/api/connect/client/${lineUserId}`
+  //     );
+  //
+  //     if (response.data) {
+  //       // User is already connected, redirect to loan summary
+  //       setLocation(`/liff/loans/${response.data.clientId}`);
+  //     }
+  //   } catch (error) {
+  //     // User not connected yet, continue with connect flow
+  //     console.log('User not connected yet');
+  //   }
+  // };
 
   // Handle code input change (format as XXXX-XXXX)
   const handleCodeChange = (e: Event) => {

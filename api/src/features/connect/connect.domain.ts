@@ -30,16 +30,16 @@ export class ConnectDomain {
 
     while (attempts < maxRetries) {
       const code = generateConnectCode();
-      
+
       // Check if code already exists
       const existing = await connectRepository.findByCode(code);
-      
+
       if (!existing) {
         // Code is unique, create it
         const expiresAt = calculateExpirationDate(config.connect.codeExpiryDays);
-        
+
         const connectCode = await connectRepository.create({
-          code,
+          code: code.replace('-', ''),
           client_id: clientId,
           expires_at: expiresAt,
           is_used: false,
@@ -118,7 +118,7 @@ export class ConnectDomain {
 
     // Verify code first
     const verification = await this.verifyConnectCode(code);
-    
+
     if (!verification.valid) {
       logger.warn({
         event: "connection_attempt_failed",
@@ -141,7 +141,7 @@ export class ConnectDomain {
 
     // Check if LINE user ID is already connected to another client
     const existingClient = await clientsRepository.findByLineUserId(lineProfile.userId);
-    
+
     if (existingClient && existingClient.id !== clientId) {
       logger.warn({
         event: "connection_attempt_failed",
@@ -194,7 +194,7 @@ export class ConnectDomain {
     // Check if client is currently blocked
     if (rateLimit.blocked_until && rateLimit.blocked_until > now) {
       const retryAfter = Math.ceil((rateLimit.blocked_until.getTime() - now.getTime()) / 1000);
-      
+
       logger.warn({
         event: "rate_limit_blocked",
         clientId,
@@ -212,7 +212,7 @@ export class ConnectDomain {
     if (now > windowEnd) {
       // Window has expired, reset the counter
       await rateLimitRepository.reset(clientId);
-      
+
       logger.info({
         event: "rate_limit_reset",
         clientId,
@@ -226,7 +226,7 @@ export class ConnectDomain {
       // Block the client
       await rateLimitRepository.blockClient(clientId, config.connect.rateLimitBlockMinutes);
       const retryAfter = config.connect.rateLimitBlockMinutes * 60;
-      
+
       logger.warn({
         event: "rate_limit_exceeded",
         clientId,
@@ -247,7 +247,7 @@ export class ConnectDomain {
    */
   async incrementRateLimit(clientId: string): Promise<void> {
     const rateLimit = await rateLimitRepository.incrementAttempts(clientId);
-    
+
     logger.info({
       event: "rate_limit_incremented",
       clientId,
@@ -269,11 +269,11 @@ export class ConnectDomain {
   async deleteConnectCode(code: string) {
     // Verify code exists
     const connectCode = await connectRepository.findByCode(code);
-    
+
     if (!connectCode) {
       throw new Error("Connect code not found");
     }
-    
+
     await connectRepository.delete(code);
   }
 
@@ -289,7 +289,7 @@ export class ConnectDomain {
 
     // Normalize phone number
     const normalizedPhone = normalizePhoneNumber(phoneNumber);
-    
+
     if (!normalizedPhone) {
       logger.warn({
         event: "phone_contract_verification_failed",
@@ -303,7 +303,7 @@ export class ConnectDomain {
 
     // Find client by normalized phone number
     const client = await clientsRepository.findByNormalizedPhone(normalizedPhone);
-    
+
     if (!client) {
       logger.warn({
         event: "phone_contract_verification_failed",
@@ -318,7 +318,7 @@ export class ConnectDomain {
 
     // Verify client has loan with contract number
     const loan = await loansRepository.findByClientAndContractNumber(client.id, contractNumber);
-    
+
     if (!loan) {
       logger.warn({
         event: "phone_contract_verification_failed",
@@ -357,7 +357,7 @@ export class ConnectDomain {
 
     // Verify phone and contract first
     const verification = await this.verifyPhoneAndContract(phoneNumber, contractNumber);
-    
+
     if (!verification.valid) {
       logger.warn({
         event: "phone_connection_attempt_failed",
@@ -373,7 +373,7 @@ export class ConnectDomain {
 
     // Check if LINE user ID is already connected to another client
     const existingClient = await clientsRepository.findByLineUserId(lineProfile.userId);
-    
+
     if (existingClient && existingClient.id !== clientId) {
       logger.warn({
         event: "phone_connection_attempt_failed",

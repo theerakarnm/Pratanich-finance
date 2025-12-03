@@ -21,14 +21,19 @@ export const auth = betterAuth({
   ],
   trustedOrigins: ['http://localhost:5555'],
   secret: config.auth.secret,
+  session: {
+    cookieCache: {
+      enabled: true,
+      maxAge: 5 * 60, // 5 minutes
+    },
+  },
   advanced: {
     crossSubDomainCookies: {
-      enabled: true
+      enabled: false // Disable for localhost development
     },
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-      partitioned: true // New browser standards will mandate this for foreign cookies
+      sameSite: "lax", // Changed from "none" to "lax" for better compatibility
+      secure: process.env.NODE_ENV === "production", // Only secure in production
     }
   }
 });

@@ -76,6 +76,7 @@ export class LoansRepository {
           first_name: clients.first_name,
           last_name: clients.last_name,
           citizen_id: clients.citizen_id,
+          line_user_id: clients.line_user_id,
         }
       })
       .from(loans)

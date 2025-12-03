@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project Progress Tracking</title>
+
+  <!-- React & ReactDOM -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+
+  <!-- Babel -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Google Fonts (Prompt) -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: #f1f5f9;
+    }
+
+    .progress-bar-animate {
+      transition: width 1s ease-in-out;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // Data Structure
+    const projectData = {
+      summary: [
+        { title: "API Development", progress: 90, color: "blue" },
+        { title: "Web Application", progress: 86, color: "indigo" },
+        { title: "Line LIFF App", progress: 90, color: "green" },
+      ],
+      modules: [
+        {
+          id: 1,
+          title: "Module 1: API Development (Backend)",
+          icon: "server",
+          overallProgress: 90,
+          tasks: [
+            {
+              name: "Authentication & Authorization",
+              progress: 90,
+              details: ["Admin Auth (Better Auth)", "User Auth Middleware", "RBAC (Refinement needed)"],
+              status: "good"
+            },
+            {
+              name: "Client Management",
+              progress: 95,
+              details: ["Domain & Repository Layer", "CRUD Routes", "Search & Pagination", "Soft Delete Implemented"],
+              status: "good"
+            },
+            {
+              name: "Loan Contract Management",
+              progress: 95,
+              details: ["Domain & Repository Layer", "CRUD Routes", "Search & Pagination", "Soft Delete Implemented"],
+              status: "good"
+            },
+            {
+              name: "Transaction Management",
+              progress: 80,
+              details: ["Slip Verification (SlipOK)", "PromptPay QR Generation", "Transaction History"],
+              status: "good"
+            },
+            {
+              name: "Line Integration",
+              progress: 90,
+              details: ["Webhook Handling", "Flex Message Templates", "Loan Notification Implemented", "Rich Menu", "User Binding"],
+              status: "good"
+            }
+          ]
+        },
+        {
+          id: 2,
+          title: "Module 2: Web Application (Admin Portal)",
+          icon: "layout",
+          overallProgress: 86,
+          tasks: [
+            {
+              name: "Dashboard",
+              progress: 60,
+              details: ["Basic Layout", "Key Metrics Widgets (Needs real data)"],
+              status: "warning"
+            },
+            {
+              name: "Client Management UI",
+              progress: 100,
+              details: ["List View with Search", "Create Client Form (Validation Fixed)", "Edit Client Form", "Soft Delete UI"],
+              status: "good"
+            },
+            {
+              name: "Loan Contract Management UI",
+              progress: 100,
+              details: ["List View with Search", "Create Contract Form (DatePicker Fixed)", "Edit Contract Form", "Thai Labels Added", "Soft Delete UI"],
+              status: "good"
+            },
+            {
+              name: "Transaction Verification UI",
+              progress: 70,
+              details: ["Transaction List", "Slip Verification Modal", "Pending Testing (Missing)"],
+              status: "warning"
+            },
+            {
+              name: "Authentication UI",
+              progress: 100,
+              details: ["Login Page", "Protected Routes"],
+              status: "good"
+            }
+          ]
+        },
+        {
+          id: 3,
+          title: "Module 3: Line LIFF App (User Portal)",
+          icon: "smartphone",
+          overallProgress: 90,
+          tasks: [
+            {
+              name: "Liff Connect",
+              progress: 90,
+              details: ["User Identification", "Account Binding Flow"],
+              status: "good"
+            },
+            {
+              name: "Loan Dashboard for User",
+              progress: 90,
+              details: ["Loan Summary View", "Payment History View", "QR Code Payment (Displaying PromptPay QR)"],
+              status: "good"
+            }
+          ]
+        }
+      ]
+    };
+
+    // Components
+    const ProgressBar = ({ percent, status }) => {
+      let colorClass = "bg-blue-500";
+      if (status === "good") colorClass = "bg-emerald-500";
+      else if (status === "warning") colorClass = "bg-amber-500";
+      else if (status === "critical") colorClass = "bg-rose-500";
+
+      // Overwrite color based on raw percent if status isn't manual
+      if (percent >= 80) colorClass = "bg-emerald-500";
+      else if (percent >= 50) colorClass = "bg-amber-500";
+      else colorClass = "bg-rose-500";
+
+      return (
+        <div className="w-full bg-slate-200 rounded-full h-2.5 mt-2">
+          <div
+            className={`${colorClass} h-2.5 rounded-full progress-bar-animate shadow-sm`}
+            style={{ width: `${percent}%` }}
+          ></div>
+        </div>
+      );
+    };
+
+    const StatusBadge = ({ percent }) => {
+      if (percent >= 90) return <span className="text-xs font-semibold px-2 py-1 rounded bg-emerald-100 text-emerald-700">On Track</span>;
+      if (percent >= 60) return <span className="text-xs font-semibold px-2 py-1 rounded bg-amber-100 text-amber-700">In Progress</span>;
+      return <span className="text-xs font-semibold px-2 py-1 rounded bg-rose-100 text-rose-700">Attention Needed</span>;
+    };
+
+    const IconComponent = ({ name }) => {
+      React.useEffect(() => {
+        lucide.createIcons();
+      }, []);
+
+      return <i data-lucide={name} className="w-6 h-6 text-slate-600"></i>;
+    };
+
+    const App = () => {
+      React.useEffect(() => {
+        lucide.createIcons();
+      }, []);
+
+      return (
+        <div className="min-h-screen pb-12">
+          {/* Header */}
+          <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+            <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <i data-lucide="bar-chart-2" className="text-white w-6 h-6"></i>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-slate-800">Project Progress Tracking</h1>
+                  <p className="text-sm text-slate-500">Weekly Update Dashboard</p>
+                </div>
+              </div>
+              <div className="hidden md:block text-sm text-slate-400">
+                Last Updated: Today
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {projectData.summary.map((item, idx) => (
+                <div key={idx} className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-200 cursor-default">
+                  <div className="relative w-24 h-24 mb-4">
+                    <svg className="w-full h-full" viewBox="0 0 36 36">
+                      <path
+                        className="text-slate-100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      />
+                      <path
+                        className={item.progress >= 80 ? "text-emerald-500" : (item.progress >= 60 ? "text-amber-500" : "text-rose-500")}
+                        strokeDasharray={`${item.progress}, 100`}
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                      />
+                    </svg>
+                    <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                      <span className="text-2xl font-bold text-slate-700">{item.progress}%</span>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-slate-700">{item.title}</h3>
+                </div>
+              ))}
+            </div>
+
+            {/* Modules Detail Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {projectData.modules.map((module) => (
+                <div key={module.id} className="bg-white rounded-xl shadow-md border border-slate-200 overflow-hidden flex flex-col">
+                  {/* Card Header */}
+                  <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <i data-lucide={module.icon} className="w-5 h-5 text-slate-500"></i>
+                      <h2 className="font-bold text-slate-800">{module.title}</h2>
+                    </div>
+                  </div>
+
+                  {/* Card Content */}
+                  <div className="p-6 flex-1 overflow-y-auto max-h-[600px]">
+                    <div className="space-y-6">
+                      {module.tasks.map((task, idx) => (
+                        <div key={idx} className="group">
+                          <div className="flex justify-between items-end mb-1">
+                            <span className="font-medium text-slate-700">{task.name}</span>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-bold text-slate-600">{task.progress}%</span>
+                              <StatusBadge percent={task.progress} />
+                            </div>
+                          </div>
+
+                          <ProgressBar percent={task.progress} status={task.status} />
+
+                          {/* Sub-tasks / Details */}
+                          <div className="mt-2 pl-2 border-l-2 border-slate-200">
+                            <ul className="list-none space-y-1">
+                              {task.details.map((detail, dIdx) => {
+                                const isWarning = detail.includes("Missing") || detail.includes("Refinement") || detail.includes("Needs");
+                                return (
+                                  <li key={dIdx} className="text-xs text-slate-500 flex items-start">
+                                    {isWarning ?
+                                      <i data-lucide="alert-circle" className="w-3 h-3 text-rose-500 mr-1 mt-0.5 inline-block shrink-0"></i> :
+                                      <i data-lucide="check-circle-2" className="w-3 h-3 text-emerald-500 mr-1 mt-0.5 inline-block shrink-0"></i>
+                                    }
+                                    <span className={isWarning ? "text-rose-600 font-medium" : ""}>{detail}</span>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card Footer */}
+                  <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 text-center">
+                    <p className="text-xs text-slate-400">Total Tasks: {module.tasks.length}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </main>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>

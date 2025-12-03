@@ -3,7 +3,7 @@ import { config } from '../core/config';
 import { logger } from '../core/logger';
 import { ResponseBuilder } from '../core/response';
 import { validateLineSignature } from '../middleware/line-signature.middleware';
-import { LineMessagingClient } from '../features/line/line.client';
+import { lineClient } from '../features/line/line.service';
 import { LineReplyUtil } from '../features/line/utils/line-reply.util';
 import { LineEventRouter } from '../features/line/line.router';
 import { LineDomain } from '../features/line/line.domain';
@@ -23,12 +23,6 @@ type LineVariables = {
 };
 
 const lineRoutes = new Hono<{ Variables: LineVariables }>();
-
-// Initialize LINE components with dependency injection
-const lineClient = new LineMessagingClient(
-  config.line.channelAccessToken,
-  config.line.messagingApiUrl
-);
 
 const lineReplyUtil = new LineReplyUtil(lineClient);
 

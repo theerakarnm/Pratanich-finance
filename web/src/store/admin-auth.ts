@@ -26,6 +26,20 @@ export const useAdminAuthStore = create<AdminAuthState>()(
       isLoading: true,
       login: async (email: string, password: string) => {
         try {
+          // Clear any existing session first
+          try {
+            await authClient.signOut();
+          } catch {
+            // Ignore errors when signing out (there might not be a session)
+          }
+
+          // Clear local storage
+          set({
+            user: null,
+            isAuthenticated: false,
+          });
+
+          // Sign in with new credentials
           const { data, error } = await authClient.signIn.email({
             email,
             password,
@@ -38,7 +52,6 @@ export const useAdminAuthStore = create<AdminAuthState>()(
           if (!data) {
             throw new Error('Authentication failed: No data returned');
           }
-
 
           // Check if user has admin role
           // @ts-ignore - better-auth types might need to be inferred or casted if not fully set up yet

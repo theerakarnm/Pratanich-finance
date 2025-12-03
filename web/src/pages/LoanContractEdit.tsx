@@ -55,11 +55,11 @@ export function LoanContractEdit() {
     if (!params?.id) return;
     try {
       await updateLoan(params.id, data);
-      alert("Loan Contract updated successfully!");
+      alert("แก้ไขสัญญาเงินกู้สำเร็จแล้ว!");
       setLocation("/admin/loans");
     } catch (err) {
       console.error("Failed to update loan contract:", err);
-      alert("Failed to update loan contract: " + (err instanceof Error ? err.message : "Unknown error"));
+      alert("ไม่สามารถแก้ไขสัญญาเงินกู้ได้: " + (err instanceof Error ? err.message : "ข้อผิดพลาดที่ไม่ทราบสาเหตุ"));
     }
   };
 
