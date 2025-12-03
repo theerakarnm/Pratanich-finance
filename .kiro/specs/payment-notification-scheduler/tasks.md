@@ -92,7 +92,7 @@
   - _Requirements: 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2_
 
 - [ ] 6. Implement LINE user ID resolution logic
-- [ ] 6.1 Add method to ConnectRepository for LINE user ID lookup
+- [x] 6.1 Add method to ConnectRepository for LINE user ID lookup
   - Implement findActiveLineUserIdByClientId() method
   - Query connect_codes table for active connections
   - Return most recent active connection if multiple exist
@@ -114,8 +114,8 @@
   - Test with expired connections (returns null)
   - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
-- [ ] 7. Implement notification scheduler domain
-- [ ] 7.1 Create NotificationSchedulerDomain class
+- [x] 7. Implement notification scheduler domain
+- [x] 7.1 Create NotificationSchedulerDomain class
   - Inject dependencies: LoansRepository, NotificationHistoryRepository, ConnectRepository, NotificationService, LineMessagingClient
   - Implement sendBillingNotifications() method
   - Implement sendWarningNotifications() method

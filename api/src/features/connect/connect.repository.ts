@@ -1,6 +1,7 @@
-import { eq, and, lt } from "drizzle-orm";
+import { eq, and, lt, isNotNull } from "drizzle-orm";
 import { db } from "../../core/database";
 import { connectCodes } from "../../core/database/schema/connect-codes.schema";
+import { clients } from "../../core/database/schema/clients.schema";
 
 export class ConnectRepository {
   async create(data: typeof connectCodes.$inferInsert) {
@@ -78,6 +79,32 @@ export class ConnectRepository {
       .returning();
 
     return result.length;
+  }
+
+  /**
+   * Find active LINE user ID by client ID
+   * Returns the LINE user ID if the client has an active LINE connection
+   * Returns null if no active connection found
+   * 
+   * @param clientId - The client ID to look up
+   * @returns LINE user ID or null
+   */
+  async findActiveLineUserIdByClientId(clientId: string): Promise<string | null> {
+    const result = await db
+      .select({
+        line_user_id: clients.line_user_id,
+      })
+      .from(clients)
+      .where(
+        and(
+          eq(clients.id, clientId),
+          isNotNull(clients.line_user_id),
+          isNotNull(clients.connected_at)
+        )
+      )
+      .limit(1);
+
+    return result[0]?.line_user_id || null;
   }
 }
 
