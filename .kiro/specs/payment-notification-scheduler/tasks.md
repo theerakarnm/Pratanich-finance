@@ -13,15 +13,15 @@
   - Define LoanWithClient interface for joined query results
   - _Requirements: 1.1, 2.1, 3.1, 4.1_
 
-- [ ] 3. Implement notification history repository
-- [ ] 3.1 Create NotificationHistoryRepository class with CRUD operations
+- [x] 3. Implement notification history repository
+- [x] 3.1 Create NotificationHistoryRepository class with CRUD operations
   - Implement create() method to insert notification records
   - Implement findByLoanAndType() method for duplicate checking
   - Implement findByLoan() method for audit queries
   - Use Drizzle ORM with proper error handling
   - _Requirements: 6.1, 6.4_
 
-- [ ] 3.2 Write property test for duplicate detection
+- [x] 3.2 Write property test for duplicate detection
   - **Property 5: Duplicate notification prevention**
   - **Validates: Requirements 1.3, 2.3, 3.3, 4.3, 6.1, 6.2, 6.3**
 
