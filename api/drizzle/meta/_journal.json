@@ -29,6 +29,13 @@
       "when": 1764600389984,
       "tag": "0003_wooden_doctor_faustus",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764761421731,
+      "tag": "0004_talented_namora",
+      "breakpoints": true
     }
   ]
 }

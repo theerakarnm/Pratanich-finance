@@ -33,6 +33,7 @@ import slipokRoutes from '../features/slipok/slipok.routes';
 import paymentWebhookRoutes from '../features/payments/payment-webhook.routes';
 import pendingPaymentsRoutes from './pending-payments.routes';
 import paymentsRoutes from './payments.routes';
+import receiptsRoutes from './receipts.routes';
 
 // Feature routes
 router.route('/users', usersRoutes);
@@ -45,5 +46,7 @@ router.route('/slipok', slipokRoutes);
 router.route('/webhooks', paymentWebhookRoutes); // Webhook endpoints: /api/webhooks/slipok
 router.route('/admin/pending-payments', pendingPaymentsRoutes); // Admin endpoints: /api/admin/pending-payments
 router.route('/payments', paymentsRoutes); // Payment query endpoints: /api/payments/:id, /api/payments/history/:loanId, /api/payments/receipt/:id
+router.route('/receipts', receiptsRoutes);
+
 
 export default router;

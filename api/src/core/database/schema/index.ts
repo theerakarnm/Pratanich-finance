@@ -7,3 +7,4 @@ export * from './slipok.schema';
 export * from './connect-codes.schema';
 export * from './transactions.schema';
 export * from './pending-payments.schema';
+export * from './notification-history.schema';
