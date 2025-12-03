@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'wouter';
-// import liff from '@line/liff';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -9,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/api-client';
+import liff from '@line/liff';
 
 interface VerifyConnectCodeResponse {
   valid: boolean;
@@ -53,55 +53,47 @@ export function LiffConnect() {
       return;
     }
 
-    setProfile({
-      userId: 'test',
-      displayName: 'Theerakarn Maiwong',
-      pictureUrl: '',
-      statusMessage: 'Hello',
-    })
-    setIsInitializing(false);
+    liff
+      .init({ liffId })
+      .then(() => {
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return null;
+        }
 
-    // liff
-    //   .init({ liffId })
-    //   .then(() => {
-    //     if (!liff.isLoggedIn()) {
-    //       liff.login();
-    //       return null;
-    //     }
-
-    //     return liff.getProfile();
-    //   })
-    //   .then((profile) => {
-    //     if (profile) {
-    //       setProfile(profile);
-    //       // Check if user is already connected
-    //       checkExistingConnection(profile.userId);
-    //     }
-    //   })
-    //   .catch((error: Error) => {
-    //     setLiffError(error.toString());
-    //   })
-    //   .finally(() => {
-    //     setIsInitializing(false);
-    //   });
+        return liff.getProfile();
+      })
+      .then((profile) => {
+        if (profile) {
+          setProfile(profile);
+          // Check if user is already connected
+          checkExistingConnection(profile.userId);
+        }
+      })
+      .catch((error: Error) => {
+        setLiffError(error.toString());
+      })
+      .finally(() => {
+        setIsInitializing(false);
+      });
   }, []);
 
   // Check if LINE user is already connected
-  // const checkExistingConnection = async (lineUserId: string) => {
-  //   try {
-  //     const response = await apiClient.get<{ clientId: string; firstName: string; lastName: string; connectedAt: string }>(
-  //       `/api/connect/client/${lineUserId}`
-  //     );
-  //
-  //     if (response.data) {
-  //       // User is already connected, redirect to loan summary
-  //       setLocation(`/liff/loans/${response.data.clientId}`);
-  //     }
-  //   } catch (error) {
-  //     // User not connected yet, continue with connect flow
-  //     console.log('User not connected yet');
-  //   }
-  // };
+  const checkExistingConnection = async (lineUserId: string) => {
+    try {
+      const response = await apiClient.get<{ clientId: string; firstName: string; lastName: string; connectedAt: string }>(
+        `/api/connect/client/${lineUserId}`
+      );
+
+      if (response.data) {
+        // User is already connected, redirect to loan summary
+        setLocation(`/liff/loans/${response.data.clientId}`);
+      }
+    } catch (error) {
+      // User not connected yet, continue with connect flow
+      console.log('User not connected yet');
+    }
+  };
 
   // Handle code input change (format as XXXX-XXXX)
   const handleCodeChange = (e: Event) => {
