@@ -93,10 +93,10 @@ export class PaymentDomain {
       const lastPaymentDate = loan.last_payment_date
         ? new Date(loan.last_payment_date)
         : new Date(loan.contract_start_date);
-      
+
       const accruedInterest = this.calculateAccruedInterest(
         parseFloat(loan.outstanding_balance),
-        parseFloat(loan.interest_rate),
+        parseFloat(loan.interest_rate) / 100,
         lastPaymentDate,
         request.paymentDate
       );
@@ -261,7 +261,7 @@ export class PaymentDomain {
           // Need to fetch full client details to get line_user_id
           const clientsRepository = await import("../clients/clients.repository");
           const fullClient = await clientsRepository.clientsRepository.findById(loan.client_id);
-          
+
           if (fullClient && fullClient.line_user_id) {
             const notificationData: PaymentNotificationData = {
               amount: request.amount,

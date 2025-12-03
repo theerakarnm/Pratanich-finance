@@ -898,34 +898,6 @@ export class ImageMessageHandler implements EventHandler {
     );
 
     try {
-      // Format confirmation message with all required details
-      const confirmationMessage =
-        `✅ ชำระเงินสำเร็จ\n\n` +
-        `💰 จำนวนเงิน: ${slipokData.amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n\n` +
-        `📊 การจัดสรรเงิน:\n` +
-        `   • ค่าปรับ: ${result.allocation.toPenalties.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n` +
-        `   • ดอกเบี้ย: ${result.allocation.toInterest.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n` +
-        `   • เงินต้น: ${result.allocation.toPrincipal.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n\n` +
-        `💳 ยอดคงเหลือ: ${result.balanceAfter.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} บาท\n` +
-        `📝 รหัสอ้างอิง: ${slipokData.transRef}\n` +
-        `🔖 รหัสธุรกรรม: ${result.transactionId}`;
-
-      // Send confirmation message (using push message as reply token is already used)
-      await this.client.pushMessage(userId, [{
-        type: 'text',
-        text: confirmationMessage
-      }]);
-
-      logger.info(
-        {
-          event: 'payment_confirmation_sent',
-          transactionId: result.transactionId,
-          userId,
-          loanId: loan.id,
-        },
-        'Payment confirmation sent successfully'
-      );
-
       // Check if loan is closed (status is "Closed" and balance is zero)
       if (result.newStatus === 'Closed' && result.balanceAfter === 0) {
         logger.info(
