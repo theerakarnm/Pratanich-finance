@@ -59,8 +59,8 @@
   - Test fallback behavior when LIFF URL is missing
   - _Requirements: 1.4, 2.4, 3.4, 4.4, 8.1, 8.2, 8.4_
 
-- [ ] 5. Extend loans repository with notification queries
-- [ ] 5.1 Add query methods to LoansRepository
+- [x] 5. Extend loans repository with notification queries
+- [x] 5.1 Add query methods to LoansRepository
   - Implement findLoansForBillingNotification() - due date 15 days from now, Active/Overdue status
   - Implement findLoansForWarningNotification() - due date 3 days from now, Active/Overdue, balance > 0
   - Implement findLoansForDueDateNotification() - due date today, Active/Overdue, balance > 0

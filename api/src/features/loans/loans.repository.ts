@@ -1,7 +1,14 @@
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, inArray } from "drizzle-orm";
 import { db } from "../../core/database";
 import { loans } from "../../core/database/schema/loans.schema";
 import { clients } from "../../core/database/schema/clients.schema";
+import type { LoanWithClient } from "../notifications/notification.types";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export class LoansRepository {
   async findAll(limit: number, offset: number, search?: string) {
@@ -139,6 +146,183 @@ export class LoansRepository {
       .limit(1);
 
     return result[0] || null;
+  }
+
+  /**
+   * Find loans requiring billing notification (15 days before due date)
+   * Filters for Active or Overdue status
+   * 
+   * @returns Array of loans with client information
+   */
+  async findLoansForBillingNotification(): Promise<LoanWithClient[]> {
+    const today = dayjs().tz("Asia/Bangkok");
+    const targetDate = today.add(15, "days");
+    const targetDay = targetDate.date();
+
+    const result = await db
+      .select({
+        id: loans.id,
+        contract_number: loans.contract_number,
+        client_id: loans.client_id,
+        outstanding_balance: loans.outstanding_balance,
+        installment_amount: loans.installment_amount,
+        due_day: loans.due_day,
+        contract_status: loans.contract_status,
+        overdue_days: loans.overdue_days,
+        interest_rate: loans.interest_rate,
+        term_months: loans.term_months,
+        contract_start_date: loans.contract_start_date,
+        total_penalties: loans.total_penalties,
+        client_name: sql<string>`CONCAT(${clients.first_name}, ' ', ${clients.last_name})`,
+        client_phone: clients.mobile_number,
+      })
+      .from(loans)
+      .innerJoin(clients, eq(loans.client_id, clients.id))
+      .where(
+        and(
+          sql`${loans.deleted_at} IS NULL`,
+          sql`${clients.deleted_at} IS NULL`,
+          sql`${loans.due_day} = ${targetDay}`,
+          inArray(loans.contract_status, ["Active", "Overdue"])
+        )
+      );
+
+    return result.map(row => ({
+      ...row,
+      contract_start_date: row.contract_start_date.toString(),
+    }));
+  }
+
+  /**
+   * Find loans requiring warning notification (3 days before due date)
+   * Filters for Active or Overdue status and outstanding balance > 0
+   * 
+   * @returns Array of loans with client information
+   */
+  async findLoansForWarningNotification(): Promise<LoanWithClient[]> {
+    const today = dayjs().tz("Asia/Bangkok");
+    const targetDate = today.add(3, "days");
+    const targetDay = targetDate.date();
+
+    const result = await db
+      .select({
+        id: loans.id,
+        contract_number: loans.contract_number,
+        client_id: loans.client_id,
+        outstanding_balance: loans.outstanding_balance,
+        installment_amount: loans.installment_amount,
+        due_day: loans.due_day,
+        contract_status: loans.contract_status,
+        overdue_days: loans.overdue_days,
+        interest_rate: loans.interest_rate,
+        term_months: loans.term_months,
+        contract_start_date: loans.contract_start_date,
+        total_penalties: loans.total_penalties,
+        client_name: sql<string>`CONCAT(${clients.first_name}, ' ', ${clients.last_name})`,
+        client_phone: clients.mobile_number,
+      })
+      .from(loans)
+      .innerJoin(clients, eq(loans.client_id, clients.id))
+      .where(
+        and(
+          sql`${loans.deleted_at} IS NULL`,
+          sql`${clients.deleted_at} IS NULL`,
+          sql`${loans.due_day} = ${targetDay}`,
+          inArray(loans.contract_status, ["Active", "Overdue"]),
+          sql`${loans.outstanding_balance}::numeric > 0`
+        )
+      );
+
+    return result.map(row => ({
+      ...row,
+      contract_start_date: row.contract_start_date.toString(),
+    }));
+  }
+
+  /**
+   * Find loans requiring due date notification (on due date)
+   * Filters for Active or Overdue status and outstanding balance > 0
+   * 
+   * @returns Array of loans with client information
+   */
+  async findLoansForDueDateNotification(): Promise<LoanWithClient[]> {
+    const today = dayjs().tz("Asia/Bangkok");
+    const todayDay = today.date();
+
+    const result = await db
+      .select({
+        id: loans.id,
+        contract_number: loans.contract_number,
+        client_id: loans.client_id,
+        outstanding_balance: loans.outstanding_balance,
+        installment_amount: loans.installment_amount,
+        due_day: loans.due_day,
+        contract_status: loans.contract_status,
+        overdue_days: loans.overdue_days,
+        interest_rate: loans.interest_rate,
+        term_months: loans.term_months,
+        contract_start_date: loans.contract_start_date,
+        total_penalties: loans.total_penalties,
+        client_name: sql<string>`CONCAT(${clients.first_name}, ' ', ${clients.last_name})`,
+        client_phone: clients.mobile_number,
+      })
+      .from(loans)
+      .innerJoin(clients, eq(loans.client_id, clients.id))
+      .where(
+        and(
+          sql`${loans.deleted_at} IS NULL`,
+          sql`${clients.deleted_at} IS NULL`,
+          sql`${loans.due_day} = ${todayDay}`,
+          inArray(loans.contract_status, ["Active", "Overdue"]),
+          sql`${loans.outstanding_balance}::numeric > 0`
+        )
+      );
+
+    return result.map(row => ({
+      ...row,
+      contract_start_date: row.contract_start_date.toString(),
+    }));
+  }
+
+  /**
+   * Find loans requiring overdue notification (after due date)
+   * Filters for Overdue status and days overdue equal to 1, 3, or 7
+   * 
+   * @returns Array of loans with client information
+   */
+  async findLoansForOverdueNotification(): Promise<LoanWithClient[]> {
+    const result = await db
+      .select({
+        id: loans.id,
+        contract_number: loans.contract_number,
+        client_id: loans.client_id,
+        outstanding_balance: loans.outstanding_balance,
+        installment_amount: loans.installment_amount,
+        due_day: loans.due_day,
+        contract_status: loans.contract_status,
+        overdue_days: loans.overdue_days,
+        interest_rate: loans.interest_rate,
+        term_months: loans.term_months,
+        contract_start_date: loans.contract_start_date,
+        total_penalties: loans.total_penalties,
+        client_name: sql<string>`CONCAT(${clients.first_name}, ' ', ${clients.last_name})`,
+        client_phone: clients.mobile_number,
+      })
+      .from(loans)
+      .innerJoin(clients, eq(loans.client_id, clients.id))
+      .where(
+        and(
+          sql`${loans.deleted_at} IS NULL`,
+          sql`${clients.deleted_at} IS NULL`,
+          eq(loans.contract_status, "Overdue"),
+          inArray(loans.overdue_days, [1, 3, 7])
+        )
+      );
+
+    return result.map(row => ({
+      ...row,
+      contract_start_date: row.contract_start_date.toString(),
+    }));
   }
 }
 
