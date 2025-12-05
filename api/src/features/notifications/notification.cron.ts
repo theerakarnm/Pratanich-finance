@@ -1,6 +1,7 @@
 import type { NotificationSchedulerDomain } from './notification-scheduler.domain';
 import type { ScheduledTask } from 'node-cron';
 import logger from '../../core/logger';
+import { logCronTrigger, logCronError } from './notification-logging.utils';
 import cron from 'node-cron';
 
 /**
@@ -38,27 +39,13 @@ export function initializeNotificationJobs(
     billingJob = cron.schedule(
       '0 9 * * *',
       async () => {
-        logger.info(
-          {
-            event: 'cron_job_triggered',
-            jobName: 'billing_notifications',
-            scheduledTime: new Date().toISOString(),
-          },
-          'Billing notification cron job triggered'
-        );
+        const scheduledTime = new Date();
+        logCronTrigger('billing_notifications', scheduledTime);
 
         try {
           await schedulerDomain.sendBillingNotifications();
         } catch (error) {
-          logger.error(
-            {
-              event: 'cron_job_error',
-              jobName: 'billing_notifications',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Billing notification cron job failed'
-          );
+          logCronError('billing_notifications', error);
         }
       },
       {
@@ -80,27 +67,13 @@ export function initializeNotificationJobs(
     warningJob = cron.schedule(
       '0 9 * * *',
       async () => {
-        logger.info(
-          {
-            event: 'cron_job_triggered',
-            jobName: 'warning_notifications',
-            scheduledTime: new Date().toISOString(),
-          },
-          'Warning notification cron job triggered'
-        );
+        const scheduledTime = new Date();
+        logCronTrigger('warning_notifications', scheduledTime);
 
         try {
           await schedulerDomain.sendWarningNotifications();
         } catch (error) {
-          logger.error(
-            {
-              event: 'cron_job_error',
-              jobName: 'warning_notifications',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Warning notification cron job failed'
-          );
+          logCronError('warning_notifications', error);
         }
       },
       {
@@ -122,27 +95,13 @@ export function initializeNotificationJobs(
     dueDateJob = cron.schedule(
       '0 8 * * *',
       async () => {
-        logger.info(
-          {
-            event: 'cron_job_triggered',
-            jobName: 'due_date_notifications',
-            scheduledTime: new Date().toISOString(),
-          },
-          'Due date notification cron job triggered'
-        );
+        const scheduledTime = new Date();
+        logCronTrigger('due_date_notifications', scheduledTime);
 
         try {
           await schedulerDomain.sendDueDateNotifications();
         } catch (error) {
-          logger.error(
-            {
-              event: 'cron_job_error',
-              jobName: 'due_date_notifications',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Due date notification cron job failed'
-          );
+          logCronError('due_date_notifications', error);
         }
       },
       {
@@ -164,27 +123,13 @@ export function initializeNotificationJobs(
     overdueJob = cron.schedule(
       '0 10 * * *',
       async () => {
-        logger.info(
-          {
-            event: 'cron_job_triggered',
-            jobName: 'overdue_notifications',
-            scheduledTime: new Date().toISOString(),
-          },
-          'Overdue notification cron job triggered'
-        );
+        const scheduledTime = new Date();
+        logCronTrigger('overdue_notifications', scheduledTime);
 
         try {
           await schedulerDomain.sendOverdueNotifications();
         } catch (error) {
-          logger.error(
-            {
-              event: 'cron_job_error',
-              jobName: 'overdue_notifications',
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Overdue notification cron job failed'
-          );
+          logCronError('overdue_notifications', error);
         }
       },
       {

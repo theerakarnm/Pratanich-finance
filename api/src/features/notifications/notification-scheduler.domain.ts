@@ -13,6 +13,16 @@ import type {
   OverdueNotificationData,
 } from './notification.types';
 import logger from '../../core/logger';
+import {
+  logJobStart,
+  logJobResult,
+  logJobFailure,
+  logLoansIdentified,
+  logNotificationSent,
+  logNotificationFailed,
+  logNotificationSkipped,
+  logDuplicatePrevented,
+} from './notification-logging.utils';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
@@ -45,14 +55,7 @@ export class NotificationSchedulerDomain {
     const startTime = new Date();
     const jobName = 'billing_notifications';
 
-    logger.info(
-      {
-        event: 'notification_job_started',
-        jobName,
-        startTime,
-      },
-      'Starting billing notification job'
-    );
+    logJobStart(jobName);
 
     const result: NotificationJobResult = {
       jobName,
@@ -68,14 +71,10 @@ export class NotificationSchedulerDomain {
       // Identify loans requiring billing notifications
       const loans = await this.loansRepository.findLoansForBillingNotification();
 
-      logger.info(
-        {
-          event: 'loans_identified',
-          jobName,
-          loansFound: loans.length,
-        },
-        `Found ${loans.length} loans for billing notifications`
-      );
+      logLoansIdentified(jobName, loans.length, {
+        daysBeforeDue: 15,
+        statusFilter: ['Active', 'Overdue'],
+      });
 
       // Process each loan
       for (const loan of loans) {
@@ -91,50 +90,23 @@ export class NotificationSchedulerDomain {
             error: error instanceof Error ? error.message : 'Unknown error',
           });
 
-          logger.error(
-            {
-              event: 'notification_send_failed',
-              jobName,
-              loanId: loan.id,
-              clientId: loan.client_id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Failed to send billing notification'
+          logNotificationFailed(
+            jobName,
+            loan.id,
+            loan.client_id,
+            'billing',
+            error
           );
         }
       }
 
       result.endTime = new Date();
-
-      logger.info(
-        {
-          event: 'notification_job_completed',
-          jobName,
-          startTime,
-          endTime: result.endTime,
-          loansProcessed: result.loansProcessed,
-          notificationsSent: result.notificationsSent,
-          notificationsFailed: result.notificationsFailed,
-          errorCount: result.errors.length,
-        },
-        'Billing notification job completed'
-      );
+      logJobResult(result);
 
       return result;
     } catch (error) {
       result.endTime = new Date();
-
-      logger.error(
-        {
-          event: 'notification_job_failed',
-          jobName,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-        'Billing notification job failed'
-      );
-
+      logJobFailure(jobName, startTime, error);
       throw error;
     }
   }
@@ -150,14 +122,7 @@ export class NotificationSchedulerDomain {
     const startTime = new Date();
     const jobName = 'warning_notifications';
 
-    logger.info(
-      {
-        event: 'notification_job_started',
-        jobName,
-        startTime,
-      },
-      'Starting warning notification job'
-    );
+    logJobStart(jobName);
 
     const result: NotificationJobResult = {
       jobName,
@@ -173,14 +138,11 @@ export class NotificationSchedulerDomain {
       // Identify loans requiring warning notifications
       const loans = await this.loansRepository.findLoansForWarningNotification();
 
-      logger.info(
-        {
-          event: 'loans_identified',
-          jobName,
-          loansFound: loans.length,
-        },
-        `Found ${loans.length} loans for warning notifications`
-      );
+      logLoansIdentified(jobName, loans.length, {
+        daysBeforeDue: 3,
+        statusFilter: ['Active', 'Overdue'],
+        balanceFilter: '> 0',
+      });
 
       // Process each loan
       for (const loan of loans) {
@@ -196,50 +158,23 @@ export class NotificationSchedulerDomain {
             error: error instanceof Error ? error.message : 'Unknown error',
           });
 
-          logger.error(
-            {
-              event: 'notification_send_failed',
-              jobName,
-              loanId: loan.id,
-              clientId: loan.client_id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Failed to send warning notification'
+          logNotificationFailed(
+            jobName,
+            loan.id,
+            loan.client_id,
+            'warning',
+            error
           );
         }
       }
 
       result.endTime = new Date();
-
-      logger.info(
-        {
-          event: 'notification_job_completed',
-          jobName,
-          startTime,
-          endTime: result.endTime,
-          loansProcessed: result.loansProcessed,
-          notificationsSent: result.notificationsSent,
-          notificationsFailed: result.notificationsFailed,
-          errorCount: result.errors.length,
-        },
-        'Warning notification job completed'
-      );
+      logJobResult(result);
 
       return result;
     } catch (error) {
       result.endTime = new Date();
-
-      logger.error(
-        {
-          event: 'notification_job_failed',
-          jobName,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-        'Warning notification job failed'
-      );
-
+      logJobFailure(jobName, startTime, error);
       throw error;
     }
   }
@@ -255,14 +190,7 @@ export class NotificationSchedulerDomain {
     const startTime = new Date();
     const jobName = 'due_date_notifications';
 
-    logger.info(
-      {
-        event: 'notification_job_started',
-        jobName,
-        startTime,
-      },
-      'Starting due date notification job'
-    );
+    logJobStart(jobName);
 
     const result: NotificationJobResult = {
       jobName,
@@ -278,14 +206,11 @@ export class NotificationSchedulerDomain {
       // Identify loans requiring due date notifications
       const loans = await this.loansRepository.findLoansForDueDateNotification();
 
-      logger.info(
-        {
-          event: 'loans_identified',
-          jobName,
-          loansFound: loans.length,
-        },
-        `Found ${loans.length} loans for due date notifications`
-      );
+      logLoansIdentified(jobName, loans.length, {
+        dueDate: 'today',
+        statusFilter: ['Active', 'Overdue'],
+        balanceFilter: '> 0',
+      });
 
       // Process each loan
       for (const loan of loans) {
@@ -301,50 +226,23 @@ export class NotificationSchedulerDomain {
             error: error instanceof Error ? error.message : 'Unknown error',
           });
 
-          logger.error(
-            {
-              event: 'notification_send_failed',
-              jobName,
-              loanId: loan.id,
-              clientId: loan.client_id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Failed to send due date notification'
+          logNotificationFailed(
+            jobName,
+            loan.id,
+            loan.client_id,
+            'due_date',
+            error
           );
         }
       }
 
       result.endTime = new Date();
-
-      logger.info(
-        {
-          event: 'notification_job_completed',
-          jobName,
-          startTime,
-          endTime: result.endTime,
-          loansProcessed: result.loansProcessed,
-          notificationsSent: result.notificationsSent,
-          notificationsFailed: result.notificationsFailed,
-          errorCount: result.errors.length,
-        },
-        'Due date notification job completed'
-      );
+      logJobResult(result);
 
       return result;
     } catch (error) {
       result.endTime = new Date();
-
-      logger.error(
-        {
-          event: 'notification_job_failed',
-          jobName,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-        'Due date notification job failed'
-      );
-
+      logJobFailure(jobName, startTime, error);
       throw error;
     }
   }
@@ -359,14 +257,7 @@ export class NotificationSchedulerDomain {
     const startTime = new Date();
     const jobName = 'overdue_notifications';
 
-    logger.info(
-      {
-        event: 'notification_job_started',
-        jobName,
-        startTime,
-      },
-      'Starting overdue notification job'
-    );
+    logJobStart(jobName);
 
     const result: NotificationJobResult = {
       jobName,
@@ -382,14 +273,10 @@ export class NotificationSchedulerDomain {
       // Identify loans requiring overdue notifications
       const loans = await this.loansRepository.findLoansForOverdueNotification();
 
-      logger.info(
-        {
-          event: 'loans_identified',
-          jobName,
-          loansFound: loans.length,
-        },
-        `Found ${loans.length} loans for overdue notifications`
-      );
+      logLoansIdentified(jobName, loans.length, {
+        statusFilter: ['Overdue'],
+        overdueDays: [1, 3, 7],
+      });
 
       // Process each loan
       for (const loan of loans) {
@@ -405,50 +292,23 @@ export class NotificationSchedulerDomain {
             error: error instanceof Error ? error.message : 'Unknown error',
           });
 
-          logger.error(
-            {
-              event: 'notification_send_failed',
-              jobName,
-              loanId: loan.id,
-              clientId: loan.client_id,
-              error: error instanceof Error ? error.message : 'Unknown error',
-              stack: error instanceof Error ? error.stack : undefined,
-            },
-            'Failed to send overdue notification'
+          logNotificationFailed(
+            jobName,
+            loan.id,
+            loan.client_id,
+            'overdue',
+            error
           );
         }
       }
 
       result.endTime = new Date();
-
-      logger.info(
-        {
-          event: 'notification_job_completed',
-          jobName,
-          startTime,
-          endTime: result.endTime,
-          loansProcessed: result.loansProcessed,
-          notificationsSent: result.notificationsSent,
-          notificationsFailed: result.notificationsFailed,
-          errorCount: result.errors.length,
-        },
-        'Overdue notification job completed'
-      );
+      logJobResult(result);
 
       return result;
     } catch (error) {
       result.endTime = new Date();
-
-      logger.error(
-        {
-          event: 'notification_job_failed',
-          jobName,
-          error: error instanceof Error ? error.message : 'Unknown error',
-          stack: error instanceof Error ? error.stack : undefined,
-        },
-        'Overdue notification job failed'
-      );
-
+      logJobFailure(jobName, startTime, error);
       throw error;
     }
   }
@@ -481,14 +341,12 @@ export class NotificationSchedulerDomain {
     const lineUserId = await this.getLineUserId(loan.client_id);
 
     if (!lineUserId) {
-      logger.warn(
-        {
-          event: 'line_user_id_not_found',
-          loanId: loan.id,
-          clientId: loan.client_id,
-          notificationType,
-        },
-        'No LINE user ID found for client, skipping notification'
+      logNotificationSkipped(
+        notificationType + '_notifications',
+        loan.id,
+        loan.client_id,
+        notificationType,
+        'No LINE user ID found for client'
       );
       throw new Error('No LINE user ID found for client');
     }
@@ -515,15 +373,11 @@ export class NotificationSchedulerDomain {
     );
 
     if (!shouldSend) {
-      logger.info(
-        {
-          event: 'notification_already_sent',
-          loanId: loan.id,
-          clientId: loan.client_id,
-          notificationType,
-          billingPeriod,
-        },
-        'Notification already sent for this period, skipping'
+      logDuplicatePrevented(
+        notificationType + '_notifications',
+        loan.id,
+        notificationType,
+        billingPeriod
       );
       throw new Error('Notification already sent for this period');
     }
@@ -594,16 +448,13 @@ export class NotificationSchedulerDomain {
     try {
       await this.lineClient.pushMessage(lineUserId, [lineMessage]);
 
-      logger.info(
-        {
-          event: 'notification_sent',
-          loanId: loan.id,
-          clientId: loan.client_id,
-          lineUserId,
-          notificationType,
-          billingPeriod,
-        },
-        'Notification sent successfully'
+      logNotificationSent(
+        notificationType + '_notifications',
+        loan.id,
+        loan.client_id,
+        lineUserId,
+        notificationType,
+        billingPeriod
       );
 
       // Record notification history

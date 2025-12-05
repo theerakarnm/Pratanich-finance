@@ -239,8 +239,8 @@
   - Test fallback values for optional configuration
   - _Requirements: 8.4_
 
-- [ ] 12. Create database migration
-- [ ] 12.1 Generate and test migration
+- [x] 12. Create database migration
+- [x] 12.1 Generate and test migration
   - Run `bun run db:generate` to create migration file
   - Review generated SQL for notification_history table
   - Test migration on development database
@@ -248,8 +248,8 @@
   - Test rollback if supported
   - _Requirements: 6.4_
 
-- [ ] 13. Add monitoring and logging enhancements
-- [ ] 13.1 Implement notification metrics tracking
+- [-] 13. Add monitoring and logging enhancements
+- [-] 13.1 Implement notification metrics tracking
   - Add structured logging for job start/end with timing
   - Add structured logging for notification counts (sent/failed)
   - Add structured logging for error details
