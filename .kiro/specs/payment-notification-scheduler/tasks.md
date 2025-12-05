@@ -150,8 +150,8 @@
   - Test notification history recording
   - _Requirements: 1.1-1.5, 2.1-2.5, 3.1-3.5, 4.1-4.5, 5.1-5.5, 6.1-6.5, 9.1, 9.2_
 
-- [ ] 8. Implement interest and balance calculation utilities
-- [ ] 8.1 Create calculation utility functions
+- [x] 8. Implement interest and balance calculation utilities
+- [x] 8.1 Create calculation utility functions
   - Implement calculateAccruedInterest() function
   - Implement calculateTotalBalance() function
   - Implement calculatePenalty() function
@@ -191,8 +191,8 @@
   - Test timezone conversions
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5, 12.2, 12.3, 12.4_
 
-- [ ] 9. Implement cron job initialization
-- [ ] 9.1 Create notification.cron.ts file
+- [x] 9. Implement cron job initialization
+- [x] 9.1 Create notification.cron.ts file
   - Install node-cron package if not using Bun.CronJob
   - Implement initializeNotificationJobs() function
   - Schedule billing notification job (daily 9:00 AM Asia/Bangkok)
