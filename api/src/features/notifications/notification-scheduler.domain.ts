@@ -734,9 +734,19 @@ export class NotificationSchedulerDomain {
 
 /**
  * Singleton instance of NotificationSchedulerDomain
- * Dependencies will be injected when initializing the notification scheduler
- * This export is for convenience but the instance should be created with proper dependencies
+ * Initialized with all required dependencies
  */
-// Note: This singleton will be properly initialized in the cron job setup (task 9.1)
-// For now, we export the class for use in tests and future initialization
+import { loansRepository } from '../loans/loans.repository';
+import { notificationHistoryRepository } from './notification-history.repository';
+import { connectRepository } from '../connect/connect.repository';
+import { notificationService } from './notification.service';
+import { lineClient } from '../line/line.service';
+
+export const notificationSchedulerDomain = new NotificationSchedulerDomain(
+  loansRepository,
+  notificationHistoryRepository,
+  connectRepository,
+  notificationService,
+  lineClient
+);
 

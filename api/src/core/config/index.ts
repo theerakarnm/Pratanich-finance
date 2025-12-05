@@ -15,6 +15,9 @@ const envSchema = z.object({
   CONNECT_RATE_LIMIT_BLOCK_MINUTES: z.string().default('15').transform(Number).pipe(z.number().positive()),
   RECEIPT_STORAGE_PATH: z.string().default('./uploads/receipts'),
   PAYMENT_LOCK_TIMEOUT_MS: z.string().default('5000').transform(Number).pipe(z.number().positive()),
+  NOTIFICATION_ENABLED: z.string().default('true').transform((val) => val === 'true'),
+  NOTIFICATION_TIMEZONE: z.string().default('Asia/Bangkok'),
+  LINE_LIFF_URL: z.string().optional().default(''),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 });
 
@@ -63,6 +66,11 @@ export const config = {
   payment: {
     receiptStoragePath: env.RECEIPT_STORAGE_PATH,
     lockTimeoutMs: env.PAYMENT_LOCK_TIMEOUT_MS,
+  },
+  notification: {
+    enabled: env.NOTIFICATION_ENABLED,
+    timezone: env.NOTIFICATION_TIMEZONE,
+    liffUrl: env.LINE_LIFF_URL,
   },
   env: env.NODE_ENV,
 };

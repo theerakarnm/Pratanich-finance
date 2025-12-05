@@ -128,9 +128,7 @@ export class NotificationService {
 
 /**
  * Create singleton instance with LIFF URL from config
- * Note: LIFF URL should be added to config in task 11.1
  */
 export const notificationService = new NotificationService(
-  // Will be undefined until config is updated in task 11.1
-  (config as any).line?.liffUrl
+  config.notification.liffUrl
 );
