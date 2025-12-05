@@ -57,6 +57,15 @@ This is a backend API boilerplate built with Hono, Drizzle ORM, PostgreSQL, and 
 ## Project Structure
 
 - `src/core`: Core modules (config, db, auth)
-- `src/features`: Domain features (e.g., users)
+- `src/features`: Domain features (e.g., users, clients, loans, payments, notifications)
 - `src/middleware`: Global middleware
 - `src/routes`: API routes
+- `docs/`: Technical documentation
+
+## Documentation
+
+- [Database Schema](./docs/DATABASE_SCHEMA.md) - Complete database schema documentation
+- [Notification Scheduler](./docs/NOTIFICATION_SCHEDULER.md) - Payment notification system guide
+- [Notification Migration](./docs/NOTIFICATION_MIGRATION.md) - Database migration details
+- [Logging and Errors](./docs/LOGGING_AND_ERRORS.md) - Logging standards and error handling
+- [Schema ERD](./docs/SCHEMA_ERD.md) - Entity relationship diagram

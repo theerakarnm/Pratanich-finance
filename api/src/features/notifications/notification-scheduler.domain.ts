@@ -41,8 +41,9 @@ export class NotificationSchedulerDomain {
     private notificationHistoryRepository: NotificationHistoryRepository,
     private connectRepository: ConnectRepository,
     private notificationService: NotificationService,
-    private lineClient: LineMessagingClient
-  ) {}
+    private lineClient: LineMessagingClient,
+    private isTesting: boolean = false
+  ) { }
 
   /**
    * Send billing notifications (15 days before due date)
@@ -384,7 +385,7 @@ export class NotificationSchedulerDomain {
 
     // Generate notification message
     const paymentLink = this.notificationService.generatePaymentLink(loan.id);
-    const amount = parseFloat(loan.outstanding_balance);
+    const installmentAmount = parseFloat(loan.installment_amount);
 
     let flexMessage;
 
@@ -392,7 +393,7 @@ export class NotificationSchedulerDomain {
       case 'billing': {
         const data: BillingNotificationData = {
           month: today.format('MMMM YYYY'),
-          amount,
+          amount: installmentAmount,
           dueDate: today.add(15, 'days').format('DD/MM/YYYY'),
           contractNumber: loan.contract_number,
           paymentLink,
@@ -404,7 +405,7 @@ export class NotificationSchedulerDomain {
       case 'warning': {
         const data: WarningNotificationData = {
           daysRemaining: 3,
-          amount,
+          amount: installmentAmount,
           dueDate: today.add(3, 'days').format('DD/MM/YYYY'),
           contractNumber: loan.contract_number,
           paymentLink,
@@ -415,7 +416,7 @@ export class NotificationSchedulerDomain {
 
       case 'due_date': {
         const data: DueDateNotificationData = {
-          amount,
+          amount: installmentAmount,
           contractNumber: loan.contract_number,
           paymentLink,
         };
@@ -427,7 +428,7 @@ export class NotificationSchedulerDomain {
         const penaltyAmount = parseFloat(loan.total_penalties);
         const data: OverdueNotificationData = {
           daysOverdue: loan.overdue_days,
-          amount,
+          amount: installmentAmount,
           contractNumber: loan.contract_number,
           penaltyAmount: penaltyAmount > 0 ? penaltyAmount : undefined,
           paymentLink,

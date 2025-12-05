@@ -137,6 +137,7 @@ export class FlexMessageBuilder {
       align?: 'start' | 'end' | 'center';
       gravity?: 'top' | 'bottom' | 'center';
       margin?: string;
+      paddingAll?: string;
       flex?: number;
       backgroundColor?: string;
     }

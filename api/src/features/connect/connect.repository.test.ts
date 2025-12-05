@@ -7,12 +7,17 @@ import { eq } from "drizzle-orm";
 
 describe("ConnectRepository - findActiveLineUserIdByClientId", () => {
   let testClientId: string;
-  const testLineUserId = "U1234567890abcdef";
+  let testLineUserId: string;
+  // Generate a unique 13-digit citizen ID for testing
+  const uniqueCitizenId = `9${Date.now().toString().slice(-12)}`;
 
   beforeAll(async () => {
+    // Generate unique LINE user ID
+    testLineUserId = `U${Date.now()}${Math.random().toString(36).substring(2, 7)}`;
+    
     // Create a test client with LINE connection
     const testClient = await clientsRepository.create({
-      citizen_id: "1234567890123",
+      citizen_id: uniqueCitizenId,
       title_name: "นาย",
       first_name: "ทดสอบ",
       last_name: "การเชื่อมต่อ",
@@ -52,8 +57,9 @@ describe("ConnectRepository - findActiveLineUserIdByClientId", () => {
 
   it("should return null for client without LINE connection", async () => {
     // Create client without LINE connection
+    const uniqueCitizenId2 = `8${Date.now().toString().slice(-12)}`;
     const clientWithoutLine = await clientsRepository.create({
-      citizen_id: "9876543210987",
+      citizen_id: uniqueCitizenId2,
       title_name: "นาง",
       first_name: "ไม่มี",
       last_name: "ไลน์",

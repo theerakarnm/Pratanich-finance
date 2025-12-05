@@ -9,6 +9,7 @@ import { loggerMiddleware } from './middleware/logger.middleware';
 import router from './routes';
 import { initializeNotificationJobs, stopNotificationJobs } from './features/notifications/notification.cron';
 import { notificationSchedulerDomain } from './features/notifications/notification-scheduler.domain';
+import { initializeAssetCleanupJob } from './features/assets/assets.cron';
 
 const app = new Hono();
 
@@ -67,6 +68,9 @@ if (config.notification.enabled) {
     'Notification scheduler is disabled'
   );
 }
+
+// Initialize asset cleanup job
+initializeAssetCleanupJob();
 
 // Graceful shutdown handler
 const gracefulShutdown = (signal: string) => {

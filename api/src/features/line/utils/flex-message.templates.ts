@@ -1,5 +1,6 @@
 import { FlexMessageBuilder } from './flex-message.builder';
 import type { FlexMessage } from '../line.types';
+import { generatePromptPayQrUrl } from '../../../utils/qrcode';
 
 // Interfaces for data required by each template
 export interface NewLoanData {
@@ -51,11 +52,11 @@ export interface OverdueData {
   paymentLink: string;
 }
 
-const MOCK_QR_CODE_URL = 'https://placehold.co/200x200/png?text=QR+Code';
 const PRIMARY_COLOR = '#1DB446'; // LINE Green
 const DANGER_COLOR = '#FF3333';
 const WARNING_COLOR = '#FFCC00';
 const TEXT_COLOR_SECONDARY = '#8C8C8C';
+const MOCK_QR_URL = 'https://picsum.photos/200';
 
 /**
  * 1. New Loan Contract Notification
@@ -91,7 +92,7 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
-      builder.addImage(MOCK_QR_CODE_URL, {
+      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.installmentAmount) : MOCK_QR_URL, {
         size: 'md',
         aspectRatio: '1:1',
         aspectMode: 'cover',
@@ -145,7 +146,7 @@ export function createBillingMessage(data: BillingData): FlexMessage {
       ], { margin: 'lg' }),
     ])
     .setFooter([
-      builder.addImage(MOCK_QR_CODE_URL, {
+      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
         size: 'md',
         aspectRatio: '1:1',
         aspectMode: 'cover',
@@ -197,7 +198,7 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
-      builder.addImage(MOCK_QR_CODE_URL, {
+      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
         size: 'md',
         aspectRatio: '1:1',
         aspectMode: 'cover',
@@ -253,7 +254,7 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
       ], { margin: 'lg' }),
     ])
     .setFooter([
-      builder.addImage(MOCK_QR_CODE_URL, {
+      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
         size: 'md',
         aspectRatio: '1:1',
         aspectMode: 'cover',
@@ -341,7 +342,7 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
-      builder.addImage(MOCK_QR_CODE_URL, {
+      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
         size: 'md',
         aspectRatio: '1:1',
         aspectMode: 'cover',
