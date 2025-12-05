@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, FileText, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Activity, X } from 'lucide-react';
+import { Button } from "@/components/ui/button"
 import { Link, useLocation } from 'wouter';
 import {
   Sidebar,
@@ -10,6 +11,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 
 // Menu items.
@@ -38,12 +41,20 @@ const items = [
 
 export function AppSidebar() {
   const [location] = useLocation();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="flex items-center justify-center py-4">
-        <span className="text-xl font-bold text-primary group-data-[collapsible=icon]:hidden">ระบบผู้ดูแล</span>
-        <span className="text-xl font-bold text-primary hidden group-data-[collapsible=icon]:block">รด</span>
+      <SidebarHeader className="flex flex-row items-center justify-between md:justify-center py-4 px-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-bold text-primary group-data-[collapsible=icon]:hidden">ระบบผู้ดูแล</span>
+          <span className="text-xl font-bold text-primary hidden group-data-[collapsible=icon]:block">รด</span>
+        </div>
+        {isMobile && (
+          <Button variant="ghost" size="icon" onClick={() => setOpenMobile(false)}>
+            <SidebarTrigger className="-ml-1" />
+          </Button>
+        )}
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
@@ -53,10 +64,12 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={location === item.url} tooltip={item.title}>
-                    <Link href={item.url}>
+                    <a
+                      href={item.url}
+                    >
                       <item.icon />
                       <span>{item.title}</span>
-                    </Link>
+                    </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

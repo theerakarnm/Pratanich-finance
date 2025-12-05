@@ -277,6 +277,49 @@ export const getSlipQuota = async () => {
   return response.data;
 };
 
+export interface SlipOKLogSender {
+  displayName: string;
+  name: string;
+  proxy: { type: string | null; value: string | null };
+  account: { type: string; value: string };
+}
+
+export interface SlipOKLog {
+  id: string;
+  transRef: string;
+  sendingBank: string;
+  receivingBank: string;
+  transDate: string;
+  transTime: string;
+  amount: string;
+  sender: SlipOKLogSender;
+  receiver: SlipOKLogSender;
+  success: boolean;
+  message?: string;
+  created_at: string;
+}
+
+export interface SlipOKLogsListResponse {
+  data: SlipOKLog[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface GetSlipOKLogsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export const getSlipOKLogs = async (params?: GetSlipOKLogsParams): Promise<SlipOKLogsListResponse> => {
+  const response = await apiClient.get('/api/slipok/logs', { params });
+  return response.data;
+};
+
 // ============================================================================
 // Connect Code API
 // ============================================================================

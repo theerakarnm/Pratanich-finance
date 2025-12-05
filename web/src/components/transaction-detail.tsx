@@ -1,15 +1,16 @@
-import type { Transaction } from "@/data/mockData";
+import type { SlipOKLog } from "@/lib/api-client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { CheckCircle2, XCircle, Hash, Building2, User } from "lucide-react";
-import { formatCurrency, formatNumber } from "@/lib/formatter";
+import { formatNumber } from "@/lib/formatter";
+import BANK_DATA from "@/config/bank-code";
 
 interface TransactionDetailProps {
-  transaction: Transaction;
+  transaction: SlipOKLog;
 }
 
 export function TransactionDetail({ transaction }: TransactionDetailProps) {
-  const { data, success } = transaction;
+  const { success, sender, receiver, transDate, transTime, transRef, amount, sendingBank, receivingBank } = transaction;
 
   return (
     <div className="space-y-6">
@@ -28,7 +29,7 @@ export function TransactionDetail({ transaction }: TransactionDetailProps) {
           {success ? "Transaction Successful" : "Transaction Failed"}
         </h2>
         <p className="text-muted-foreground text-sm">
-          {data.transDate} • {data.transTime}
+          {transDate} • {transTime}
         </p>
       </div>
 
@@ -37,13 +38,8 @@ export function TransactionDetail({ transaction }: TransactionDetailProps) {
         <CardContent className="flex flex-col items-center justify-center p-6">
           <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Amount</span>
           <span className="text-4xl font-bold text-primary mt-2">
-            {formatNumber(data.amount, { decimalPlaces: 1 })}
+            {formatNumber(parseFloat(amount), { decimalPlaces: 2 })}
           </span>
-          {data.transFeeAmount > 0 && (
-            <span className="text-sm text-muted-foreground mt-1">
-              + {formatCurrency(data.transFeeAmount)} Fee
-            </span>
-          )}
         </CardContent>
       </Card>
 
@@ -59,20 +55,19 @@ export function TransactionDetail({ transaction }: TransactionDetailProps) {
           <CardContent className="space-y-3">
             <div>
               <p className="text-sm font-medium text-gray-500">Name</p>
-              <p className="font-semibold">{data.sender.name}</p>
-              <p className="text-xs text-muted-foreground">{data.sender.displayName}</p>
+              <p className="font-semibold">{sender?.displayName || '-'}</p>
             </div>
             <Separator />
             <div>
               <p className="text-sm font-medium text-gray-500">Bank</p>
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-gray-400" />
-                <span>{data.sendingBank}</span>
+                <span>{(BANK_DATA as Record<string, { abbreviation: string; fullName: string }>)[sendingBank]?.fullName || '-'}</span>
               </div>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Account</p>
-              <p className="font-mono">{data.sender.account.value}</p>
+              <p className="font-mono">{sender?.account?.value || '-'}</p>
             </div>
           </CardContent>
         </Card>
@@ -87,20 +82,19 @@ export function TransactionDetail({ transaction }: TransactionDetailProps) {
           <CardContent className="space-y-3">
             <div>
               <p className="text-sm font-medium text-gray-500">Name</p>
-              <p className="font-semibold">{data.receiver.name}</p>
-              <p className="text-xs text-muted-foreground">{data.receiver.displayName}</p>
+              <p className="font-semibold">{receiver?.displayName || '-'}</p>
             </div>
             <Separator />
             <div>
               <p className="text-sm font-medium text-gray-500">Bank</p>
               <div className="flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-gray-400" />
-                <span>{data.receivingBank}</span>
+                <span>{(BANK_DATA as Record<string, { abbreviation: string; fullName: string }>)[receivingBank]?.fullName || '-'}</span>
               </div>
             </div>
             <div>
               <p className="text-sm font-medium text-gray-500">Account</p>
-              <p className="font-mono">{data.receiver.account.value}</p>
+              <p className="font-mono">{receiver?.account?.value || '-'}</p>
             </div>
           </CardContent>
         </Card>
@@ -116,24 +110,8 @@ export function TransactionDetail({ transaction }: TransactionDetailProps) {
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Hash className="h-3 w-3" /> Transaction Ref
             </span>
-            <span className="font-mono text-sm">{data.transRef}</span>
+            <span className="font-mono text-sm">{transRef}</span>
           </div>
-          <div className="flex flex-col space-y-1">
-            <span className="text-xs text-muted-foreground">Request ID</span>
-            <span className="font-mono text-sm truncate" title={data.rqUID}>{data.rqUID}</span>
-          </div>
-          {data.ref1 && (
-            <div className="flex flex-col space-y-1">
-              <span className="text-xs text-muted-foreground">Reference 1</span>
-              <span className="text-sm">{data.ref1}</span>
-            </div>
-          )}
-          {data.ref2 && (
-            <div className="flex flex-col space-y-1">
-              <span className="text-xs text-muted-foreground">Reference 2</span>
-              <span className="text-sm">{data.ref2}</span>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

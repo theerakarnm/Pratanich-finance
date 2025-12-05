@@ -119,17 +119,17 @@ export function ClientManagement() {
   if (loading && clients.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <Input
               placeholder="ค้นหาลูกค้า..."
               value={searchTerm}
               onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-              className="w-[300px]"
+              className="w-full md:w-[300px]"
             />
             <Link href="/admin/clients/new">
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 สร้างลูกค้า
               </Button>
@@ -145,20 +145,20 @@ export function ClientManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">จัดการลูกค้า</h1>
           <p className="text-sm text-muted-foreground">ทั้งหมด {total} คน</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <Input
             placeholder="ค้นหาลูกค้า..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-            className="w-[250px]"
+            className="w-full md:w-[250px]"
           />
           <Select value={connectionFilter} onValueChange={setConnectionFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="สถานะการเชื่อมต่อ" />
             </SelectTrigger>
             <SelectContent>
@@ -168,7 +168,7 @@ export function ClientManagement() {
             </SelectContent>
           </Select>
           <Link href="/admin/clients/new">
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               สร้างลูกค้า
             </Button>
@@ -182,7 +182,7 @@ export function ClientManagement() {
         </div>
       )}
 
-      <div className="rounded-md border bg-white">
+      <div className="rounded-md border bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>

@@ -1,6 +1,7 @@
 import { config } from '../../core/config';
 import { db } from '../../core/database';
 import { slipokLogs } from '../../core/database/schema';
+import { desc, sql, or, ilike } from 'drizzle-orm';
 
 interface VerifySlipParams {
   data?: string;
@@ -8,6 +9,12 @@ interface VerifySlipParams {
   url?: string;
   amount?: number;
   log?: boolean;
+}
+
+interface FindAllParams {
+  page?: number;
+  limit?: number;
+  search?: string;
 }
 
 export class SlipOKService {
@@ -72,4 +79,49 @@ export class SlipOKService {
 
     return result;
   }
+
+  static async findAll(params: FindAllParams = {}) {
+    const page = params.page || 1;
+    const limit = params.limit || 10;
+    const offset = (page - 1) * limit;
+    const search = params.search?.trim() || '';
+
+    // Build where conditions for search
+    let whereConditions;
+    if (search) {
+      whereConditions = or(
+        ilike(slipokLogs.transRef, `%${search}%`),
+        sql`${slipokLogs.sender}->>'name' ILIKE ${`%${search}%`}`,
+        sql`${slipokLogs.sender}->>'displayName' ILIKE ${`%${search}%`}`,
+        sql`CAST(${slipokLogs.amount} AS TEXT) LIKE ${`%${search}%`}`
+      );
+    }
+
+    // Get total count
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(slipokLogs)
+      .where(whereConditions);
+    const total = Number(countResult[0]?.count || 0);
+
+    // Get paginated data
+    const data = await db
+      .select()
+      .from(slipokLogs)
+      .where(whereConditions)
+      .orderBy(desc(slipokLogs.created_at))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 }
+

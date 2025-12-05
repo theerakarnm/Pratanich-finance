@@ -23,4 +23,19 @@ slipokRoutes.get('/quota', async (c) => {
   }
 });
 
+slipokRoutes.get('/logs', async (c) => {
+  try {
+    const { page, limit, search } = c.req.query();
+    const result = await SlipOKService.findAll({
+      page: page ? parseInt(page, 10) : undefined,
+      limit: limit ? parseInt(limit, 10) : undefined,
+      search,
+    });
+    return ResponseBuilder.success(c, result);
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 400);
+  }
+});
+
 export default slipokRoutes;
+

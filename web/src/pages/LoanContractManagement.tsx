@@ -39,6 +39,9 @@ export function LoanContractManagement() {
   const fetchLoans = async (page: number = currentPage, search: string = searchTerm) => {
     try {
       setLoading(true);
+      setLoans([]);
+      setTotalPages(1);
+      setTotal(0);
       setError(null);
       const response = await getLoans({
         page,
@@ -82,11 +85,12 @@ export function LoanContractManagement() {
     if (!loanToDelete) return;
 
     try {
+      setLoading(true)
       await deleteLoan(loanToDelete.id);
       setShowDeleteDialog(false);
       setLoanToDelete(null);
       // Refresh the list after deletion
-      await fetchLoans(currentPage, searchTerm);
+      window.location.reload();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ไม่สามารถลบสัญญาเงินกู้ได้');
       setShowDeleteDialog(false);
@@ -101,17 +105,17 @@ export function LoanContractManagement() {
   if (loading && loans.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <Input
               placeholder="ค้นหาสัญญา..."
               value={searchTerm}
               onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-              className="w-[300px]"
+              className="w-full md:w-[300px]"
             />
             <Link href="/admin/loans/new">
-              <Button>
+              <Button className="w-full md:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 สร้างสัญญา
               </Button>
@@ -127,20 +131,20 @@ export function LoanContractManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight">จัดการสัญญาเงินกู้</h1>
           <p className="text-sm text-muted-foreground">ทั้งหมด {total} สัญญา</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <Input
             placeholder="ค้นหาสัญญา..."
             value={searchTerm}
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
-            className="w-[300px]"
+            className="w-full md:w-[300px]"
           />
           <Link href="/admin/loans/new">
-            <Button>
+            <Button className="w-full md:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               สร้างสัญญา
             </Button>
@@ -154,7 +158,7 @@ export function LoanContractManagement() {
         </div>
       )}
 
-      <div className="rounded-md border bg-white">
+      <div className="rounded-md border bg-white overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
