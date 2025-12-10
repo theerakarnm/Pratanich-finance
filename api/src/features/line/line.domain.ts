@@ -13,6 +13,9 @@ import type {
   EventContext,
 } from './line.types';
 import { extractEventContext } from './line.router';
+import { LoansRepository } from '../loans/loans.repository';
+import { ClientsRepository } from '../clients/clients.repository';
+import { PaymentRepository } from '../payments/payments.repository';
 
 /**
  * LINE Domain Layer
@@ -23,7 +26,10 @@ export class LineDomain {
   constructor(
     private readonly client: LineMessagingClient,
     private readonly replyUtil: LineReplyUtil,
-    private readonly eventRouter: LineEventRouter
+    private readonly eventRouter: LineEventRouter,
+    private readonly loansRepo: LoansRepository,
+    private readonly clientsRepo: ClientsRepository,
+    private readonly paymentsRepo: PaymentRepository
   ) { }
 
   /**
@@ -137,13 +143,35 @@ export class LineDomain {
       if (lowerText.includes('สวัสดี') || lowerText.includes('hello') || lowerText.includes('hi')) {
         responseText = 'สวัสดีครับ! ยินดีให้บริการ\nพิมพ์ "เมนู" เพื่อดูตัวเลือก';
       } else if (lowerText.includes('เมนู') || lowerText.includes('menu')) {
-        responseText = 'เมนูหลัก:\n1. ดูข้อมูลสัญญา\n2. ชำระเงิน\n3. ติดต่อเจ้าหน้าที่';
+        responseText = 'เมนูหลัก:\n1. ดูข้อมูลสัญญา (พิมพ์ "สัญญา")\n2. ชำระเงิน (พิมพ์ "ชำระ")\n3. ติดต่อเจ้าหน้าที่';
       } else if (lowerText.includes('สัญญา') || lowerText.includes('loan')) {
-        responseText = 'กรุณารอสักครู่ กำลังดึงข้อมูลสัญญาของคุณ...';
-        // TODO: Integrate with loans domain to fetch user's loan contracts
+        const client = await this.clientsRepo.findByLineUserId(userId);
+        if (!client) {
+          responseText = 'ไม่พบข้อมูลของคุณในระบบ\nกรุณาติดต่อเจ้าหน้าที่เพื่อเชื่อมต่อบัญชี';
+        } else {
+          const loans = await this.loansRepo.findByClientId(client.id);
+          if (loans.length === 0) {
+            responseText = 'คุณไม่มีสัญญาที่ใช้งานอยู่ในขณะนี้';
+          } else {
+            responseText = 'รายการสัญญาของคุณ:\n' + loans.map(l => `- สัญญาเลขที่ ${l.contract_number} (สถานะ: ${l.contract_status})`).join('\n');
+          }
+        }
       } else if (lowerText.includes('ชำระ') || lowerText.includes('payment')) {
-        responseText = 'กรุณาเลือกสัญญาที่ต้องการชำระเงิน';
-        // TODO: Integrate with loans domain to show payment options
+        const client = await this.clientsRepo.findByLineUserId(userId);
+        if (!client) {
+          responseText = 'ไม่พบข้อมูลของคุณในระบบ\nกรุณาติดต่อเจ้าหน้าที่เพื่อเชื่อมต่อบัญชี';
+        } else {
+          const loans = await this.loansRepo.findByClientId(client.id);
+          const activeLoans = loans.filter(l => l.contract_status === 'Active' || l.contract_status === 'Overdue');
+
+          if (activeLoans.length === 0) {
+            responseText = 'ไม่พบยอดที่ต้องชำระในขณะนี้';
+          } else {
+            responseText = 'รายการที่ต้องชำระ:\n' + activeLoans.map(l =>
+              `- สัญญา ${l.contract_number}\n  ยอดคงเหลือ: ${Number(l.outstanding_balance).toLocaleString()} บาท\n  ค่างวด: ${Number(l.installment_amount).toLocaleString()} บาท`
+            ).join('\n\n');
+          }
+        }
       } else {
         responseText = 'ขออภัย ไม่เข้าใจคำสั่ง\nพิมพ์ "เมนู" เพื่อดูตัวเลือก';
       }
@@ -301,18 +329,25 @@ export class LineDomain {
 
       switch (action) {
         case 'view_loan_details':
-          responseText = 'กำลังดึงข้อมูลสัญญา...';
-          // TODO: Integrate with loans domain to fetch loan details
-          // const loanId = params?.loanId;
-          // const loanDetails = await loansRepository.findById(loanId);
-          // Send flex message with loan details
+          if (!params?.loanId) {
+            responseText = 'ไม่พบรหัสสัญญา';
+            break;
+          }
+          const loan = await this.loansRepo.findById(params.loanId);
+          if (!loan) {
+            responseText = 'ไม่พบข้อมูลสัญญา';
+          } else {
+            responseText = `รายละเอียดสัญญา: ${loan.contract_number}\nยอดคงเหลือ: ${Number(loan.outstanding_balance).toLocaleString()} บาท\nสถานะ: ${loan.contract_status}`;
+          }
           break;
 
         case 'make_payment':
-          responseText = 'กำลังเตรียมหน้าชำระเงิน...';
-          // TODO: Integrate with payment processing
-          // const loanId = params?.loanId;
-          // Generate payment link or QR code
+          if (!params?.loanId) {
+            responseText = 'ไม่พบรหัสสัญญา';
+            break;
+          }
+          // For now, just show info. Real payment link generation would go here.
+          responseText = 'กรุณาโอนเงินผ่านบัญชีธนาคาร...\n(ระบบชำระเงินออนไลน์กำลังพัฒนา)';
           break;
 
         case 'contact_support':
@@ -320,8 +355,18 @@ export class LineDomain {
           break;
 
         case 'view_transactions':
-          responseText = 'กำลังดึงประวัติการทำรายการ...';
-          // TODO: Integrate with transactions domain
+          if (!params?.loanId) {
+            responseText = 'ไม่พบรหัสสัญญา';
+            break;
+          }
+          const transactions = await this.paymentsRepo.findPaymentHistory(params.loanId, 5, 0);
+          if (transactions.length === 0) {
+            responseText = 'ยังไม่มีประวัติการชำระเงิน';
+          } else {
+            responseText = 'ประวัติการชำระเงินล่าสุด:\n' + transactions.map(t =>
+              `- ${new Date(t.payment_date).toLocaleDateString()}: ${Number(t.amount).toLocaleString()} บาท`
+            ).join('\n');
+          }
           break;
 
         default:

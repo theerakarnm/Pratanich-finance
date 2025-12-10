@@ -4,47 +4,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
 
+import { useLiffStore } from '@/store';
+
 export function LiffClient() {
+  const { initLiff, profile, error: liffError, isInitializing: isLoading } = useLiffStore();
   const [liffObject, setLiffObject] = useState<typeof liff | null>(null);
-  const [liffError, setLiffError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<Awaited<ReturnType<typeof liff.getProfile>> | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('start liff.init()...');
-    const liffId = import.meta.env.VITE_LIFF_ID;
-
-    if (!liffId) {
-      console.error('LIFF_ID is not defined in environment variables');
-      setLiffError('LIFF_ID is missing. Please check your configuration.');
-      setIsLoading(false);
-      return;
-    }
-
-    liff
-      .init({ liffId })
-      .then(() => {
-        console.log('liff.init() done');
-        setLiffObject(liff);
-        return liff
-      })
-      .then((liff) => {
-        if (!liff.isLoggedIn()) {
-          liff.login()
-        }
-        return liff.getProfile()
-      })
-      .then((profile) => {
-        console.log('liff.getProfile() done');
-        setProfile(profile);
-      })
-      .catch((error: Error) => {
-        console.log(`liff.init() failed: ${error}`);
-        setLiffError(error.toString());
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    initLiff().then(() => {
+      setLiffObject(liff);
+      if (!liff.isLoggedIn()) {
+        liff.login();
+      }
+    });
   }, []);
 
   if (isLoading) {

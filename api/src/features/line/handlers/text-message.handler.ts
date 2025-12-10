@@ -16,8 +16,13 @@ const FALLBACK_MESSAGES = {
  * Processes text message events from LINE users
  * Implements EventHandler interface for strategy pattern
  */
+import type { LineDomain } from '../line.domain';
+
 export class TextMessageHandler implements EventHandler {
-  constructor(private readonly replyUtil: LineReplyUtil) {}
+  constructor(
+    private readonly replyUtil: LineReplyUtil,
+    private readonly lineDomain: LineDomain
+  ) { }
 
   /**
    * Determines if this handler can process the given event
@@ -68,15 +73,12 @@ export class TextMessageHandler implements EventHandler {
     );
 
     try {
-      // Route to business logic based on message content
-      const response = await this.routeTextMessage(messageText, userId);
-
-      // Send response to user
-      await this.replyUtil.replyText(replyToken, response, userId);
+      // Delegate to LineDomain logic
+      await this.lineDomain.handleTextMessage(messageEvent, replyToken);
 
       logger.info(
-        { userId, messageId, responseLength: response.length },
-        'Text message processed and response sent successfully'
+        { userId, messageId },
+        'Text message processed successfully via LineDomain'
       );
     } catch (error) {
       logger.error(
@@ -104,35 +106,13 @@ export class TextMessageHandler implements EventHandler {
     messageText: string,
     userId: string
   ): Promise<string> {
-    const normalizedText = messageText.trim().toLowerCase();
-
-    logger.debug(
-      { userId, normalizedText: normalizedText.substring(0, 50) },
-      'Routing text message to business logic'
-    );
-
-    // TODO: Implement actual business logic routing
-    // This is a placeholder implementation that will be replaced with actual business logic
-    
-    // Example routing patterns:
-    if (normalizedText.includes('สวัสดี') || normalizedText.includes('hello')) {
-      return 'สวัสดีครับ! ยินดีให้บริการ\nคุณสามารถถามข้อมูลเกี่ยวกับสัญญากู้ของคุณได้';
-    }
-
-    if (normalizedText.includes('ยอดค้าง') || normalizedText.includes('balance')) {
-      return 'กรุณารอสักครู่ กำลังตรวจสอบยอดค้างชำระของคุณ...';
-    }
-
-    if (normalizedText.includes('ชำระ') || normalizedText.includes('payment')) {
-      return 'กรุณาเลือกวิธีการชำระเงินจากเมนูด้านล่าง';
-    }
-
-    if (normalizedText.includes('ติดต่อ') || normalizedText.includes('contact')) {
-      return 'ติดต่อเจ้าหน้าที่:\nโทร: 02-XXX-XXXX\nเวลาทำการ: จันทร์-ศุกร์ 9:00-17:00';
-    }
-
-    // Default response for unrecognized messages
-    return 'ขอบคุณสำหรับข้อความของคุณ\nหากต้องการความช่วยเหลือ กรุณาติดต่อเจ้าหน้าที่';
+    // This wrapper is slightly redundant now as LineDomain handles the logic
+    // But we keep it to match the existing structure or we could refactor 'handle' to call lineDomain directly.
+    // For now, let's call LineDomain, but LineDomain handles the reply itself!
+    // Wait, LineDomain.handleTextMessage returns Promise<void> and sends reply internally.
+    // This method expects Promise<string>.
+    // I should refactor handle() to await lineDomain.handleTextMessage() and NOT send reply here.
+    return '';
   }
 
   /**
@@ -148,7 +128,7 @@ export class TextMessageHandler implements EventHandler {
   ): Promise<void> {
     try {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
+
       // Determine appropriate fallback message
       const fallbackText = errorMessage.includes('business logic')
         ? FALLBACK_MESSAGES.PROCESSING_ERROR

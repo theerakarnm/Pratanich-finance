@@ -3,41 +3,36 @@ import { db } from "../../core/database";
 import { clients } from "../../core/database/schema/clients.schema";
 
 export class ClientsRepository {
+  private getSearchWhereClause(search?: string) {
+    if (!search) return sql`${clients.deleted_at} IS NULL`;
+
+    return sql`${clients.deleted_at} IS NULL AND (
+      ${clients.first_name} ILIKE ${`%${search}%`} OR
+      ${clients.last_name} ILIKE ${`%${search}%`} OR
+      ${clients.citizen_id} ILIKE ${`%${search}%`} OR
+      ${clients.email} ILIKE ${`%${search}%`} OR
+      ${clients.mobile_number} ILIKE ${`%${search}%`}
+    )`;
+  }
+
   async findAll(limit: number, offset: number, search?: string) {
-    let query = db.select().from(clients).where(sql`${clients.deleted_at} IS NULL`);
+    const whereClause = this.getSearchWhereClause(search);
 
-    if (search) {
-      query = db.select().from(clients).where(
-        sql`${clients.deleted_at} IS NULL AND (
-          ${clients.first_name} ILIKE ${`%${search}%`} OR
-          ${clients.last_name} ILIKE ${`%${search}%`} OR
-          ${clients.citizen_id} ILIKE ${`%${search}%`} OR
-          ${clients.email} ILIKE ${`%${search}%`}
-        )`
-      );
-    }
-
-    return query
+    return db.select()
+      .from(clients)
+      .where(whereClause)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(clients.created_at));
   }
 
   async count(search?: string) {
-    let query = db.select({ count: sql`COUNT(*)` }).from(clients).where(sql`${clients.deleted_at} IS NULL`);
+    const whereClause = this.getSearchWhereClause(search);
 
-    if (search) {
-      query = db.select({ count: sql`COUNT(*)` }).from(clients).where(
-        sql`${clients.deleted_at} IS NULL AND (
-          ${clients.first_name} ILIKE ${`%${search}%`} OR
-          ${clients.last_name} ILIKE ${`%${search}%`} OR
-          ${clients.citizen_id} ILIKE ${`%${search}%`} OR
-          ${clients.email} ILIKE ${`%${search}%`}
-        )`
-      );
-    }
+    const result = await db.select({ count: sql`COUNT(*)` })
+      .from(clients)
+      .where(whereClause);
 
-    const result = await query;
     return Number(result[0].count);
   }
 

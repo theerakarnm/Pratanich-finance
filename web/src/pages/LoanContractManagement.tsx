@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'preact/hooks';
-import { getLoans, deleteLoan, type Loan } from '@/lib/api-client';
+import { useEffect } from 'preact/hooks';
+import { useLoansStore } from '@/store';
 import {
   Table,
   TableBody,
@@ -25,76 +25,52 @@ import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from '@/lib/formatter';
 
 export function LoanContractManagement() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [loans, setLoans] = useState<Loan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [loanToDelete, setLoanToDelete] = useState<Loan | null>(null);
-  const itemsPerPage = 10;
+  // Use Zustand store
+  const {
+    loans,
+    totalPages,
+    total,
+    searchTerm,
+    currentPage,
+    showDeleteDialog,
+    loanToDelete,
+    isLoading,
+    error,
+    setSearchTerm,
+    setCurrentPage,
+    setShowDeleteDialog,
+    setLoanToDelete,
+    fetchLoans,
+    deleteLoanById,
+  } = useLoansStore();
 
-  const fetchLoans = async (page: number = currentPage, search: string = searchTerm) => {
-    try {
-      setLoading(true);
-      setLoans([]);
-      setTotalPages(1);
-      setTotal(0);
-      setError(null);
-      const response = await getLoans({
-        page,
-        limit: itemsPerPage,
-        search: search || undefined,
-      });
-      setLoans(response.data);
-      setTotalPages(response.meta.totalPages);
-      setTotal(response.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลเงินกู้ได้');
-      setLoans([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Initial fetch
   useEffect(() => {
     fetchLoans();
   }, []);
 
+  // Debounced search effect
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      setCurrentPage(1);
-      fetchLoans(1, searchTerm);
+      fetchLoans();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
 
+  // Fetch on page change
   useEffect(() => {
-    fetchLoans(currentPage, searchTerm);
+    fetchLoans();
   }, [currentPage]);
 
-  const handleDeleteClick = (loan: Loan) => {
+  const handleDeleteClick = (loan: typeof loans[0]) => {
     setLoanToDelete(loan);
     setShowDeleteDialog(true);
   };
 
   const handleDeleteConfirm = async () => {
     if (!loanToDelete) return;
-
-    try {
-      setLoading(true)
-      await deleteLoan(loanToDelete.id);
-      setShowDeleteDialog(false);
-      setLoanToDelete(null);
-      // Refresh the list after deletion
-      window.location.reload();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'ไม่สามารถลบสัญญาเงินกู้ได้');
-      setShowDeleteDialog(false);
-    }
+    await deleteLoanById(loanToDelete.id);
   };
 
   const handleDeleteCancel = () => {
@@ -102,7 +78,7 @@ export function LoanContractManagement() {
     setLoanToDelete(null);
   };
 
-  if (loading && loans.length === 0) {
+  if (isLoading && loans.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
@@ -174,7 +150,7 @@ export function LoanContractManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
@@ -237,8 +213,8 @@ export function LoanContractManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          disabled={currentPage === 1 || loading}
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1 || isLoading}
         >
           <ChevronLeft className="h-4 w-4" />
           ก่อนหน้า
@@ -249,8 +225,8 @@ export function LoanContractManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages || loading}
+          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages || isLoading}
         >
           ถัดไป
           <ChevronRight className="h-4 w-4" />

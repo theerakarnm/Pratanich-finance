@@ -6,11 +6,13 @@ import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { getClientById, updateClient, type Client } from "@/lib/api-client";
+import { getClientById, type Client } from "@/lib/api-client";
+import { useClientsStore } from "@/store";
 
 export function ClientEdit() {
   const [, params] = useRoute("/admin/clients/:id/edit");
   const [, setLocation] = useLocation();
+  const { updateClient } = useClientsStore();
   const [clientData, setClientData] = useState<ClientFormValues | undefined>(undefined);
   const [client, setClient] = useState<Client | null>(null);
   const [_loading, setLoading] = useState(true);

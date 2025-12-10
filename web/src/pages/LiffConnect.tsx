@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/api-client';
-import liff from '@line/liff';
+import { useLiffStore } from '@/store';
 
 interface VerifyConnectCodeResponse {
   valid: boolean;
@@ -22,18 +22,9 @@ interface CompleteConnectionResponse {
   hasLoans: boolean;
 }
 
-interface LineProfile {
-  userId: string;
-  displayName: string;
-  pictureUrl?: string;
-  statusMessage?: string;
-}
-
 export function LiffConnect() {
   const [, setLocation] = useLocation();
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [liffError, setLiffError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<LineProfile | null>(null);
+  const { isInitializing, isLoggedIn, profile, error: liffError, initLiff, login } = useLiffStore();
 
   const [code, setCode] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -45,38 +36,22 @@ export function LiffConnect() {
 
   // Initialize LIFF
   useEffect(() => {
-    const liffId = import.meta.env.VITE_LIFF_ID;
-
-    if (!liffId) {
-      setLiffError('LIFF_ID is missing. Please check your configuration.');
-      setIsInitializing(false);
-      return;
-    }
-
-    liff
-      .init({ liffId })
-      .then(() => {
-        if (!liff.isLoggedIn()) {
-          liff.login();
-          return null;
-        }
-
-        return liff.getProfile();
-      })
-      .then((profile) => {
-        if (profile) {
-          setProfile(profile);
-          // Check if user is already connected
-          checkExistingConnection(profile.userId);
-        }
-      })
-      .catch((error: Error) => {
-        setLiffError(error.toString());
-      })
-      .finally(() => {
-        setIsInitializing(false);
-      });
+    initLiff();
   }, []);
+
+  // Auto-login if not logged in
+  useEffect(() => {
+    if (!isInitializing && !isLoggedIn && !liffError) {
+      login();
+    }
+  }, [isInitializing, isLoggedIn, liffError]);
+
+  // Check if LINE user is already connected when profile is available
+  useEffect(() => {
+    if (profile?.userId) {
+      checkExistingConnection(profile.userId);
+    }
+  }, [profile]);
 
   // Check if LINE user is already connected
   const checkExistingConnection = async (lineUserId: string) => {

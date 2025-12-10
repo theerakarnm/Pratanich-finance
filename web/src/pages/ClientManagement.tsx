@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'preact/hooks';
-import { getClients, deleteClient, type Client } from '@/lib/api-client';
+import { useEffect } from 'preact/hooks';
+import { useClientsStore } from '@/store';
 import {
   Table,
   TableBody,
@@ -32,53 +32,44 @@ import { Link } from 'wouter';
 import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
 
 export function ClientManagement() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [connectionFilter, setConnectionFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [clientToDelete, setClientToDelete] = useState<Client | null>(null);
-  const itemsPerPage = 10;
+  // Use Zustand store
+  const {
+    clients,
+    totalPages,
+    total,
+    searchTerm,
+    connectionFilter,
+    currentPage,
+    showDeleteDialog,
+    clientToDelete,
+    isLoading,
+    error,
+    setSearchTerm,
+    setConnectionFilter,
+    setCurrentPage,
+    setShowDeleteDialog,
+    setClientToDelete,
+    fetchClients,
+    deleteClientById,
+  } = useClientsStore();
 
-  const fetchClients = async (page: number = currentPage, search: string = searchTerm) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await getClients({
-        page,
-        limit: itemsPerPage,
-        search: search || undefined,
-      });
-      setClients(response.data);
-      setTotalPages(response.meta.totalPages);
-      setTotal(response.meta.total);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลลูกค้าได้');
-      setClients([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Initial fetch
   useEffect(() => {
     fetchClients();
   }, []);
 
+  // Debounced search effect
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      setCurrentPage(1);
-      fetchClients(1, searchTerm);
+      fetchClients();
     }, 300);
 
     return () => clearTimeout(debounceTimer);
   }, [searchTerm]);
 
+  // Fetch on page change
   useEffect(() => {
-    fetchClients(currentPage, searchTerm);
+    fetchClients();
   }, [currentPage]);
 
   // Filter clients based on connection status
@@ -91,24 +82,14 @@ export function ClientManagement() {
     return true; // 'all'
   });
 
-  const handleDeleteClick = (client: Client) => {
+  const handleDeleteClick = (client: typeof clients[0]) => {
     setClientToDelete(client);
     setShowDeleteDialog(true);
   };
 
   const handleDeleteConfirm = async () => {
     if (!clientToDelete) return;
-
-    try {
-      await deleteClient(clientToDelete.id);
-      setShowDeleteDialog(false);
-      setClientToDelete(null);
-      // Refresh the list after deletion
-      await fetchClients(currentPage, searchTerm);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'ไม่สามารถลบลูกค้าได้');
-      setShowDeleteDialog(false);
-    }
+    await deleteClientById(clientToDelete.id);
   };
 
   const handleDeleteCancel = () => {
@@ -116,7 +97,7 @@ export function ClientManagement() {
     setClientToDelete(null);
   };
 
-  if (loading && clients.length === 0) {
+  if (isLoading && clients.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
@@ -157,7 +138,7 @@ export function ClientManagement() {
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             className="w-full md:w-[250px]"
           />
-          <Select value={connectionFilter} onValueChange={setConnectionFilter}>
+          <Select value={connectionFilter} onValueChange={(value) => setConnectionFilter(value as 'all' | 'connected' | 'not-connected')}>
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="สถานะการเชื่อมต่อ" />
             </SelectTrigger>
@@ -198,7 +179,7 @@ export function ClientManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {isLoading ? (
               <TableRow>
                 <TableCell colSpan={9} className="text-center py-8">
                   <div className="text-sm text-muted-foreground">กำลังโหลด...</div>
@@ -256,8 +237,8 @@ export function ClientManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-          disabled={currentPage === 1 || loading}
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+          disabled={currentPage === 1 || isLoading}
         >
           <ChevronLeft className="h-4 w-4" />
           ก่อนหน้า
@@ -268,8 +249,8 @@ export function ClientManagement() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages || loading}
+          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+          disabled={currentPage === totalPages || isLoading}
         >
           ถัดไป
           <ChevronRight className="h-4 w-4" />

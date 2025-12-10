@@ -1,70 +1,30 @@
+import { useEffect } from 'preact/hooks';
+import { useDashboardStore } from '@/store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useState, useEffect } from 'preact/hooks';
-import { getClients, getLoans } from '@/lib/api-client';
 import { Users, FileText, DollarSign, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/formatter';
 
 export function Dashboard() {
-  const [totalClients, setTotalClients] = useState(0);
-  const [totalLoans, setTotalLoans] = useState(0);
-  const [outstandingBalance, setOutstandingBalance] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Use Zustand store
+  const {
+    totalClients,
+    totalLoans,
+    outstandingBalance,
+    todayTransactions,
+    loanTrends,
+    transactionVolume,
+    isLoading,
+    error,
+    fetchDashboardData,
+  } = useDashboardStore();
 
+  // Fetch dashboard data on mount
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const [clientsResponse, loansResponse] = await Promise.all([
-          getClients({ limit: 1 }), // Just get the total count
-          getLoans({ limit: 1000 }) // Get more loans to calculate accurate balance
-        ]);
-
-        setTotalClients(clientsResponse.meta.total);
-        setTotalLoans(loansResponse.meta.total);
-
-        const totalOutstanding = loansResponse.data.reduce(
-          (acc, loan) => acc + loan.outstanding_balance,
-          0
-        );
-        setOutstandingBalance(totalOutstanding);
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'ไม่สามารถดึงข้อมูลแดชบอร์ดได้');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDashboardData();
   }, []);
 
-  const todayTransactions = 0; // Will implement when transactions API is available
-
-  // Mock data for charts
-  const loanTrends = [
-    { name: 'Jan', value: 4000 },
-    { name: 'Feb', value: 3000 },
-    { name: 'Mar', value: 2000 },
-    { name: 'Apr', value: 2780 },
-    { name: 'May', value: 1890 },
-    { name: 'Jun', value: 2390 },
-  ];
-
-  const transactionVolume = [
-    { name: 'Mon', value: 2400 },
-    { name: 'Tue', value: 1398 },
-    { name: 'Wed', value: 9800 },
-    { name: 'Thu', value: 3908 },
-    { name: 'Fri', value: 4800 },
-    { name: 'Sat', value: 3800 },
-    { name: 'Sun', value: 4300 },
-  ];
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">แดชบอร์ด</h1>

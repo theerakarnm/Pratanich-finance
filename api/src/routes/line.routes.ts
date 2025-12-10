@@ -16,6 +16,9 @@ import type { LineWebhookBody } from '../features/line/line.types';
 import { paymentDomain } from '../features/payments/payments.domain';
 import { paymentMatchingService } from '../features/payments/payment-matching.service';
 import { PendingPaymentsRepository } from '../features/payments/pending-payments.repository';
+import { loansRepository } from '../features/loans/loans.repository';
+import { clientsRepository } from '../features/clients/clients.repository';
+import { paymentRepository } from '../features/payments/payments.repository';
 
 // Define context variables for LINE routes
 type LineVariables = {
@@ -31,10 +34,17 @@ const pendingPaymentsRepository = new PendingPaymentsRepository();
 
 // Create event router and register handlers
 const eventRouter = new LineEventRouter();
-const lineDomain = new LineDomain(lineClient, lineReplyUtil, eventRouter);
+const lineDomain = new LineDomain(
+  lineClient,
+  lineReplyUtil,
+  eventRouter,
+  loansRepository,
+  clientsRepository,
+  paymentRepository
+);
 
 // Register event handlers
-eventRouter.registerHandler(new TextMessageHandler(lineReplyUtil));
+eventRouter.registerHandler(new TextMessageHandler(lineReplyUtil, lineDomain));
 eventRouter.registerHandler(
   new ImageMessageHandler(
     lineClient,
@@ -44,7 +54,7 @@ eventRouter.registerHandler(
     pendingPaymentsRepository
   )
 );
-eventRouter.registerHandler(new PostbackHandler(lineReplyUtil));
+eventRouter.registerHandler(new PostbackHandler(lineReplyUtil, lineDomain));
 
 logger.info(
   {

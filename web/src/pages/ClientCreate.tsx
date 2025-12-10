@@ -1,11 +1,11 @@
 import { ClientForm, type ClientFormValues } from "@/components/forms/ClientForm";
 import { useLocation } from "wouter";
-
-import { createClient } from "@/lib/api-client";
+import { useClientsStore } from "@/store";
 import { useState } from "preact/hooks";
 
 export function ClientCreate() {
   const [, setLocation] = useLocation();
+  const { createClient } = useClientsStore();
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (data: ClientFormValues) => {

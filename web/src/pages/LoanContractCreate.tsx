@@ -1,11 +1,12 @@
 import { LoanContractForm, type LoanContractFormValues } from "@/components/forms/LoanContractForm";
 import { useLocation } from "wouter";
-
-import { createLoan, getClients, type Client } from "@/lib/api-client";
+import { getClients, type Client } from "@/lib/api-client";
+import { useLoansStore } from "@/store";
 import { useState, useEffect } from "preact/hooks";
 
 export function LoanContractCreate() {
   const [, setLocation] = useLocation();
+  const { createLoan } = useLoansStore();
   const [error, setError] = useState<string | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
 

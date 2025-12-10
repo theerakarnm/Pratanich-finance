@@ -11,8 +11,22 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 export class LoansRepository {
+  private getSearchWhereClause(search?: string) {
+    if (!search) return sql`${loans.deleted_at} IS NULL`;
+
+    return sql`${loans.deleted_at} IS NULL AND (
+      ${loans.contract_number} ILIKE ${`%${search}%`} OR
+      ${clients.first_name} ILIKE ${`%${search}%`} OR
+      ${clients.last_name} ILIKE ${`%${search}%`} OR
+      ${clients.citizen_id} ILIKE ${`%${search}%`} OR
+      ${clients.mobile_number} ILIKE ${`%${search}%`}
+    )`;
+  }
+
   async findAll(limit: number, offset: number, search?: string) {
-    let query = db.select({
+    const whereClause = this.getSearchWhereClause(search);
+
+    return db.select({
       loan: loans,
       client: {
         first_name: clients.first_name,
@@ -22,56 +36,20 @@ export class LoansRepository {
     })
       .from(loans)
       .leftJoin(clients, eq(loans.client_id, clients.id))
-      .where(sql`${loans.deleted_at} IS NULL`);
-
-    if (search) {
-      query = db.select({
-        loan: loans,
-        client: {
-          first_name: clients.first_name,
-          last_name: clients.last_name,
-          citizen_id: clients.citizen_id,
-        }
-      })
-        .from(loans)
-        .leftJoin(clients, eq(loans.client_id, clients.id))
-        .where(
-          sql`${loans.deleted_at} IS NULL AND (
-          ${loans.contract_number} ILIKE ${`%${search}%`} OR
-          ${clients.first_name} ILIKE ${`%${search}%`} OR
-          ${clients.last_name} ILIKE ${`%${search}%`} OR
-          ${clients.citizen_id} ILIKE ${`%${search}%`}
-        )`
-        );
-    }
-
-    return query
+      .where(whereClause)
       .limit(limit)
       .offset(offset)
       .orderBy(desc(loans.created_at));
   }
 
   async count(search?: string) {
-    let query = db.select({ count: sql`COUNT(*)` })
+    const whereClause = this.getSearchWhereClause(search);
+
+    const result = await db.select({ count: sql`COUNT(*)` })
       .from(loans)
       .leftJoin(clients, eq(loans.client_id, clients.id))
-      .where(sql`${loans.deleted_at} IS NULL`);
+      .where(whereClause);
 
-    if (search) {
-      query = db.select({ count: sql`COUNT(*)` })
-        .from(loans)
-        .leftJoin(clients, eq(loans.client_id, clients.id))
-        .where(
-          sql`${loans.deleted_at} IS NULL AND (
-            ${loans.contract_number} ILIKE ${`%${search}%`} OR
-            ${clients.first_name} ILIKE ${`%${search}%`} OR
-            ${clients.last_name} ILIKE ${`%${search}%`} OR
-            ${clients.citizen_id} ILIKE ${`%${search}%`}
-          )`
-        );
-    }
-
-    const result = await query;
     return Number(result[0].count);
   }
 
@@ -189,7 +167,7 @@ export class LoansRepository {
 
     return result.map(row => ({
       ...row,
-      contract_start_date: row.contract_start_date.toString(),
+      contract_start_date: dayjs(row.contract_start_date).toISOString(),
     }));
   }
 
@@ -235,7 +213,7 @@ export class LoansRepository {
 
     return result.map(row => ({
       ...row,
-      contract_start_date: row.contract_start_date.toString(),
+      contract_start_date: dayjs(row.contract_start_date).toISOString(),
     }));
   }
 
@@ -280,7 +258,7 @@ export class LoansRepository {
 
     return result.map(row => ({
       ...row,
-      contract_start_date: row.contract_start_date.toString(),
+      contract_start_date: dayjs(row.contract_start_date).toISOString(),
     }));
   }
 
@@ -321,7 +299,7 @@ export class LoansRepository {
 
     return result.map(row => ({
       ...row,
-      contract_start_date: row.contract_start_date.toString(),
+      contract_start_date: dayjs(row.contract_start_date).toISOString(),
     }));
   }
 }

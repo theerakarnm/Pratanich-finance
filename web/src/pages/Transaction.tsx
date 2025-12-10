@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'preact/hooks';
-import { getSlipOKLogs, type SlipOKLog } from '@/lib/api-client';
+import { useEffect, useCallback } from 'preact/hooks';
+import { useTransactionsStore } from '@/store';
 import {
   Table,
   TableBody,
@@ -21,71 +21,57 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
 import { TransactionDetail } from "@/components/transaction-detail";
 import { formatCurrency } from '@/lib/formatter';
-
 import { SlipVerificationModal } from "@/components/slip-verification-modal";
 
 export function Transaction() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedTransaction, setSelectedTransaction] = useState<SlipOKLog | null>(null);
-  const [showVerifyModal, setShowVerifyModal] = useState(false);
-  const [transactions, setTransactions] = useState<SlipOKLog[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const itemsPerPage = 10;
+  // Use Zustand store
+  const {
+    transactions,
+    totalPages,
+    searchTerm,
+    currentPage,
+    selectedTransaction,
+    showVerifyModal,
+    isLoading,
+    error,
+    setSearchTerm,
+    setCurrentPage,
+    setSelectedTransaction,
+    setShowVerifyModal,
+    fetchTransactions,
+  } = useTransactionsStore();
 
-  // Debounce search input
+  // Debounced search effect
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setCurrentPage(1); // Reset to page 1 on search
+      fetchTransactions();
     }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Fetch transactions
-  const fetchTransactions = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const response = await getSlipOKLogs({
-        page: currentPage,
-        limit: itemsPerPage,
-        search: debouncedSearch || undefined,
-      });
-      setTransactions(response.data);
-      setTotalPages(response.meta.totalPages || 1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load transactions');
-      setTransactions([]);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [currentPage, debouncedSearch]);
-
+  // Fetch on page change
   useEffect(() => {
     fetchTransactions();
-  }, [fetchTransactions]);
+  }, [currentPage]);
 
-  // Refetch after slip verification
-  const handleVerifyModalClose = (open: boolean) => {
+  // Initial fetch
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  // Handle verify modal close and refetch
+  const handleVerifyModalClose = useCallback((open: boolean) => {
     setShowVerifyModal(open);
     if (!open) {
-      // Refetch transactions when modal closes
       fetchTransactions();
     }
-  };
+  }, [setShowVerifyModal, fetchTransactions]);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">รายการทำรายการ</h1>
         <div className="flex flex-col gap-2 md:flex-row md:items-center w-full md:w-auto">
-          <Button onClick={() => setShowVerifyModal(true)} className="w-full md:w-auto">
-            ตรวจสอบสลิป
-          </Button>
           <Input
             placeholder="ค้นหาเลขอ้างอิง, ผู้ส่ง, จำนวนเงิน..."
             value={searchTerm}
@@ -164,7 +150,7 @@ export function Transaction() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1 || isLoading}
         >
           <ChevronLeft className="h-4 w-4" />
@@ -176,7 +162,7 @@ export function Transaction() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages || isLoading}
         >
           ถัดไป
@@ -184,11 +170,11 @@ export function Transaction() {
         </Button>
       </div>
 
-      <Dialog open={!!selectedTransaction} onOpenChange={(open) => !open && setSelectedTransaction(null)}>
-        <DialogContent onClickX={() => {
-          setSelectedTransaction(null);
-        }} className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader >
+      <Dialog open={!!selectedTransaction} onOpenChange={(open) => {
+        if (!open) setSelectedTransaction(null);
+      }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
             <DialogTitle>รายละเอียดรายการ</DialogTitle>
             <DialogDescription>
               เลขที่อ้างอิง: {selectedTransaction?.transRef}

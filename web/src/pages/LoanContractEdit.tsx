@@ -1,12 +1,13 @@
 import { LoanContractForm, type LoanContractFormValues } from "@/components/forms/LoanContractForm";
 import { useLocation, useRoute } from "wouter";
 import { useEffect, useState } from "preact/hooks";
-
-import { getLoanById, updateLoan, getClients, type Client } from "@/lib/api-client";
+import { getLoanById, getClients, type Client } from "@/lib/api-client";
+import { useLoansStore } from "@/store";
 
 export function LoanContractEdit() {
   const [, params] = useRoute("/admin/loans/:id/edit");
   const [, setLocation] = useLocation();
+  const { updateLoan } = useLoansStore();
   const [contractData, setContractData] = useState<LoanContractFormValues | undefined>(undefined);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);

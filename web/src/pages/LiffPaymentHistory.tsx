@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import apiClient from '@/lib/api-client';
 import dayjs from 'dayjs';
 import { useLocation } from 'wouter';
+import { useLiffStore } from '@/store';
 
 interface Payment {
   id: string;
@@ -22,12 +23,14 @@ interface LiffPaymentHistoryProps {
 }
 
 export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
+  const { initLiff } = useLiffStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [_, __] = useLocation();
 
   useEffect(() => {
+    initLiff();
     fetchPaymentHistory();
   }, [loanId]);
 

@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, FileText } from 'lucide-react';
 import { LoanCard } from '@/components/LoanCard';
 import apiClient from '@/lib/api-client';
+import { useLiffStore } from '@/store';
 
 interface LoanSummary {
   id: string;
@@ -29,11 +30,13 @@ interface LiffLoanSummaryProps {
 }
 
 export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
+  const { initLiff } = useLiffStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loanData, setLoanData] = useState<LoanSummaryResponse | null>(null);
 
   useEffect(() => {
+    initLiff();
     fetchLoanSummary();
   }, [clientId]);
 

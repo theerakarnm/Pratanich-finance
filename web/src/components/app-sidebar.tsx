@@ -1,6 +1,6 @@
-import { LayoutDashboard, Users, FileText, Activity, X } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Activity } from 'lucide-react';
 import { Button } from "@/components/ui/button"
-import { Link, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import {
   Sidebar,
   SidebarContent,
