@@ -302,6 +302,49 @@ export class LoansRepository {
       contract_start_date: dayjs(row.contract_start_date).toISOString(),
     }));
   }
+
+  /**
+   * Sum outstanding_balance from all active loans
+   * @returns Total outstanding balance across all non-deleted loans
+   */
+  async sumOutstandingBalance(): Promise<number> {
+    const result = await db
+      .select({
+        total: sql<string>`COALESCE(SUM(${loans.outstanding_balance}::numeric), 0)`,
+      })
+      .from(loans)
+      .where(sql`${loans.deleted_at} IS NULL`);
+
+    return parseFloat(result[0]?.total || "0");
+  }
+
+  /**
+   * Get loan creation trends grouped by month for the last 6 months
+   * @returns Array of { name: string, value: number } for charting
+   */
+  async getLoanTrends(): Promise<Array<{ name: string; value: number }>> {
+    const sixMonthsAgo = dayjs().subtract(6, "month").startOf("month").toDate();
+
+    const result = await db
+      .select({
+        month: sql<string>`TO_CHAR(${loans.created_at}, 'Mon')`,
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(loans)
+      .where(
+        and(
+          sql`${loans.deleted_at} IS NULL`,
+          sql`${loans.created_at} >= ${sixMonthsAgo}`
+        )
+      )
+      .groupBy(sql`TO_CHAR(${loans.created_at}, 'Mon'), DATE_TRUNC('month', ${loans.created_at})`)
+      .orderBy(sql`DATE_TRUNC('month', ${loans.created_at})`);
+
+    return result.map((row) => ({
+      name: row.month,
+      value: row.count,
+    }));
+  }
 }
 
 export const loansRepository = new LoansRepository();

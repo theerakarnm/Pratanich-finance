@@ -404,5 +404,23 @@ export const getClientLoansSummary = async (clientId: string): Promise<LoanSumma
   return response.data;
 };
 
+// ============================================================================
+// Dashboard API
+// ============================================================================
+
+export interface DashboardStatsResponse {
+  totalClients: number;
+  totalLoans: number;
+  outstandingBalance: number;
+  todayTransactions: number;
+  loanTrends: Array<{ name: string; value: number }>;
+  transactionVolume: Array<{ name: string; value: number }>;
+}
+
+export const getDashboardStats = async (): Promise<DashboardStatsResponse> => {
+  const response = await apiClient.get('/api/dashboard/stats');
+  return response.data;
+};
+
 // Export the configured axios instance for custom requests
 export default apiClient;

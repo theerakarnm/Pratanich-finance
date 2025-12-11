@@ -35,6 +35,7 @@ import pendingPaymentsRoutes from './pending-payments.routes';
 import paymentsRoutes from './payments.routes';
 import receiptsRoutes from './receipts.routes';
 import assetsRoutes from './assets.routes';
+import dashboardRoutes from '../features/dashboard/dashboard.routes';
 
 // Feature routes
 router.route('/users', usersRoutes);
@@ -49,6 +50,7 @@ router.route('/admin/pending-payments', pendingPaymentsRoutes); // Admin endpoin
 router.route('/payments', paymentsRoutes); // Payment query endpoints: /api/payments/:id, /api/payments/history/:loanId, /api/payments/receipt/:id
 router.route('/receipts', receiptsRoutes);
 router.route('/asset', assetsRoutes);
+router.route('/dashboard', dashboardRoutes); // Dashboard endpoints: /api/dashboard/stats
 
 
 export default router;

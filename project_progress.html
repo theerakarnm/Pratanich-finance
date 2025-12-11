@@ -43,45 +43,51 @@
     // Data Structure
     const projectData = {
       summary: [
-        { title: "API Development", progress: 90, color: "blue" },
-        { title: "Web Application", progress: 86, color: "indigo" },
-        { title: "Line LIFF App", progress: 90, color: "green" },
+        { title: "API Development", progress: 96, color: "blue" },
+        { title: "Web Application", progress: 96, color: "indigo" },
+        { title: "Line LIFF App", progress: 95, color: "green" },
       ],
       modules: [
         {
           id: 1,
           title: "Module 1: API Development (Backend)",
           icon: "server",
-          overallProgress: 90,
+          overallProgress: 96,
           tasks: [
             {
               name: "Authentication & Authorization",
-              progress: 90,
-              details: ["Admin Auth (Better Auth)", "User Auth Middleware", "RBAC (Refinement needed)"],
+              progress: 95,
+              details: ["Admin Auth (Better Auth)", "User Auth Middleware", "RBAC Implemented"],
               status: "good"
             },
             {
               name: "Client Management",
-              progress: 95,
+              progress: 100,
               details: ["Domain & Repository Layer", "CRUD Routes", "Search & Pagination", "Soft Delete Implemented"],
               status: "good"
             },
             {
               name: "Loan Contract Management",
-              progress: 95,
+              progress: 100,
               details: ["Domain & Repository Layer", "CRUD Routes", "Search & Pagination", "Soft Delete Implemented"],
               status: "good"
             },
             {
               name: "Transaction Management",
-              progress: 80,
-              details: ["Slip Verification (SlipOK)", "PromptPay QR Generation", "Transaction History"],
+              progress: 95,
+              details: ["Slip Verification (SlipOK)", "PromptPay QR Generation", "Transaction History", "Receipt Generator", "Payment Notification Service"],
+              status: "good"
+            },
+            {
+              name: "Dashboard API",
+              progress: 100,
+              details: ["Dashboard Stats Endpoint", "Aggregated Metrics", "Loan Trends", "Transaction Volume"],
               status: "good"
             },
             {
               name: "Line Integration",
-              progress: 90,
-              details: ["Webhook Handling", "Flex Message Templates", "Loan Notification Implemented", "Rich Menu", "User Binding"],
+              progress: 100,
+              details: ["Webhook Handling", "Flex Message Templates", "Loan Notification", "Rich Menu", "User Binding", "Business Logic Integrated"],
               status: "good"
             }
           ]
@@ -90,31 +96,31 @@
           id: 2,
           title: "Module 2: Web Application (Admin Portal)",
           icon: "layout",
-          overallProgress: 86,
+          overallProgress: 96,
           tasks: [
             {
               name: "Dashboard",
-              progress: 60,
-              details: ["Basic Layout", "Key Metrics Widgets (Needs real data)"],
-              status: "warning"
+              progress: 100,
+              details: ["Real-time Metrics", "Loan Trends Chart", "Transaction Volume Chart", "Zustand Store Integration"],
+              status: "good"
             },
             {
               name: "Client Management UI",
               progress: 100,
-              details: ["List View with Search", "Create Client Form (Validation Fixed)", "Edit Client Form", "Soft Delete UI"],
+              details: ["List View with Search", "Create Client Form", "Edit Client Form", "Soft Delete UI"],
               status: "good"
             },
             {
               name: "Loan Contract Management UI",
               progress: 100,
-              details: ["List View with Search", "Create Contract Form (DatePicker Fixed)", "Edit Contract Form", "Thai Labels Added", "Soft Delete UI"],
+              details: ["List View with Search", "Create Contract Form", "Edit Contract Form", "Thai Labels", "Soft Delete UI"],
               status: "good"
             },
             {
               name: "Transaction Verification UI",
-              progress: 70,
-              details: ["Transaction List", "Slip Verification Modal", "Pending Testing (Missing)"],
-              status: "warning"
+              progress: 90,
+              details: ["Transaction List", "Slip Verification Modal", "Transaction Detail View", "Status Badges"],
+              status: "good"
             },
             {
               name: "Authentication UI",
@@ -128,18 +134,18 @@
           id: 3,
           title: "Module 3: Line LIFF App (User Portal)",
           icon: "smartphone",
-          overallProgress: 90,
+          overallProgress: 95,
           tasks: [
             {
               name: "Liff Connect",
-              progress: 90,
-              details: ["User Identification", "Account Binding Flow"],
+              progress: 95,
+              details: ["User Identification", "Account Binding Flow", "Client Page"],
               status: "good"
             },
             {
               name: "Loan Dashboard for User",
-              progress: 90,
-              details: ["Loan Summary View", "Payment History View", "QR Code Payment (Displaying PromptPay QR)"],
+              progress: 95,
+              details: ["Loan Summary View", "Payment History View", "QR Code Payment"],
               status: "good"
             }
           ]

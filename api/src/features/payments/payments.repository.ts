@@ -353,6 +353,75 @@ export class PaymentRepository {
       client: result[0].client,
     };
   }
+
+  /**
+   * Sum of transaction amounts for today
+   * @returns Total amount of transactions with payment_date = today
+   */
+  async sumTodayTransactions(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const result = await db
+      .select({
+        total: sql<string>`COALESCE(SUM(${transactions.amount}::numeric), 0)`,
+      })
+      .from(transactions)
+      .where(
+        sql`${transactions.payment_date} >= ${today} AND ${transactions.payment_date} < ${tomorrow}`
+      );
+
+    return parseFloat(result[0]?.total || "0");
+  }
+
+  /**
+   * Count of transactions for today
+   * @returns Number of transactions with payment_date = today
+   */
+  async countTodayTransactions(): Promise<number> {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const result = await db
+      .select({
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(transactions)
+      .where(
+        sql`${transactions.payment_date} >= ${today} AND ${transactions.payment_date} < ${tomorrow}`
+      );
+
+    return result[0]?.count || 0;
+  }
+
+  /**
+   * Get transaction volume grouped by day for the last 7 days
+   * @returns Array of { name: string, value: number } for charting
+   */
+  async getTransactionVolume(): Promise<Array<{ name: string; value: number }>> {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+    const result = await db
+      .select({
+        day: sql<string>`TO_CHAR(${transactions.payment_date}, 'Dy')`,
+        count: sql<number>`COUNT(*)::int`,
+      })
+      .from(transactions)
+      .where(sql`${transactions.payment_date} >= ${sevenDaysAgo}`)
+      .groupBy(sql`TO_CHAR(${transactions.payment_date}, 'Dy'), DATE_TRUNC('day', ${transactions.payment_date})`)
+      .orderBy(sql`DATE_TRUNC('day', ${transactions.payment_date})`);
+
+    return result.map((row) => ({
+      name: row.day,
+      value: row.count,
+    }));
+  }
 }
 
 export const paymentRepository = new PaymentRepository();

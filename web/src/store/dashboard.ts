@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getClients, getLoans } from '@/lib/api-client';
+import { getDashboardStats } from '@/lib/api-client';
 
 interface DashboardState {
   // API Data
@@ -24,25 +24,9 @@ interface DashboardState {
   setTransactionVolume: (data: Array<{ name: string; value: number }>) => void;
 }
 
-// Default chart data
-const defaultLoanTrends = [
-  { name: 'Jan', value: 4000 },
-  { name: 'Feb', value: 3000 },
-  { name: 'Mar', value: 2000 },
-  { name: 'Apr', value: 2780 },
-  { name: 'May', value: 1890 },
-  { name: 'Jun', value: 2390 },
-];
-
-const defaultTransactionVolume = [
-  { name: 'Mon', value: 2400 },
-  { name: 'Tue', value: 1398 },
-  { name: 'Wed', value: 9800 },
-  { name: 'Thu', value: 3908 },
-  { name: 'Fri', value: 4800 },
-  { name: 'Sat', value: 3800 },
-  { name: 'Sun', value: 4300 },
-];
+// Default chart data (fallback if API returns empty)
+const defaultLoanTrends: Array<{ name: string; value: number }> = [];
+const defaultTransactionVolume: Array<{ name: string; value: number }> = [];
 
 export const useDashboardStore = create<DashboardState>()(
   persist(
@@ -67,20 +51,15 @@ export const useDashboardStore = create<DashboardState>()(
         set({ isLoading: true, error: null });
 
         try {
-          const [clientsResponse, loansResponse] = await Promise.all([
-            getClients({ limit: 1 }),
-            getLoans({ limit: 1000 }),
-          ]);
-
-          const totalOutstanding = loansResponse.data.reduce(
-            (acc, loan) => acc + loan.outstanding_balance,
-            0
-          );
+          const stats = await getDashboardStats();
 
           set({
-            totalClients: clientsResponse.meta.total,
-            totalLoans: loansResponse.meta.total,
-            outstandingBalance: totalOutstanding,
+            totalClients: stats.totalClients,
+            totalLoans: stats.totalLoans,
+            outstandingBalance: stats.outstandingBalance,
+            todayTransactions: stats.todayTransactions,
+            loanTrends: stats.loanTrends.length > 0 ? stats.loanTrends : defaultLoanTrends,
+            transactionVolume: stats.transactionVolume.length > 0 ? stats.transactionVolume : defaultTransactionVolume,
             isLoading: false,
             lastUpdated: new Date().toISOString(),
           });
@@ -107,6 +86,9 @@ export const useDashboardStore = create<DashboardState>()(
         totalClients: state.totalClients,
         totalLoans: state.totalLoans,
         outstandingBalance: state.outstandingBalance,
+        todayTransactions: state.todayTransactions,
+        loanTrends: state.loanTrends,
+        transactionVolume: state.transactionVolume,
         lastUpdated: state.lastUpdated,
       }),
     }
