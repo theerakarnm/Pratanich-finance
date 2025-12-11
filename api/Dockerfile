@@ -13,6 +13,7 @@ COPY . .
 RUN bun add -d typescript
 
 RUN bun install
+RUN bun run clean
 RUN bun run build
 
 FROM base AS runner
@@ -23,7 +24,8 @@ RUN adduser --system --uid 1001 hono
 
 COPY --from=builder --chown=hono:nodejs /app/node_modules /app/node_modules
 COPY --from=builder --chown=hono:nodejs /app/dist /app/dist
-COPY --from=builder --chown=hono:nodejs /app/src/uploads /app/dist/uploads
+COPY --from=builder --chown=hono:nodejs /app/src/assets /app/dist/assets
+COPY --from=builder --chown=hono:nodejs /app/uploads /app/uploads
 COPY --from=builder --chown=hono:nodejs /app/package.json /app/package.json
 
 USER hono

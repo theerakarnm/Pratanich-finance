@@ -14,7 +14,7 @@ import {
 } from "./payments.errors";
 import { paymentRepository, type TransactionInsert, type LoanUpdates } from "./payments.repository";
 import { loansRepository } from "../loans/loans.repository";
-import { ReceiptGenerator } from "./receipt.generator";
+// import { ReceiptGenerator } from "./receipt.generator";
 import { PaymentNotificationService } from "./payment-notification.service";
 import { LineMessagingClient } from "../line/line.client";
 import { config } from "../../core/config";
@@ -24,11 +24,11 @@ import logger from "../../core/logger";
  * Payment Domain - Core business logic for payment processing
  */
 export class PaymentDomain {
-  private receiptGenerator: ReceiptGenerator;
+  // private receiptGenerator: ReceiptGenerator;
   private notificationService: PaymentNotificationService;
 
   constructor() {
-    this.receiptGenerator = new ReceiptGenerator(config.payment.receiptStoragePath);
+    // this.receiptGenerator = new ReceiptGenerator(config.payment.receiptStoragePath);
     this.notificationService = new PaymentNotificationService(
       new LineMessagingClient(
         config.line.channelAccessToken,
@@ -225,13 +225,15 @@ export class PaymentDomain {
       try {
         const transactionWithDetails = await paymentRepository.findById(transaction.id);
         if (transactionWithDetails) {
-          const pdfBuffer = await this.receiptGenerator.generateReceipt(
-            transactionWithDetails
-          );
-          receiptPath = await this.receiptGenerator.saveReceipt(
-            transaction.id,
-            pdfBuffer
-          );
+
+          // TODO: Generate receipt PDF
+          // const pdfBuffer = await this.receiptGenerator.generateReceipt(
+          //   transactionWithDetails
+          // );
+          // receiptPath = await this.receiptGenerator.saveReceipt(
+          //   transaction.id,
+          //   pdfBuffer
+          // );
 
           logger.info(
             {
