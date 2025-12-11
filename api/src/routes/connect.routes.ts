@@ -52,21 +52,21 @@ const completePhoneConnectionSchema = z.object({
 connectRoutes.post("/clients/:clientId/connect-code", authMiddleware, async (c) => {
   const clientId = c.req.param("clientId");
   const requestId = c.req.header('x-request-id');
-  
+
   try {
     // Verify client exists
     await clientsDomain.findById(clientId);
-    
+
     // Generate connect code
     const connectCode = await connectDomain.generateConnectCode(clientId);
-    
+
     logger.info({
       event: "admin_connect_code_created",
       clientId,
       code: connectCode.code,
       requestId,
     });
-    
+
     return ResponseBuilder.created(c, {
       code: connectCode.code,
       expiresAt: connectCode.expires_at.toISOString(),
@@ -90,16 +90,16 @@ connectRoutes.post("/clients/:clientId/connect-code", authMiddleware, async (c) 
 // Admin endpoint: List all connect codes for a client
 connectRoutes.get("/clients/:clientId/connect-codes", authMiddleware, async (c) => {
   const clientId = c.req.param("clientId");
-  
+
   try {
     // Verify client exists
     await clientsDomain.findById(clientId);
-    
+
     // Get all connect codes for the client
     const codes = await connectDomain.getConnectCodesByClientId(clientId);
-    
+
     const now = new Date();
-    
+
     // Format codes with status
     const formattedCodes = codes.map(code => ({
       code: code.code,
@@ -109,7 +109,7 @@ connectRoutes.get("/clients/:clientId/connect-codes", authMiddleware, async (c) 
       usedAt: code.used_at ? code.used_at.toISOString() : null,
       createdAt: code.created_at.toISOString(),
     }));
-    
+
     return ResponseBuilder.success(c, { codes: formattedCodes });
   } catch (error: any) {
     if (error.message === "Client not found") {
@@ -122,12 +122,12 @@ connectRoutes.get("/clients/:clientId/connect-codes", authMiddleware, async (c) 
 // Admin endpoint: Delete/invalidate a connect code
 connectRoutes.delete("/connect-codes/:code", authMiddleware, async (c) => {
   const code = c.req.param("code");
-  
+
   try {
     // Delete the connect code
     await connectDomain.deleteConnectCode(code);
-    
-    return ResponseBuilder.success(c, { 
+
+    return ResponseBuilder.success(c, {
       success: true,
       message: "Connect code deleted successfully"
     });
@@ -143,7 +143,7 @@ connectRoutes.delete("/connect-codes/:code", authMiddleware, async (c) => {
 connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) => {
   const { code } = c.req.valid("json");
   const requestId = c.req.header('x-request-id');
-  
+
   try {
     logger.info({
       event: "connect_code_verification_started",
@@ -153,7 +153,7 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
 
     // Verify the connect code
     const result = await connectDomain.verifyConnectCode(code);
-    
+
     if (!result.valid) {
       logger.warn({
         event: "connect_code_verification_failed",
@@ -164,7 +164,7 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
 
       return ResponseBuilder.error(c, result.error || "Invalid connect code", 400);
     }
-    
+
     // Check rate limit before allowing connection
     try {
       await connectDomain.checkRateLimit(result.clientId!);
@@ -180,7 +180,7 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
       }
       throw error;
     }
-    
+
     logger.info({
       event: "connect_code_verified",
       code,
@@ -208,7 +208,7 @@ connectRoutes.post("/verify", zValidator("json", verifyCodeSchema), async (c) =>
 connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), async (c) => {
   const { code, lineUserId, lineDisplayName, linePictureUrl } = c.req.valid("json");
   const requestId = c.req.header('x-request-id');
-  
+
   try {
     // Complete the connection
     const client = await connectDomain.completeConnection(code, {
@@ -216,10 +216,10 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
       displayName: lineDisplayName,
       pictureUrl: linePictureUrl,
     });
-    
+
     // Get loans summary to check if client has loans
     const loansSummary = await clientsDomain.getLoansSummary(client.id);
-    
+
     logger.info({
       event: "connection_success",
       code,
@@ -237,8 +237,8 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
   } catch (error: any) {
     // Increment rate limit on failed attempts
     if (error instanceof ConnectCodeNotFoundError ||
-        error instanceof ConnectCodeExpiredError ||
-        error instanceof ConnectCodeAlreadyUsedError) {
+      error instanceof ConnectCodeExpiredError ||
+      error instanceof ConnectCodeAlreadyUsedError) {
       // Try to get client ID from code for rate limiting
       try {
         const verification = await connectDomain.verifyConnectCode(code);
@@ -248,7 +248,7 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
       } catch {
         // Ignore errors during rate limit increment
       }
-      
+
       logger.warn({
         event: "connection_failed",
         code,
@@ -260,7 +260,7 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
 
       return ResponseBuilder.error(c, error.message, 400);
     }
-    
+
     if (error instanceof LineUserIdAlreadyConnectedError) {
       logger.warn({
         event: "connection_failed",
@@ -273,7 +273,7 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
 
       return ResponseBuilder.error(c, error.message, 409);
     }
-    
+
     if (error instanceof RateLimitExceededError) {
       logger.warn({
         event: "connection_failed",
@@ -293,7 +293,7 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
         { retryAfter: error.retryAfter }
       );
     }
-    
+
     logger.error({
       event: "connection_error",
       code,
@@ -309,14 +309,14 @@ connectRoutes.post("/complete", zValidator("json", completeConnectionSchema), as
 // Client-facing endpoint: Get client by LINE user ID
 connectRoutes.get("/client/:lineUserId", async (c) => {
   const lineUserId = c.req.param("lineUserId");
-  
+
   try {
     const client = await connectDomain.getClientByLineUserId(lineUserId);
-    
+
     if (!client) {
       return ResponseBuilder.error(c, "Client not found", 404);
     }
-    
+
     return ResponseBuilder.success(c, {
       clientId: client.id,
       firstName: client.first_name,
@@ -331,10 +331,10 @@ connectRoutes.get("/client/:lineUserId", async (c) => {
 // Client-facing endpoint: Get loans summary for a client
 connectRoutes.get("/clients/:clientId/loans/summary", async (c) => {
   const clientId = c.req.param("clientId");
-  
+
   try {
     const loansSummary = await clientsDomain.getLoansSummary(clientId);
-    
+
     return ResponseBuilder.success(c, loansSummary);
   } catch (error: any) {
     if (error.message === "Client not found") {
@@ -348,7 +348,7 @@ connectRoutes.get("/clients/:clientId/loans/summary", async (c) => {
 connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async (c) => {
   const { phoneNumber, contractNumber } = c.req.valid("json");
   const requestId = c.req.header('x-request-id');
-  
+
   try {
     logger.info({
       event: "phone_contract_verification_started",
@@ -359,7 +359,7 @@ connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async
 
     // Verify phone and contract
     const result = await connectDomain.verifyPhoneAndContract(phoneNumber, contractNumber);
-    
+
     if (!result.valid) {
       logger.warn({
         event: "phone_contract_verification_failed",
@@ -371,7 +371,7 @@ connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async
 
       return ResponseBuilder.error(c, result.error || "Invalid mobile phone number or contract number", 400);
     }
-    
+
     // Check rate limit before allowing connection
     try {
       await connectDomain.checkRateLimit(result.clientId!);
@@ -387,7 +387,7 @@ connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async
       }
       throw error;
     }
-    
+
     logger.info({
       event: "phone_contract_verified",
       phoneNumber: phoneNumber.slice(-4),
@@ -417,7 +417,7 @@ connectRoutes.post("/verify-phone", zValidator("json", verifyPhoneSchema), async
 connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnectionSchema), async (c) => {
   const { phoneNumber, contractNumber, lineUserId, lineDisplayName, linePictureUrl } = c.req.valid("json");
   const requestId = c.req.header('x-request-id');
-  
+
   try {
     // Complete the phone connection
     const client = await connectDomain.completePhoneConnection(phoneNumber, contractNumber, {
@@ -425,10 +425,10 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
       displayName: lineDisplayName,
       pictureUrl: linePictureUrl,
     });
-    
+
     // Get loans summary to check if client has loans
     const loansSummary = await clientsDomain.getLoansSummary(client.id);
-    
+
     logger.info({
       event: "phone_connection_success",
       phoneNumber: phoneNumber.slice(-4),
@@ -456,7 +456,7 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
       } catch {
         // Ignore errors during rate limit increment
       }
-      
+
       logger.warn({
         event: "phone_connection_failed",
         phoneNumber: phoneNumber.slice(-4),
@@ -469,7 +469,7 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
 
       return ResponseBuilder.error(c, error.message, 400);
     }
-    
+
     if (error instanceof LineUserIdAlreadyConnectedError) {
       logger.warn({
         event: "phone_connection_failed",
@@ -483,7 +483,7 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
 
       return ResponseBuilder.error(c, error.message, 409);
     }
-    
+
     if (error instanceof RateLimitExceededError) {
       logger.warn({
         event: "phone_connection_failed",
@@ -504,7 +504,7 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
         { retryAfter: error.retryAfter }
       );
     }
-    
+
     logger.error({
       event: "phone_connection_error",
       phoneNumber: phoneNumber.slice(-4),
@@ -514,6 +514,45 @@ connectRoutes.post("/complete-phone", zValidator("json", completePhoneConnection
       requestId,
     });
 
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Disconnect LINE account
+connectRoutes.delete("/disconnect/:lineUserId", async (c) => {
+  const lineUserId = c.req.param("lineUserId");
+  const requestId = c.req.header('x-request-id');
+
+  try {
+    logger.info({
+      event: "disconnect_request_started",
+      lineUserId,
+      requestId,
+    });
+
+    await connectDomain.disconnectLineUser(lineUserId);
+
+    logger.info({
+      event: "disconnect_request_completed",
+      lineUserId,
+      requestId,
+    });
+
+    return ResponseBuilder.success(c, {
+      success: true,
+      message: "LINE account disconnected successfully",
+    });
+  } catch (error: any) {
+    logger.error({
+      event: "disconnect_request_failed",
+      lineUserId,
+      error: error.message,
+      requestId,
+    });
+
+    if (error.message === "No client found with this LINE account") {
+      return ResponseBuilder.error(c, error.message, 404);
+    }
     return ResponseBuilder.error(c, error.message, 500);
   }
 });

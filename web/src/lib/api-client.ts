@@ -422,5 +422,19 @@ export const getDashboardStats = async (): Promise<DashboardStatsResponse> => {
   return response.data;
 };
 
+// ============================================================================
+// LINE Disconnect API
+// ============================================================================
+
+export interface DisconnectLineResponse {
+  success: boolean;
+  message: string;
+}
+
+export const disconnectLineAccount = async (lineUserId: string): Promise<DisconnectLineResponse> => {
+  const response = await apiClient.delete(`/api/connect/disconnect/${lineUserId}`);
+  return response.data;
+};
+
 // Export the configured axios instance for custom requests
 export default apiClient;

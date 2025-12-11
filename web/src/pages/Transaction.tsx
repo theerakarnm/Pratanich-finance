@@ -18,10 +18,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Eye, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Loader2, RefreshCw, AlertCircle, WifiOff } from "lucide-react";
 import { TransactionDetail } from "@/components/transaction-detail";
 import { formatCurrency } from '@/lib/formatter';
 import { SlipVerificationModal } from "@/components/slip-verification-modal";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function Transaction() {
   // Use Zustand store
@@ -59,6 +60,11 @@ export function Transaction() {
     fetchTransactions();
   }, []);
 
+  // Handle retry
+  const handleRetry = useCallback(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
   // Handle verify modal close and refetch
   const handleVerifyModalClose = useCallback((open: boolean) => {
     setShowVerifyModal(open);
@@ -66,6 +72,23 @@ export function Transaction() {
       fetchTransactions();
     }
   }, [setShowVerifyModal, fetchTransactions]);
+
+  // Determine error type for better messaging
+  const getErrorInfo = (errorMessage: string) => {
+    const lowerError = errorMessage.toLowerCase();
+    if (lowerError.includes('network') || lowerError.includes('fetch') || lowerError.includes('connection')) {
+      return {
+        title: 'ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์',
+        description: 'กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่อีกครั้ง',
+        icon: WifiOff,
+      };
+    }
+    return {
+      title: 'เกิดข้อผิดพลาด',
+      description: errorMessage,
+      icon: AlertCircle,
+    };
+  };
 
   return (
     <div className="space-y-6">
@@ -78,8 +101,45 @@ export function Transaction() {
             onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
             className="w-full md:max-w-sm"
           />
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleRetry}
+            disabled={isLoading}
+            title="รีเฟรช"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </div>
+
+      {/* Error Alert */}
+      {error && !isLoading && (
+        <Alert variant="destructive">
+          {(() => {
+            const errorInfo = getErrorInfo(error);
+            const IconComponent = errorInfo.icon;
+            return (
+              <>
+                <IconComponent className="h-4 w-4" />
+                <AlertTitle>{errorInfo.title}</AlertTitle>
+                <AlertDescription className="flex flex-col gap-3">
+                  <span>{errorInfo.description}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetry}
+                    className="w-fit"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    ลองใหม่อีกครั้ง
+                  </Button>
+                </AlertDescription>
+              </>
+            );
+          })()}
+        </Alert>
+      )}
 
       <div className="rounded-md border bg-white overflow-x-auto">
         <Table>
@@ -106,8 +166,11 @@ export function Transaction() {
               </TableRow>
             ) : error ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-8 text-red-500">
-                  {error}
+                <TableCell colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                    <AlertCircle className="h-8 w-8 text-red-400" />
+                    <span>ไม่สามารถโหลดข้อมูลได้</span>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : transactions.length === 0 ? (
@@ -185,6 +248,6 @@ export function Transaction() {
       </Dialog>
 
       <SlipVerificationModal open={showVerifyModal} onOpenChange={handleVerifyModalClose} />
-    </div >
+    </div>
   );
 }

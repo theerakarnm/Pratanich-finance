@@ -406,6 +406,40 @@ export class ConnectDomain {
 
     return updatedClient;
   }
+
+  /**
+   * Disconnect LINE user from client
+   * Clears all LINE-related fields from the client record
+   */
+  async disconnectLineUser(lineUserId: string) {
+    logger.info({
+      event: "disconnect_started",
+      lineUserId,
+    });
+
+    // Find the client by LINE user ID
+    const client = await clientsRepository.findByLineUserId(lineUserId);
+
+    if (!client) {
+      logger.warn({
+        event: "disconnect_failed",
+        lineUserId,
+        reason: "client_not_found",
+      });
+      throw new Error("No client found with this LINE account");
+    }
+
+    // Clear LINE connection
+    const updatedClient = await clientsRepository.clearLineConnection(lineUserId);
+
+    logger.info({
+      event: "disconnect_completed",
+      lineUserId,
+      clientId: client.id,
+    });
+
+    return updatedClient;
+  }
 }
 
 export const connectDomain = new ConnectDomain();

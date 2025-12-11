@@ -1,8 +1,19 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Loader2, AlertCircle, FileText, Settings, LogOut, AlertTriangle } from 'lucide-react';
 import { LoanCard } from '@/components/LoanCard';
+import { disconnectLineAccount } from '@/lib/api-client';
 import apiClient from '@/lib/api-client';
 import { useLiffStore } from '@/store';
 
@@ -30,10 +41,16 @@ interface LiffLoanSummaryProps {
 }
 
 export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
-  const { initLiff } = useLiffStore();
+  const [, setLocation] = useLocation();
+  const { initLiff, profile } = useLiffStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loanData, setLoanData] = useState<LoanSummaryResponse | null>(null);
+
+  // Disconnect dialog state
+  const [showDisconnectDialog, setShowDisconnectDialog] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [disconnectError, setDisconnectError] = useState<string | null>(null);
 
   useEffect(() => {
     initLiff();
@@ -57,6 +74,28 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Handle disconnect
+  const handleDisconnect = async () => {
+    if (!profile?.userId) {
+      setDisconnectError('ไม่พบข้อมูล LINE กรุณาลองใหม่อีกครั้ง');
+      return;
+    }
+
+    setIsDisconnecting(true);
+    setDisconnectError(null);
+
+    try {
+      await disconnectLineAccount(profile.userId);
+      // Close dialog and redirect to connect page
+      setShowDisconnectDialog(false);
+      setLocation('/liff/connect');
+    } catch (error: any) {
+      setDisconnectError(error.message || 'ไม่สามารถยกเลิกการเชื่อมต่อได้ กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsDisconnecting(false);
     }
   };
 
@@ -122,8 +161,16 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
       <div className="mx-auto max-w-2xl space-y-4">
         {/* Header with summary */}
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-xl">Your Loan Summary</CardTitle>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowDisconnectDialog(true)}
+              title="ตั้งค่า"
+            >
+              <Settings className="h-5 w-5 text-gray-500" />
+            </Button>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
@@ -148,6 +195,57 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
           ))}
         </div>
       </div>
+
+      {/* Disconnect Confirmation Dialog */}
+      <Dialog open={showDisconnectDialog} onOpenChange={setShowDisconnectDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100">
+              <AlertTriangle className="h-6 w-6 text-amber-600" />
+            </div>
+            <DialogTitle className="text-center">ยกเลิกการเชื่อมต่อ?</DialogTitle>
+            <DialogDescription className="text-center">
+              หากคุณยกเลิกการเชื่อมต่อ LINE กับบัญชีนี้ คุณจะไม่สามารถรับการแจ้งเตือนผ่าน LINE ได้ และจะต้องเชื่อมต่อใหม่อีกครั้งเพื่อเข้าถึงข้อมูล
+            </DialogDescription>
+          </DialogHeader>
+
+          {disconnectError && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{disconnectError}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter className="flex flex-col gap-2 sm:flex-col">
+            <Button
+              variant="destructive"
+              onClick={handleDisconnect}
+              disabled={isDisconnecting}
+              className="w-full"
+            >
+              {isDisconnecting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  กำลังยกเลิก...
+                </>
+              ) : (
+                <>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  ยกเลิกการเชื่อมต่อ
+                </>
+              )}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDisconnectDialog(false)}
+              disabled={isDisconnecting}
+              className="w-full"
+            >
+              ยกเลิก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

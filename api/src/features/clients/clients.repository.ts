@@ -149,6 +149,26 @@ export class ClientsRepository {
 
     return result[0] || null;
   }
+
+  /**
+   * Clear LINE connection for a client
+   * Removes line_user_id, line_display_name, line_picture_url, and connected_at
+   */
+  async clearLineConnection(lineUserId: string) {
+    const result = await db
+      .update(clients)
+      .set({
+        line_user_id: null,
+        line_display_name: null,
+        line_picture_url: null,
+        connected_at: null,
+        updated_at: new Date(),
+      })
+      .where(eq(clients.line_user_id, lineUserId))
+      .returning();
+
+    return result[0] || null;
+  }
 }
 
 export const clientsRepository = new ClientsRepository();
