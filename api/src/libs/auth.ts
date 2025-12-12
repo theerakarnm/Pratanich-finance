@@ -19,7 +19,7 @@ export const auth = betterAuth({
   plugins: [
     admin()
   ],
-  trustedOrigins: ['http://localhost:5555', 'https://pratanich-finance.vercel.app'],
+  trustedOrigins: config.cors.origin,
   secret: config.auth.secret,
   session: {
     cookieCache: {
@@ -34,8 +34,8 @@ export const auth = betterAuth({
     defaultCookieAttributes: {
       // Must use "none" for cross-origin authentication (frontend and API on different domains)
       // "lax" only works when frontend and API share the same domain
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-      secure: process.env.NODE_ENV === "production", // Secure must be true when SameSite=None
+      sameSite: config.env === 'production' ? "none" : "lax",
+      secure: config.env === 'production', // Secure must be true when SameSite=None
 
       // HttpOnly flag - prevents JavaScript access to cookies (XSS protection)
       httpOnly: true,
@@ -48,10 +48,9 @@ export const auth = betterAuth({
       maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
 
       // Path - restrict cookie to specific paths if needed
-      path: '/',
-
       // Domain - set explicitly in production for subdomain support
-      domain: config.env === 'production' ? '.theerakarnm.dev' : 'localhost',
-    }
+      domain: config.auth.cookieDomain,
+    },
+    useSecureCookies: config.env === 'production', // Use secure cookies in production
   }
 });

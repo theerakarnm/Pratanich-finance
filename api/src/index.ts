@@ -16,10 +16,10 @@ const app = new Hono();
 // Global Middleware
 app.use('*', loggerMiddleware);
 app.use('*', cors({
-  origin: ['https://pratanich-finance.vercel.app', 'http://localhost:5555'], // Frontend URLs
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
+  origin: config.cors.origin,
+  allowMethods: config.cors.allowMethods,
+  allowHeaders: config.cors.allowHeaders,
+  credentials: config.cors.credentials,
 }));
 app.use('*', errorMiddleware);
 

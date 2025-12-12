@@ -19,6 +19,7 @@ const envSchema = z.object({
   NOTIFICATION_TIMEZONE: z.string().default('Asia/Bangkok'),
   LINE_LIFF_URL: z.string().optional().default(''),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+  ALLOW_CORS_ORIGIN: z.string().optional().default('http://localhost:5555'),
 });
 
 // Validate environment variables
@@ -46,6 +47,7 @@ export const config = {
   },
   auth: {
     secret: env.BETTER_AUTH_SECRET,
+    cookieDomain: process.env.COOKIE_DOMAIN || undefined, // e.g., '.theerakarnm.dev' for subdomain support
   },
   line: {
     channelAccessToken: env.LINE_CHANNEL_ACCESS_TOKEN,
@@ -71,6 +73,12 @@ export const config = {
     enabled: env.NOTIFICATION_ENABLED,
     timezone: env.NOTIFICATION_TIMEZONE,
     liffUrl: env.LINE_LIFF_URL,
+  },
+  cors: {
+    origin: env.ALLOW_CORS_ORIGIN.split(','),
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'User-Agent', 'Accept', 'Origin', 'X-Requested-With'],
+    credentials: true,
   },
   env: env.NODE_ENV,
 };

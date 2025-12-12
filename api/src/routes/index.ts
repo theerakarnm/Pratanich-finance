@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import usersRoutes from './users.routes';
 import { cors } from 'hono/cors';
 import { auth } from '../libs/auth';
+import { config } from '../core/config';
 
 const router = new Hono<{
   Variables: {
@@ -13,12 +14,12 @@ const router = new Hono<{
 router.use(
   "/auth/*", // or replace with "*" to enable cors for all routes
   cors({
-    origin: ["http://localhost:5555", 'https://pratanich-finance.vercel.app'], // replace with your origin
-    allowHeaders: ["Content-Type", "Authorization"],
     allowMethods: ["POST", "GET", "OPTIONS"],
     exposeHeaders: ["Content-Length"],
+    origin: config.cors.origin,
+    allowHeaders: config.cors.allowHeaders,
+    credentials: config.cors.credentials,
     maxAge: 600,
-    credentials: true,
   }),
 )
 
