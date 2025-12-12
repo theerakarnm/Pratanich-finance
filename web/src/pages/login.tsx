@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
 import { navigate } from 'wouter/use-browser-location';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 const loginSchema = z.object({
   email: z.email('กรุณากรอกอีเมลให้ถูกต้อง'),
@@ -19,6 +20,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLogin() {
+  useDocumentTitle('เข้าสู่ระบบ');
+
   const login = useAdminAuthStore((state) => state.login);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

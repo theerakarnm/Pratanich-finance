@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import apiClient from '@/lib/api-client';
 import { useLiffStore } from '@/store';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 interface VerifyConnectCodeResponse {
   valid: boolean;
@@ -23,6 +24,8 @@ interface CompleteConnectionResponse {
 }
 
 export function LiffConnect() {
+  useDocumentTitle('เชื่อมต่อบัญชี', '');
+
   const [, setLocation] = useLocation();
   const { isInitializing, isLoggedIn, profile, error: liffError, initLiff, login } = useLiffStore();
 

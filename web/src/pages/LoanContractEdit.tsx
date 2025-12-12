@@ -3,8 +3,11 @@ import { useLocation, useRoute } from "wouter";
 import { useEffect, useState } from "preact/hooks";
 import { getLoanById, getClients, type Client } from "@/lib/api-client";
 import { useLoansStore } from "@/store";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function LoanContractEdit() {
+  useDocumentTitle('แก้ไขสัญญาเงินกู้');
+
   const [, params] = useRoute("/admin/loans/:id/edit");
   const [, setLocation] = useLocation();
   const { updateLoan } = useLoansStore();

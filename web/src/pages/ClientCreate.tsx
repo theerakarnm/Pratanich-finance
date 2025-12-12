@@ -2,8 +2,11 @@ import { ClientForm, type ClientFormValues } from "@/components/forms/ClientForm
 import { useLocation } from "wouter";
 import { useClientsStore } from "@/store";
 import { useState } from "preact/hooks";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function ClientCreate() {
+  useDocumentTitle('สร้างลูกค้าใหม่');
+
   const [, setLocation] = useLocation();
   const { createClient } = useClientsStore();
   const [error, setError] = useState<string | null>(null);

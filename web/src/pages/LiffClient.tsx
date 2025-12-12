@@ -6,8 +6,11 @@ import { useLocation } from 'wouter';
 
 import { useLiffStore } from '@/store';
 import { getClientByLineUserId, ApiError } from '@/lib/api-client';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function LiffClient() {
+  useDocumentTitle('Finance', '');
+
   const { initLiff, profile, error: liffError, isInitializing } = useLiffStore();
   const [, setLocation] = useLocation();
   const [isCheckingConnection, setIsCheckingConnection] = useState(false);

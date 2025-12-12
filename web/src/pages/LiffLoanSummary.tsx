@@ -16,6 +16,7 @@ import { LoanCard } from '@/components/LoanCard';
 import { disconnectLineAccount } from '@/lib/api-client';
 import apiClient from '@/lib/api-client';
 import { useLiffStore } from '@/store';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 interface LoanSummary {
   id: string;
@@ -41,6 +42,8 @@ interface LiffLoanSummaryProps {
 }
 
 export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
+  useDocumentTitle('สรุปสินเชื่อ', '');
+
   const [, setLocation] = useLocation();
   const { initLiff, profile } = useLiffStore();
   const [isLoading, setIsLoading] = useState(true);

@@ -23,8 +23,11 @@ import {
 import { Link } from 'wouter';
 import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from '@/lib/formatter';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function LoanContractManagement() {
+  useDocumentTitle('จัดการสัญญาเงินกู้');
+
   // Use Zustand store
   const {
     loans,

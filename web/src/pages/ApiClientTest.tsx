@@ -3,8 +3,11 @@ import { getUsers, getClients, ApiError } from '@/lib/api-client';
 import type { User, Client } from '@/lib/api-client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export default function ApiClientTest() {
+  useDocumentTitle('API Client Test');
+
   const [users, setUsers] = useState<User[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [usersError, setUsersError] = useState<string | null>(null);

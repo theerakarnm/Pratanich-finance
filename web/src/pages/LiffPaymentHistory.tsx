@@ -8,6 +8,7 @@ import apiClient from '@/lib/api-client';
 import dayjs from 'dayjs';
 import { useLocation } from 'wouter';
 import { useLiffStore } from '@/store';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 interface Payment {
   id: string;
@@ -23,6 +24,8 @@ interface LiffPaymentHistoryProps {
 }
 
 export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
+  useDocumentTitle('ประวัติการชำระเงิน', '');
+
   const { initLiff } = useLiffStore();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

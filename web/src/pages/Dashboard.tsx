@@ -4,8 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, FileText, DollarSign, Activity } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/formatter';
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function Dashboard() {
+  useDocumentTitle('แดชบอร์ด');
+
   // Use Zustand store
   const {
     totalClients,

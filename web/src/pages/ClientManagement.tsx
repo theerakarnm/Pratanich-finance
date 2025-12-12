@@ -30,8 +30,11 @@ import {
 import { ConnectionStatusBadge } from "@/components/ConnectionStatusBadge";
 import { Link } from 'wouter';
 import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function ClientManagement() {
+  useDocumentTitle('จัดการลูกค้า');
+
   // Use Zustand store
   const {
     clients,

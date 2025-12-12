@@ -23,8 +23,11 @@ import { TransactionDetail } from "@/components/transaction-detail";
 import { formatCurrency } from '@/lib/formatter';
 import { SlipVerificationModal } from "@/components/slip-verification-modal";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function Transaction() {
+  useDocumentTitle('รายการทำรายการ');
+
   // Use Zustand store
   const {
     transactions,

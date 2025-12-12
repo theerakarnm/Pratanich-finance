@@ -8,8 +8,11 @@ import { Separator } from "@/components/ui/separator";
 
 import { getClientById, type Client } from "@/lib/api-client";
 import { useClientsStore } from "@/store";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function ClientEdit() {
+  useDocumentTitle('แก้ไขข้อมูลลูกค้า');
+
   const [, params] = useRoute("/admin/clients/:id/edit");
   const [, setLocation] = useLocation();
   const { updateClient } = useClientsStore();

@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Ghost, Home, ArrowLeft } from "lucide-react";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function NotFoundPage() {
+  useDocumentTitle('404 - ไม่พบหน้า');
+
   const goBack = () => {
     window.history.back();
   };

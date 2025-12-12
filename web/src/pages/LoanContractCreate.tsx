@@ -3,8 +3,11 @@ import { useLocation } from "wouter";
 import { getClients, type Client } from "@/lib/api-client";
 import { useLoansStore } from "@/store";
 import { useState, useEffect } from "preact/hooks";
+import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
 export function LoanContractCreate() {
+  useDocumentTitle('สร้างสัญญาเงินกู้ใหม่');
+
   const [, setLocation] = useLocation();
   const { createLoan } = useLoansStore();
   const [error, setError] = useState<string | null>(null);
