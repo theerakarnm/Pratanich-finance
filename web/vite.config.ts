@@ -14,6 +14,6 @@ export default defineConfig({
     },
   },
   server: {
-    allowedHosts: ["ce9ff195d422.ngrok-free.app"]
+    allowedHosts: ["brave-hats-stare.loca.lt"]
   }
 })

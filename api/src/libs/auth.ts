@@ -19,7 +19,7 @@ export const auth = betterAuth({
   plugins: [
     admin()
   ],
-  trustedOrigins: ['http://localhost:5555'],
+  trustedOrigins: ['http://localhost:5555', 'https://pratanich-finance.vercel.app'],
   secret: config.auth.secret,
   session: {
     cookieCache: {
@@ -29,11 +29,13 @@ export const auth = betterAuth({
   },
   advanced: {
     crossSubDomainCookies: {
-      enabled: false // Disable for localhost development
+      enabled: false
     },
     defaultCookieAttributes: {
-      sameSite: "lax", // Changed from "none" to "lax" for better compatibility
-      secure: process.env.NODE_ENV === "production", // Only secure in production
+      // Must use "none" for cross-origin authentication (frontend and API on different domains)
+      // "lax" only works when frontend and API share the same domain
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production", // Secure must be true when SameSite=None
     }
   }
 });

@@ -1,9 +1,9 @@
 import { auth } from "../src/libs/auth";
 import { db } from "../src/core/database";
 import { eq } from "drizzle-orm";
-import { uuidv7 } from "uuidv7";
+import { users } from "../src/core/database/schema";
 
-const ADMIN_EMAIL = "admin@ekoe.com";
+const ADMIN_EMAIL = "admin@smartloan.com";
 const ADMIN_PASSWORD = "password123";
 const ADMIN_NAME = "Admin User";
 
@@ -20,6 +20,15 @@ async function seedAdmin() {
     if (existingUser) {
       console.log("ℹ️ Admin user already exists.");
       userId = existingUser.id;
+
+      // Ensure the existing user has admin role
+      if (existingUser.role !== 'admin') {
+        console.log("Updating user role to admin...");
+        await db.update(users)
+          .set({ role: 'admin' })
+          .where(eq(users.id, userId));
+        console.log("✅ User role updated to admin.");
+      }
     } else {
       console.log("Creating admin user...");
       const user = await auth.api.signUpEmail({
@@ -36,6 +45,13 @@ async function seedAdmin() {
 
       userId = user.user.id;
       console.log("✅ Admin user created.");
+
+      // Set role to admin after creation
+      console.log("Setting admin role...");
+      await db.update(users)
+        .set({ role: 'admin' })
+        .where(eq(users.id, userId));
+      console.log("✅ Admin role set.");
     }
 
     console.log("✨ Admin seeding completed successfully!");
