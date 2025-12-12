@@ -6,4 +6,9 @@ export const authClient = createAuthClient({
   plugins: [
     adminClient()
   ],
+  // Required for cross-origin authentication on mobile browsers (especially iOS Safari)
+  // Without this, mobile browsers may fail with "Load failed" error
+  fetchOptions: {
+    credentials: 'include',
+  },
 })

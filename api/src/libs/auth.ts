@@ -36,6 +36,22 @@ export const auth = betterAuth({
       // "lax" only works when frontend and API share the same domain
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       secure: process.env.NODE_ENV === "production", // Secure must be true when SameSite=None
+
+      // HttpOnly flag - prevents JavaScript access to cookies (XSS protection)
+      httpOnly: true,
+
+      // Partitioned flag - for CHIPS (Cookies Having Independent Partitioned State)
+      // Helps with third-party cookie restrictions in modern browsers
+      partitioned: config.env === 'production',
+
+      // Cookie expiration - matches session expiration (7 days)
+      maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
+
+      // Path - restrict cookie to specific paths if needed
+      path: '/',
+
+      // Domain - set explicitly in production for subdomain support
+      domain: config.env === 'production' ? '.theerakarnm.dev' : 'localhost',
     }
   }
 });
