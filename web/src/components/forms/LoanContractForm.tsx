@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -68,6 +69,24 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
       client_id: "",
     },
   });
+
+  // Watch principal_amount and auto-populate approved_amount and outstanding_balance if they have no value
+  const principalAmount = form.watch("principal_amount");
+  const approvedAmount = form.watch("approved_amount");
+  const outstandingBalance = form.watch("outstanding_balance");
+
+  useEffect(() => {
+    if (principalAmount > 0) {
+      // Only set approved_amount if it's currently 0 (no value)
+      if (!approvedAmount || approvedAmount === 0) {
+        form.setValue("approved_amount", principalAmount);
+      }
+      // Only set outstanding_balance if it's currently 0 (no value)
+      if (!outstandingBalance || outstandingBalance === 0) {
+        form.setValue("outstanding_balance", principalAmount);
+      }
+    }
+  }, [principalAmount]);
 
   return (
     <Card className="w-full mx-auto">
