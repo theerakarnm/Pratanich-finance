@@ -68,14 +68,40 @@ export function LoanContractEdit() {
   };
 
   if (loading) {
-    return <div className="p-6">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-slate-50/50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <h1 className="text-2xl font-bold mb-6">Edit Loan Contract</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <LoanContractForm initialData={contractData} onSubmit={handleSubmit} isEditing clients={clients} />
+    <div className="min-h-screen bg-slate-50/50">
+      <div className="container mx-auto py-8 px-4">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">
+            ✏️ แก้ไขสัญญาเงินกู้
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            แก้ไขข้อมูลสัญญาและดูผลลัพธ์แบบเรียลไทม์ทางด้านขวา
+          </p>
+        </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg mb-6">
+            {error}
+          </div>
+        )}
+
+        {/* Form */}
+        <LoanContractForm initialData={contractData} onSubmit={handleSubmit} isEditing clients={clients} />
+      </div>
     </div>
   );
 }
+

@@ -22,6 +22,9 @@ export interface TransactionInsert {
   amount_to_principal: string;
   balance_after: string;
   principal_remaining: string;
+  // Audit fields for interest calculation
+  days_since_last_tx?: number;
+  applied_rate?: string;
   payment_method?: string;
   payment_source?: string;
   receipt_path?: string;

@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp, decimal, pgEnum, index } from "drizzle-orm/pg-core";
+import { pgTable, varchar, timestamp, decimal, pgEnum, index, integer } from "drizzle-orm/pg-core";
 import { uuidv7 } from "uuidv7";
 import { loans } from "./loans.schema";
 import { clients } from "./clients.schema";
@@ -21,7 +21,7 @@ export const transactions = pgTable("transactions", {
   id: varchar("id", { length: 36 })
     .$defaultFn(() => uuidv7())
     .primaryKey(),
-  
+
   // Reference IDs
   transaction_ref_id: varchar("transaction_ref_id", { length: 100 })
     .unique()
@@ -32,14 +32,14 @@ export const transactions = pgTable("transactions", {
   client_id: varchar("client_id", { length: 36 })
     .references(() => clients.id)
     .notNull(),
-  
+
   // Transaction details
   transaction_type: transactionTypeEnum("transaction_type").notNull(),
   transaction_status: transactionStatusEnum("transaction_status")
     .default("Completed")
     .notNull(),
   payment_date: timestamp("payment_date").notNull(),
-  
+
   // Amounts
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   amount_to_penalties: decimal("amount_to_penalties", { precision: 12, scale: 2 })
@@ -51,22 +51,26 @@ export const transactions = pgTable("transactions", {
   amount_to_principal: decimal("amount_to_principal", { precision: 12, scale: 2 })
     .default("0.00")
     .notNull(),
-  
+
   // Balance snapshots (after this transaction)
   balance_after: decimal("balance_after", { precision: 12, scale: 2 }).notNull(),
   principal_remaining: decimal("principal_remaining", { precision: 12, scale: 2 }).notNull(),
-  
+
+  // Audit fields for interest calculation
+  days_since_last_tx: integer("days_since_last_tx"),  // 'D' in the formula (P*R*D)/Y
+  applied_rate: decimal("applied_rate", { precision: 5, scale: 4 }),  // 'R' used for this calculation
+
   // Payment method and source
   payment_method: varchar("payment_method", { length: 50 }), // "Bank Transfer", "Cash", "PromptPay"
   payment_source: varchar("payment_source", { length: 100 }), // Bank name or source
-  
+
   // Receipt
   receipt_path: varchar("receipt_path", { length: 255 }),
-  
+
   // Metadata
   notes: varchar("notes", { length: 500 }),
   processed_by: varchar("processed_by", { length: 36 }), // Admin user ID if manual
-  
+
   // Timestamps
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),

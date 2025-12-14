@@ -36,6 +36,13 @@
       "when": 1764761421731,
       "tag": "0004_talented_namora",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765750897553,
+      "tag": "0005_abnormal_paper_doll",
+      "breakpoints": true
     }
   ]
 }

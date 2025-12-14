@@ -160,7 +160,14 @@ export class PaymentDomain {
         "Loan status determined"
       );
 
-      // Step 7: Prepare transaction data
+      // Step 7: Calculate audit fields
+      const msPerDay = 1000 * 60 * 60 * 24;
+      const daysSinceLastTx = Math.floor(
+        (request.paymentDate.getTime() - lastPaymentDate.getTime()) / msPerDay
+      );
+      const appliedRate = parseFloat(loan.interest_rate) / 100;
+
+      // Step 8: Prepare transaction data
       const transactionData: TransactionInsert = {
         transaction_ref_id: request.transactionRefId,
         loan_id: request.loanId,
@@ -174,13 +181,16 @@ export class PaymentDomain {
         amount_to_principal: allocation.toPrincipal.toFixed(2),
         balance_after: newOutstandingBalance.toFixed(2),
         principal_remaining: newOutstandingBalance.toFixed(2),
+        // Audit fields
+        days_since_last_tx: daysSinceLastTx,
+        applied_rate: appliedRate.toFixed(4),
         payment_method: request.paymentMethod,
         payment_source: request.paymentSource,
         notes: request.notes,
         processed_by: request.processedBy,
       };
 
-      // Step 8: Prepare loan updates
+      // Step 9: Prepare loan updates
       const loanUpdates: LoanUpdates = {
         outstanding_balance: newOutstandingBalance.toFixed(2),
         principal_paid: newPrincipalPaid.toFixed(2),
@@ -196,7 +206,7 @@ export class PaymentDomain {
         }),
       };
 
-      // Step 9: Execute database transaction (ACID)
+      // Step 10: Execute database transaction (ACID)
       logger.info(
         {
           transactionRefId: request.transactionRefId,

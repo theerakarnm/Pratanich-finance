@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,6 +14,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { InputWithAdornment } from "@/components/ui/input-with-adornment";
 import {
   Select,
   SelectContent,
@@ -21,7 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const loanContractSchema = z.object({
   contract_number: z.string().min(1, "กรุณากรอกเลขที่สัญญา"),
@@ -49,291 +51,514 @@ interface LoanContractFormProps {
   clients?: { id: string; first_name: string; last_name: string; citizen_id: string }[];
 }
 
+// Section header component for visual grouping
+function SectionHeader({ title, description }: { title: string; description?: string }) {
+  return (
+    <div className="space-y-1 pb-2">
+      <h3 className="text-sm font-semibold text-foreground tracking-wide uppercase">{title}</h3>
+      {description && <p className="text-xs text-muted-foreground">{description}</p>}
+    </div>
+  );
+}
+
+// Live preview component for loan summary
+function LoanPreviewCard({
+  principal,
+  interestRate,
+  termMonths,
+  installmentAmount,
+}: {
+  principal: number | string;
+  interestRate: number | string;
+  termMonths: number | string;
+  installmentAmount: number | string;
+}) {
+  const calculations = useMemo(() => {
+    const p = Number(principal) || 0;
+    const r = Number(interestRate) || 0;
+    const t = Number(termMonths) || 0;
+    const i = Number(installmentAmount) || 0;
+
+    if (!p || !r || !t) {
+      return { monthlyPayment: 0, totalInterest: 0, totalRepayment: 0 };
+    }
+
+    // Simple interest calculation: Total = Principal + (Principal × Rate × Time)
+    const totalInterest = (p * (r / 100) * (t / 12));
+    const totalRepayment = p + totalInterest;
+    const monthlyPayment = i > 0 ? i : totalRepayment / t;
+
+    return { monthlyPayment, totalInterest, totalRepayment };
+  }, [principal, interestRate, termMonths, installmentAmount]);
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('th-TH', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
+
+  return (
+    <Card className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 shadow-lg sticky top-6">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg flex items-center gap-2">
+          <span className="text-2xl">📊</span>
+          สรุปสัญญา
+        </CardTitle>
+        <CardDescription>
+          คำนวณอัตโนมัติจากข้อมูลที่กรอก
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Monthly Payment - Hero Number */}
+        <div className="bg-primary rounded-xl p-5 text-primary-foreground text-center shadow-md">
+          <p className="text-xs uppercase tracking-wider opacity-90 mb-1">ยอดผ่อนชำระต่อเดือน</p>
+          <p className="text-3xl font-bold tracking-tight">
+            ฿{formatCurrency(calculations.monthlyPayment)}
+          </p>
+        </div>
+
+        {/* Other Stats */}
+        <div className="grid grid-cols-1 gap-4">
+          <div className="bg-background/60 rounded-lg p-4 border border-border/50">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ยอดเงินต้น</p>
+            <p className="text-lg font-semibold text-foreground">฿{formatCurrency(Number(principal) || 0)}</p>
+          </div>
+          <div className="bg-background/60 rounded-lg p-4 border border-border/50">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ดอกเบี้ยรวม</p>
+            <p className="text-lg font-semibold text-amber-600">฿{formatCurrency(calculations.totalInterest)}</p>
+          </div>
+          <div className="bg-background/60 rounded-lg p-4 border border-border/50">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ยอดชำระรวมทั้งหมด</p>
+            <p className="text-lg font-semibold text-foreground">฿{formatCurrency(calculations.totalRepayment)}</p>
+          </div>
+        </div>
+
+        {/* Duration Badge */}
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <span className="text-lg">🗓️</span>
+          <span className="text-sm">ระยะเวลา {termMonths || 0} เดือน</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function LoanContractForm({ initialData, onSubmit, isEditing = false, clients = [] }: LoanContractFormProps) {
   const form = useForm<LoanContractFormValues>({
     resolver: zodResolver(loanContractSchema) as any,
     defaultValues: initialData || {
       contract_number: "",
       loan_type: "Personal Loan",
-      principal_amount: 0,
-      approved_amount: 0,
-      interest_rate: 15,
-      term_months: 12,
-      installment_amount: 0,
+      principal_amount: "" as unknown as number,
+      approved_amount: "" as unknown as number,
+      interest_rate: "" as unknown as number,
+      term_months: "" as unknown as number,
+      installment_amount: "" as unknown as number,
       contract_start_date: "",
       contract_end_date: "",
       due_day: 1,
       contract_status: "Active",
-      outstanding_balance: 0,
+      outstanding_balance: "" as unknown as number,
       overdue_days: 0,
       client_id: "",
     },
   });
 
-  // Watch principal_amount and auto-populate approved_amount and outstanding_balance if they have no value
+  // Watch values for live preview
   const principalAmount = form.watch("principal_amount");
-  const approvedAmount = form.watch("approved_amount");
-  const outstandingBalance = form.watch("outstanding_balance");
 
-  useEffect(() => {
-    if (principalAmount > 0) {
-      // Only set approved_amount if it's currently 0 (no value)
-      if (!approvedAmount || approvedAmount === 0) {
-        form.setValue("approved_amount", principalAmount);
+  function handlePrincipalAmountBlur() {
+    const principal = Number(principalAmount) || 0;
+    if (principal > 0) {
+      const approved = Number(form.watch("approved_amount")) || 0;
+      const outstanding = Number(form.watch("outstanding_balance")) || 0;
+      if (approved === 0) {
+        form.setValue("approved_amount", principal);
       }
-      // Only set outstanding_balance if it's currently 0 (no value)
-      if (!outstandingBalance || outstandingBalance === 0) {
-        form.setValue("outstanding_balance", principalAmount);
+      if (outstanding === 0) {
+        form.setValue("outstanding_balance", principal);
       }
     }
-  }, [principalAmount]);
+  }
+
+  function handleTermMonthsBlur() {
+    const termMonths = Number(form.watch("term_months")) || 0;
+    if (termMonths > 0) {
+      const installment = Number(form.watch("installment_amount")) || 0;
+      if (installment === 0) {
+        form.setValue("installment_amount", Number((principalAmount / termMonths).toFixed(2)));
+      }
+    }
+  }
 
   return (
-    <Card className="w-full mx-auto">
-      <CardHeader>
-        <CardTitle>{isEditing ? "แก้ไขสัญญาเงินกู้" : "สร้างสัญญาเงินกู้ใหม่"}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="client_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ลูกค้า</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="เลือกลูกค้า" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.first_name} {client.last_name} ({client.citizen_id})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="contract_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>เลขที่สัญญา</FormLabel>
-                    <FormControl>
-                      <Input placeholder="LN2023110001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Main Form Column */}
+      <div className="lg:col-span-3">
+        <Card className="shadow-xl border-0 bg-white">
+          <CardHeader className="border-b pb-6">
+            <CardTitle className="text-2xl">{isEditing ? "แก้ไขสัญญาเงินกู้" : "สร้างสัญญาเงินกู้ใหม่"}</CardTitle>
+            <CardDescription>
+              กรอกรายละเอียดสัญญาเงินกู้ด้านล่าง ระบบจะคำนวณยอดผ่อนชำระอัตโนมัติ
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-              <FormField
-                control={form.control}
-                name="loan_type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ประเภทสินเชื่อ</FormLabel>
-                    <FormControl>
-                      <Input placeholder="สินเชื่อส่วนบุคคล" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Section A: Borrower Info */}
+                <section className="space-y-4">
+                  <SectionHeader title="ข้อมูลผู้กู้" description="ข้อมูลลูกค้าและรายละเอียดสัญญา" />
+                  <Separator className="mb-4" />
 
-              <FormField
-                control={form.control}
-                name="contract_status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>สถานะ</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="เลือกสถานะ" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Active">ปกติ</SelectItem>
-                        <SelectItem value="Closed">ปิดบัญชี</SelectItem>
-                        <SelectItem value="Overdue">ค้างชำระ</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="client_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ลูกค้า</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
+                            <FormControl>
+                              <SelectTrigger className="h-10 rounded-lg w-full">
+                                <SelectValue placeholder="เลือกลูกค้า" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {clients.map((client) => (
+                                <SelectItem key={client.id} value={client.id}>
+                                  {client.first_name} {client.last_name} ({client.citizen_id})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="principal_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ยอดเงินต้น</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="contract_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">เลขที่สัญญา</FormLabel>
+                          <FormControl>
+                            <Input placeholder="LN2023110001" className="h-10 rounded-lg" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="approved_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ยอดอนุมัติ</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="loan_type"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ประเภทสินเชื่อ</FormLabel>
+                          <FormControl>
+                            <Input placeholder="สินเชื่อส่วนบุคคล" className="h-10 rounded-lg" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="interest_rate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>อัตราดอกเบี้ย (%)</FormLabel>
-                    <FormControl>
-                      <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="contract_status"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">สถานะ</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-10 rounded-lg">
+                                <SelectValue placeholder="เลือกสถานะ" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Active">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                                  ปกติ
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="Closed">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                                  ปิดบัญชี
+                                </span>
+                              </SelectItem>
+                              <SelectItem value="Overdue">
+                                <span className="flex items-center gap-2">
+                                  <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                                  ค้างชำระ
+                                </span>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
 
-              <FormField
-                control={form.control}
-                name="term_months"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ระยะเวลา (เดือน)</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                {/* Section B: Financial Terms */}
+                <section className="space-y-4">
+                  <SectionHeader title="เงื่อนไขทางการเงิน" description="ยอดเงินต้น อัตราดอกเบี้ย และระยะเวลา" />
+                  <Separator className="mb-4" />
 
-              <FormField
-                control={form.control}
-                name="installment_amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ยอดผ่อนชำระ</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="principal_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ยอดเงินต้น</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="บาท"
+                              placeholder="0.00"
+                              {...field}
+                              onBlur={handlePrincipalAmountBlur}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="due_day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>วันครบกำหนดชำระ</FormLabel>
-                    <FormControl>
-                      <Input type="number" min="1" max="31" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="approved_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ยอดอนุมัติ</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="บาท"
+                              placeholder="0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="contract_start_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>วันเริ่มสัญญา</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                        placeholder="เลือกวันเริ่มต้น"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="interest_rate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">อัตราดอกเบี้ย</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              step="0.01"
+                              trailingAdornment="%"
+                              placeholder="0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="contract_end_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>วันสิ้นสุดสัญญา</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value ? new Date(field.value) : undefined}
-                        onChange={(date) =>
-                          field.onChange(date ? format(date, "yyyy-MM-dd") : "")
-                        }
-                        placeholder="เลือกวันสิ้นสุด"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="term_months"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ระยะเวลา (เดือน)</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="เดือน"
+                              placeholder="12, 24, 36"
+                              {...field}
+                              onBlur={handleTermMonthsBlur}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-              <FormField
-                control={form.control}
-                name="outstanding_balance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ยอดคงเหลือ</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    <FormField
+                      control={form.control}
+                      name="installment_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ยอดผ่อนชำระ</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="บาท"
+                              placeholder="0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
 
-              <FormField
-                control={form.control}
-                name="overdue_days"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>จำนวนวันที่ค้างชำระ</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                {/* Section C: Schedule */}
+                <section className="space-y-4">
+                  <SectionHeader title="กำหนดการ" description="วันเริ่มต้น สิ้นสุด และวันครบกำหนดชำระ" />
+                  <Separator className="mb-4" />
 
-            <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => window.history.back()}>
-                ยกเลิก
-              </Button>
-              <Button type="submit">{isEditing ? "บันทึกการแก้ไข" : "สร้างสัญญา"}</Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="contract_start_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">วันเริ่มสัญญา</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value ? new Date(field.value) : undefined}
+                              onChange={(date) =>
+                                field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                              }
+                              placeholder="เลือกวันเริ่มต้น"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="contract_end_date"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">วันสิ้นสุดสัญญา</FormLabel>
+                          <FormControl>
+                            <DatePicker
+                              value={field.value ? new Date(field.value) : undefined}
+                              onChange={(date) =>
+                                field.onChange(date ? format(date, "yyyy-MM-dd") : "")
+                              }
+                              placeholder="เลือกวันสิ้นสุด"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="due_day"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">วันครบกำหนดชำระ</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              min="1"
+                              max="31"
+                              trailingAdornment="ของเดือน"
+                              placeholder="1"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
+
+                {/* Section D: Account Status */}
+                <section className="space-y-4">
+                  <SectionHeader title="สถานะบัญชี" description="ยอดคงเหลือและวันค้างชำระ" />
+                  <Separator className="mb-4" />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="outstanding_balance"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ยอดคงเหลือ</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="บาท"
+                              placeholder="0.00"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="overdue_days"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">จำนวนวันที่ค้างชำระ</FormLabel>
+                          <FormControl>
+                            <InputWithAdornment
+                              type="number"
+                              trailingAdornment="วัน"
+                              placeholder="0"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
+
+                {/* Submit Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => window.history.back()}
+                    className="h-12 px-8 rounded-xl"
+                  >
+                    ยกเลิก
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="h-12 px-8 flex-1 rounded-xl text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {isEditing ? "💾 บันทึกการแก้ไข" : "✨ สร้างสัญญา"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Preview Sidebar Column */}
+      {/* <div className="lg:col-span-1">
+        <LoanPreviewCard
+          principal={principalAmount}
+          interestRate={interestRate}
+          termMonths={termMonths}
+          installmentAmount={installmentAmount}
+        />
+      </div> */}
+    </div>
   );
 }
