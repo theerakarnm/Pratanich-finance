@@ -87,4 +87,21 @@ loansRoutes.patch("/:id/collection-fee", authMiddleware, async (c) => {
   }
 });
 
+loansRoutes.post("/:id/send-message", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+
+  try {
+    if (!body.messageType) {
+      return ResponseBuilder.error(c, "messageType is required", 400);
+    }
+
+    const result = await loansDomain.sendFlexMessage(id, body.messageType);
+    return ResponseBuilder.success(c, result);
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 400);
+  }
+});
+
 export default loansRoutes;
+

@@ -31,6 +31,8 @@ import {
   Check,
   X,
   Pencil,
+  MessageSquare,
+  Send,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatter';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -106,6 +108,9 @@ export function LoanContractDetail() {
   const [collectionFeeAmount, setCollectionFeeAmount] = useState('');
   const [isUpdatingFee, setIsUpdatingFee] = useState(false);
 
+  // LINE message sending state
+  const [sendingMessageType, setSendingMessageType] = useState<string | null>(null);
+
   useEffect(() => {
     if (loanId) {
       fetchLoanSchedule();
@@ -172,6 +177,22 @@ export function LoanContractDetail() {
       toast.error(error.message || 'ไม่สามารถบันทึกค่าทวงถามได้');
     } finally {
       setIsUpdatingFee(false);
+    }
+  };
+
+  const handleSendLineMessage = async (messageType: string) => {
+    if (!loanId || sendingMessageType) return;
+
+    setSendingMessageType(messageType);
+    try {
+      await apiClient.post(`/api/internal/loans/${loanId}/send-message`, {
+        messageType,
+      });
+      toast.success('ส่งข้อความสำเร็จ');
+    } catch (error: any) {
+      toast.error(error.message || 'ไม่สามารถส่งข้อความได้');
+    } finally {
+      setSendingMessageType(null);
     }
   };
 
@@ -458,6 +479,85 @@ export function LoanContractDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {/* LINE Message Section */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-primary" />
+            ส่งข้อความ LINE
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendLineMessage('newLoan')}
+              disabled={sendingMessageType !== null}
+            >
+              {sendingMessageType === 'newLoan' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              แจ้งสัญญาใหม่
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendLineMessage('billing')}
+              disabled={sendingMessageType !== null}
+            >
+              {sendingMessageType === 'billing' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              แจ้งยอดชำระ
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendLineMessage('dueWarning')}
+              disabled={sendingMessageType !== null}
+            >
+              {sendingMessageType === 'dueWarning' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              เตือนใกล้ครบกำหนด
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendLineMessage('dueDate')}
+              disabled={sendingMessageType !== null}
+            >
+              {sendingMessageType === 'dueDate' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              แจ้งวันครบกำหนด
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleSendLineMessage('overdue')}
+              disabled={sendingMessageType !== null}
+            >
+              {sendingMessageType === 'overdue' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4 mr-2" />
+              )}
+              แจ้งค้างชำระ
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Payment Schedule Table */}
       <Card>

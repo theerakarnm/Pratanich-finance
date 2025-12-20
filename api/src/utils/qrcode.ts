@@ -22,6 +22,6 @@ export const readQRCode = async (imageBuffer: Buffer): Promise<string | null> =>
 export const generatePromptPayQrUrl = (amount: number): string => {
   const payload = generatePayload(process.env.PP_PERSONAL_ID || '', { amount });
   const timestamp = Math.floor(Date.now() / 1000);
-  const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
+  const baseUrl = process.env.API_BASE_URL || 'https://api-sloan.theerakarnm.dev';
   return `${baseUrl}/api/asset/prompt_pay_qr?data=${encodeURIComponent(payload)}&timestamp=${timestamp}`;
 };

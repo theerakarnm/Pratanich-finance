@@ -300,6 +300,8 @@ export class LoansDomain {
       contents: flexMessage
     };
 
+    console.log(JSON.stringify(flexMessage, null, 2));
+
     await lineClient.pushMessage(lineUserId, [message]);
     logger.info({ loanId, messageType, lineUserId }, 'Sent flex message to LINE');
 
