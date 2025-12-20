@@ -43,10 +43,11 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
 
     try {
       // Using the existing API endpoint: /api/payments/history/:loanId
-      const response = await apiClient.get<Payment[]>(
+      // The response is paginated: { data: Payment[], pagination: {...} }
+      const response = await apiClient.get<{ data: Payment[], pagination: any }>(
         `/api/payments/history/${loanId}`
       );
-      setPayments(response.data);
+      setPayments(response.data.data);
     } catch (error: any) {
       if (error.message) {
         setError(error.message);
