@@ -60,13 +60,14 @@ const MOCK_QR_URL = 'https://picsum.photos/200';
 
 /**
  * 1. New Loan Contract Notification
+ * (แจ้งสัญญาใหม่: ใช้ถ้อยคำปกติได้ เพราะเป็นการแจ้งข้อมูลสัญญา)
  */
 export function createNewLoanMessage(data: NewLoanData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
 
   return builder
     .setHeader([
-      builder.addText('สัญญาเงินกู้ฉบับใหม่', {
+      builder.addText('แจ้งรายละเอียดสัญญาเงินกู้', { // ปรับจาก "สัญญาเงินกู้ฉบับใหม่" ให้ดูเป็นทางการ
         weight: 'bold',
         size: 'xl',
         color: PRIMARY_COLOR,
@@ -74,7 +75,7 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
     ])
 
     .setBody([
-      builder.addText('อนุมัติสินเชื่อเรียบร้อยแล้ว', {
+      builder.addText('สินเชื่อได้รับการอนุมัติ', {
         weight: 'bold',
         size: 'md',
         align: 'center',
@@ -82,13 +83,13 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
       builder.addSeparator({ margin: 'md' }),
       builder.createBox('vertical', [
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
-        createDetailRow(builder, 'ยอดเงินกู้', `฿${data.principal.toLocaleString()}`),
+        createDetailRow(builder, 'ยอดเงินต้น', `฿${data.principal.toLocaleString()}`), // เปลี่ยน "ยอดเงินกู้" เป็น "ยอดเงินต้น" (Principal)
         createDetailRow(builder, 'ดอกเบี้ย', `${data.interestRate}%`),
-        createDetailRow(builder, 'ระยะเวลา', `${data.term} เดือน`),
-        createDetailRow(builder, 'เริ่มสัญญา', data.startDate),
-        createDetailRow(builder, 'ครบกำหนดชำระ', data.dueDate),
+        createDetailRow(builder, 'ระยะเวลาผ่อน', `${data.term} เดือน`),
+        createDetailRow(builder, 'วันที่เริ่มสัญญา', data.startDate),
+        createDetailRow(builder, 'วันครบกำหนด', data.dueDate),
         builder.addSeparator({ margin: 'md' }),
-        createDetailRow(builder, 'ยอดผ่อนชำระ/งวด', `฿${data.installmentAmount.toLocaleString()}`, true),
+        createDetailRow(builder, 'ยอดผ่อนต่องวด', `฿${data.installmentAmount.toLocaleString()}`, true),
       ], { spacing: 'sm', margin: 'lg' }),
     ])
     .setFooter([
@@ -99,9 +100,9 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
         align: 'center',
         margin: 'md',
       }),
-      builder.addButton('ดูรายละเอียดสัญญา', {
+      builder.addButton('ตรวจสอบรายละเอียด', { // ปรับจาก "ดูรายละเอียดสัญญา"
         type: 'uri',
-        uri: data.paymentLink, // Assuming link to contract details
+        uri: data.paymentLink,
       }, { style: 'primary', color: PRIMARY_COLOR }),
     ])
     .build();
@@ -109,13 +110,14 @@ export function createNewLoanMessage(data: NewLoanData): FlexMessage {
 
 /**
  * 2. Billing Notification (10-15 days before)
+ * (แจ้งบิล: ใช้คำว่า "แจ้งยอด" แทนคำสั่งให้จ่าย)
  */
 export function createBillingMessage(data: BillingData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
 
   return builder
     .setHeader([
-      builder.addText(`บิลรอบเดือน ${data.month}`, {
+      builder.addText(`แจ้งยอดชำระเดือน ${data.month}`, { // ปรับจาก "บิลรอบเดือน" เป็น "แจ้งยอดชำระ"
         weight: 'bold',
         size: 'xl',
         color: '#333333',
@@ -134,9 +136,9 @@ export function createBillingMessage(data: BillingData): FlexMessage {
         color: '#333333',
         align: 'center',
       }),
-      builder.addText(`ครบกำหนด: ${data.dueDate}`, {
+      builder.addText(`กำหนดชำระ: ${data.dueDate}`, { // ปรับจาก "ครบกำหนด" เป็น "กำหนดชำระ"
         size: 'sm',
-        color: DANGER_COLOR,
+        color: PRIMARY_COLOR, // เปลี่ยนสีจาก DANGER เป็น PRIMARY เพื่อลดความกดดัน
         align: 'center',
         margin: 'sm',
       }),
@@ -153,7 +155,7 @@ export function createBillingMessage(data: BillingData): FlexMessage {
         align: 'center',
         margin: 'md',
       }),
-      builder.addButton('ชำระเงินทันที', {
+      builder.addButton('ชำระเงิน', { // ปรับจาก "ชำระเงินทันที" ตัดคำว่า "ทันที" ออก
         type: 'uri',
         uri: data.paymentLink,
       }, { style: 'primary', color: PRIMARY_COLOR }),
@@ -163,6 +165,7 @@ export function createBillingMessage(data: BillingData): FlexMessage {
 
 /**
  * 3. Warning Notification (D-3)
+ * (แจ้งเตือนล่วงหน้า: เลี่ยงคำว่า "รักษาเครดิต" หากไม่ใช่ข้อมูลเครดิตบูโรจริง เพราะอาจเข้าข่ายหลอกลวง [cite: 66])
  */
 export function createDueWarningMessage(data: DueWarningData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
@@ -170,7 +173,7 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
   return builder
     .setHeader([
       builder.createBox('horizontal', [
-        builder.addText('⚠️ แจ้งเตือนชำระเงิน', {
+        builder.addText('🔔 แจ้งเตือนใกล้วันชำระ', { // เปลี่ยน icon และคำจาก "⚠️ แจ้งเตือนชำระเงิน"
           weight: 'bold',
           size: 'lg',
           color: WARNING_COLOR,
@@ -179,13 +182,13 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
     ])
 
     .setBody([
-      builder.addText(`อีก ${data.daysRemaining} วันจะครบกำหนด`, {
+      builder.addText(`จะครบกำหนดในอีก ${data.daysRemaining} วัน`, {
         weight: 'bold',
-        size: 'lg',
+        size: 'md', // ลดขนาดลงเล็กน้อย
         align: 'center',
         color: '#333333',
       }),
-      builder.addText('กรุณาชำระเพื่อรักษาเครดิต', {
+      builder.addText('โปรดเตรียมยอดเงินเพื่อชำระตามกำหนด', { // เปลี่ยนจาก "กรุณาชำระเพื่อรักษาเครดิต" เป็นข้อแนะนำแทน
         size: 'xs',
         color: TEXT_COLOR_SECONDARY,
         align: 'center',
@@ -193,7 +196,7 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
       builder.addSeparator({ margin: 'lg' }),
       builder.createBox('vertical', [
         createDetailRow(builder, 'ยอดชำระ', `฿${data.amount.toLocaleString()}`, true),
-        createDetailRow(builder, 'ครบกำหนด', data.dueDate),
+        createDetailRow(builder, 'วันที่ครบกำหนด', data.dueDate),
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
       ], { spacing: 'sm', margin: 'lg' }),
     ])
@@ -205,7 +208,7 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
         align: 'center',
         margin: 'md',
       }),
-      builder.addButton('ชำระเงินทันที', {
+      builder.addButton('ชำระเงิน', {
         type: 'uri',
         uri: data.paymentLink,
       }, { style: 'primary', color: PRIMARY_COLOR }),
@@ -215,29 +218,30 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
 
 /**
  * 4. Due Date Notification
+ * (วันครบกำหนด: เลี่ยงคำขู่เรื่องค่าปรับ ใช้การแจ้งเตือนปกติ)
  */
 export function createDueDateMessage(data: DueDateData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
 
   return builder
     .setHeader([
-      builder.addText('📅 วันนี้ครบกำหนดชำระ!', {
+      builder.addText('📅 ถึงกำหนดชำระวันนี้', { // เปลี่ยนจาก "วันนี้ครบกำหนดชำระ!" (ลดความตกใจ)
         weight: 'bold',
         size: 'xl',
-        color: DANGER_COLOR,
+        color: WARNING_COLOR, // ใช้สีเหลืองแทนแดง เพื่อความสุภาพ
       }),
     ])
 
     .setBody([
-      builder.addText('กรุณาชำระภายใน 23:59 น.', {
+      builder.addText('กรุณาชำระภายในวันนี้', { // ตัด 23:59 น. ออกถ้าไม่จำเป็น หรือคงไว้ถ้าเป็นเงื่อนไขระบบ
         weight: 'bold',
         size: 'md',
         align: 'center',
         color: '#333333',
       }),
-      builder.addText('เพื่อหลีกเลี่ยงค่าปรับ', {
+      builder.addText('เพื่อรักษาสถานะบัญชีปกติ', { // เปลี่ยนจาก "เพื่อหลีกเลี่ยงค่าปรับ" (ดูเป็นการขู่) เป็นเชิงบวก
         size: 'sm',
-        color: DANGER_COLOR,
+        color: TEXT_COLOR_SECONDARY,
         align: 'center',
       }),
       builder.addSeparator({ margin: 'lg' }),
@@ -250,7 +254,7 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
           align: 'center',
         }),
         builder.addSpacer('md'),
-        builder.addText(`สัญญา: ${data.contractNumber}`, { size: 'xs', color: '#aaaaaa', align: 'center' }),
+        builder.addText(`เลขที่สัญญา: ${data.contractNumber}`, { size: 'xs', color: '#aaaaaa', align: 'center' }),
       ], { margin: 'lg' }),
     ])
     .setFooter([
@@ -261,7 +265,7 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
         align: 'center',
         margin: 'md',
       }),
-      builder.addButton('ชำระเงินตอนนี้', {
+      builder.addButton('ชำระเงิน', {
         type: 'uri',
         uri: data.paymentLink,
       }, { style: 'primary', color: PRIMARY_COLOR }),
@@ -271,13 +275,14 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
 
 /**
  * 5. Payment Success Notification
+ * (ไม่เปลี่ยนแปลง: เป็นข้อความเชิงบวก)
  */
 export function createPaymentSuccessMessage(data: PaymentSuccessData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
 
   return builder
     .setHeader([
-      builder.addText('✅ ชำระเงินสำเร็จ', {
+      builder.addText('✅ ทำรายการสำเร็จ', { // ปรับเล็กน้อยให้เป็นกลาง
         weight: 'bold',
         size: 'xl',
         color: PRIMARY_COLOR,
@@ -285,8 +290,8 @@ export function createPaymentSuccessMessage(data: PaymentSuccessData): FlexMessa
     ])
     .setBody([
       builder.createBox('vertical', [
-        builder.addText('ได้รับยอดเงินเรียบร้อยแล้ว', { align: 'center', color: '#333333' }),
-        builder.addText('ขอบคุณค่ะ', { align: 'center', weight: 'bold', size: 'lg', margin: 'sm' }),
+        builder.addText('ระบบได้รับยอดเงินเรียบร้อยแล้ว', { align: 'center', color: '#333333' }),
+        builder.addText('ขอบคุณครับ/ค่ะ', { align: 'center', weight: 'bold', size: 'lg', margin: 'sm' }),
       ]),
       builder.addSeparator({ margin: 'lg' }),
       builder.createBox('vertical', [
@@ -308,28 +313,29 @@ export function createPaymentSuccessMessage(data: PaymentSuccessData): FlexMessa
 
 /**
  * 6. Overdue Notification (D+1, D+3, D+7)
+ * (ระวังมากที่สุด: ห้ามข่มขู่ ห้ามดูหมิ่น ห้ามแสดงข้อมูลเท็จเกี่ยวกับการดำเนินคดี [cite: 53, 66, 73])
  */
 export function createOverdueMessage(data: OverdueData): FlexMessage {
   const builder = FlexMessageBuilder.createBubble();
 
   return builder
     .setHeader([
-      builder.addText('❌ แจ้งเตือนยอดค้างชำระ', {
+      builder.addText('แจ้งยอดค้างชำระ', { // ตัด "❌" และ "แจ้งเตือน" ออก เพื่อลดความก้าวร้าว
         weight: 'bold',
         size: 'xl',
-        color: DANGER_COLOR,
+        color: DANGER_COLOR, // สียังคงใช้สีแดงได้เพื่อสื่อถึงความสำคัญ แต่ข้อความต้องสุภาพ
       }),
     ])
 
     .setBody([
-      builder.addText(`เกินกำหนด ${data.daysOverdue} วัน`, {
+      builder.addText(`เกินกำหนดชำระ ${data.daysOverdue} วัน`, {
         weight: 'bold',
         size: 'lg',
         align: 'center',
-        color: DANGER_COLOR,
+        color: '#333333', // เปลี่ยนสี Text เป็นสีปกติ ไม่ใช้สีแดง เพื่อลดลักษณะการประจานหรือกดดันเกินไป
       }),
-      builder.addText('กรุณาชำระทันทีเพื่อหลีกเลี่ยงดอกเบี้ยปรับ', {
-        size: 'xs',
+      builder.addText('กรุณาชำระยอดเพื่อให้สถานะบัญชีเป็นปกติ', { // เปลี่ยนจาก "เพื่อหลีกเลี่ยงดอกเบี้ยปรับ" (การทวงถามไม่ควรเน้นขู่เรื่องผลเสีย แต่เน้นวิธีแก้ไข)
+        size: 'sm',
         color: '#333333',
         align: 'center',
         wrap: true,
@@ -337,7 +343,8 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
       builder.addSeparator({ margin: 'lg' }),
       builder.createBox('vertical', [
         createDetailRow(builder, 'ยอดค้างชำระ', `฿${data.amount.toLocaleString()}`, true),
-        ...(data.penaltyAmount ? [createDetailRow(builder, 'ค่าปรับ', `฿${data.penaltyAmount.toLocaleString()}`, false, DANGER_COLOR)] : []),
+        // การแสดง "ค่าปรับ" (Penalty) สามารถทำได้หากมีในสัญญาจริง แต่ต้องระวังไม่ให้ดูเหมือนการขูดรีด [cite: 78]
+        ...(data.penaltyAmount ? [createDetailRow(builder, 'ค่าธรรมเนียม/ค่าปรับ', `฿${data.penaltyAmount.toLocaleString()}`, false, TEXT_COLOR_SECONDARY)] : []),
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
       ], { spacing: 'sm', margin: 'lg' }),
     ])
@@ -349,10 +356,10 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
         align: 'center',
         margin: 'md',
       }),
-      builder.addButton('ชำระเงินทันที', {
+      builder.addButton('ชำระเงิน', { // ตัดคำว่า "ทันที" ออก
         type: 'uri',
         uri: data.paymentLink,
-      }, { style: 'primary', color: DANGER_COLOR }),
+      }, { style: 'primary', color: DANGER_COLOR }), // ปุ่มสีแดงยังใช้ได้ เพื่อกระตุ้น Action (Call to Action)
     ])
     .build();
 }

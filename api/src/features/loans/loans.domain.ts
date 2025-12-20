@@ -1,7 +1,13 @@
 import { loansRepository } from "./loans.repository";
 import { loans } from "../../core/database/schema/loans.schema";
 import { lineClient } from "../line/line.service";
-import { createNewLoanMessage } from "../line/utils/flex-message.templates";
+import {
+  createNewLoanMessage,
+  createBillingMessage,
+  createDueWarningMessage,
+  createDueDateMessage,
+  createOverdueMessage,
+} from "../line/utils/flex-message.templates";
 import { logger } from "../../core/logger";
 import { paymentRepository } from "../payments/payments.repository";
 import dayjs from "dayjs";
@@ -173,6 +179,7 @@ export class LoansDomain {
         totalPenalties: Number(loan.total_penalties),
         penaltiesPaid: Number(loan.penalties_paid),
         overduedays: loan.overdue_days,
+        collectionFee: Number(loan.collection_fee),
       },
       summary: {
         totalPaymentAmount: Math.round(totalPaid * 100) / 100,
@@ -183,6 +190,120 @@ export class LoansDomain {
       },
       schedule,
     };
+  }
+
+  /**
+   * Update collection fee for a loan
+   * @param loanId - The ID of the loan
+   * @param amount - The new collection fee amount
+   */
+  async updateCollectionFee(loanId: string, amount: number) {
+    const loan = await this.findById(loanId); // Ensure loan exists
+    return loansRepository.update(loanId, {
+      collection_fee: amount.toString(),
+    });
+  }
+
+  /**
+   * Send a flex message to the client's LINE account
+   * @param loanId - The ID of the loan
+   * @param messageType - The type of message to send (newLoan, billing, dueWarning, dueDate, overdue)
+   */
+  async sendFlexMessage(loanId: string, messageType: string) {
+    const validTypes = ['newLoan', 'billing', 'dueWarning', 'dueDate', 'overdue'];
+    if (!validTypes.includes(messageType)) {
+      throw new Error(`Invalid message type: ${messageType}. Valid types are: ${validTypes.join(', ')}`);
+    }
+
+    const loan = await loansRepository.findById(loanId);
+    if (!loan) {
+      throw new Error("Loan contract not found");
+    }
+
+    if (!loan.client?.line_user_id) {
+      throw new Error("ลูกค้ายังไม่ได้เชื่อมต่อ LINE");
+    }
+
+    const lineUserId = loan.client.line_user_id;
+    const paymentLink = `https://liff.line.me/${process.env.LIFF_ID}/loans/${loan.id}`;
+    const installmentAmount = Number(loan.installment_amount);
+    const outstandingBalance = Number(loan.outstanding_balance);
+
+    let flexMessage;
+    let altText = '';
+
+    switch (messageType) {
+      case 'newLoan':
+        flexMessage = createNewLoanMessage({
+          contractNumber: loan.contract_number,
+          principal: Number(loan.principal_amount),
+          interestRate: Number(loan.interest_rate),
+          term: loan.term_months,
+          startDate: dayjs(loan.contract_start_date).format('DD/MM/YYYY'),
+          dueDate: dayjs(loan.contract_end_date).format('DD/MM/YYYY'),
+          installmentAmount: installmentAmount,
+          paymentLink: paymentLink,
+        });
+        altText = 'แจ้งรายละเอียดสัญญาเงินกู้';
+        break;
+
+      case 'billing':
+        flexMessage = createBillingMessage({
+          month: dayjs().format('MMMM YYYY'),
+          amount: installmentAmount,
+          dueDate: dayjs().date(loan.due_day).format('DD/MM/YYYY'),
+          contractNumber: loan.contract_number,
+          paymentLink: paymentLink,
+        });
+        altText = 'แจ้งยอดชำระประจำเดือน';
+        break;
+
+      case 'dueWarning':
+        // Calculate days remaining until due date
+        const today = dayjs();
+        const dueDate = dayjs().date(loan.due_day);
+        const daysRemaining = dueDate.diff(today, 'day');
+        flexMessage = createDueWarningMessage({
+          daysRemaining: Math.max(1, daysRemaining),
+          amount: installmentAmount,
+          dueDate: dueDate.format('DD/MM/YYYY'),
+          contractNumber: loan.contract_number,
+          paymentLink: paymentLink,
+        });
+        altText = 'แจ้งเตือนใกล้วันชำระ';
+        break;
+
+      case 'dueDate':
+        flexMessage = createDueDateMessage({
+          amount: installmentAmount,
+          contractNumber: loan.contract_number,
+          paymentLink: paymentLink,
+        });
+        altText = 'ถึงกำหนดชำระวันนี้';
+        break;
+
+      case 'overdue':
+        flexMessage = createOverdueMessage({
+          daysOverdue: loan.overdue_days || 1,
+          amount: outstandingBalance,
+          contractNumber: loan.contract_number,
+          penaltyAmount: Number(loan.total_penalties) > 0 ? Number(loan.total_penalties) : undefined,
+          paymentLink: paymentLink,
+        });
+        altText = 'แจ้งยอดค้างชำระ';
+        break;
+    }
+
+    const message: LineReplyMessage = {
+      type: 'flex',
+      altText: altText,
+      contents: flexMessage
+    };
+
+    await lineClient.pushMessage(lineUserId, [message]);
+    logger.info({ loanId, messageType, lineUserId }, 'Sent flex message to LINE');
+
+    return { success: true, messageType };
   }
 }
 

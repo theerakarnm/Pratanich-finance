@@ -24,7 +24,7 @@ export const loans = pgTable("loans", {
   contract_status: contractStatusEnum("contract_status").notNull(),
   outstanding_balance: decimal("outstanding_balance", { precision: 12, scale: 2 }).notNull(),
   overdue_days: integer("overdue_days").default(0).notNull(),
-  
+
   // Payment tracking
   principal_paid: decimal("principal_paid", { precision: 12, scale: 2 })
     .default("0.00")
@@ -38,15 +38,18 @@ export const loans = pgTable("loans", {
   total_penalties: decimal("total_penalties", { precision: 12, scale: 2 })
     .default("0.00")
     .notNull(),
-  
+  collection_fee: decimal("collection_fee", { precision: 12, scale: 2 })
+    .default("0.00")
+    .notNull(),
+
   // Last payment tracking
   last_payment_date: timestamp("last_payment_date"),
   last_payment_amount: decimal("last_payment_amount", { precision: 12, scale: 2 }),
-  
+
   // Status history
   previous_status: contractStatusEnum("previous_status"),
   status_changed_at: timestamp("status_changed_at"),
-  
+
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   deleted_at: timestamp("deleted_at"),

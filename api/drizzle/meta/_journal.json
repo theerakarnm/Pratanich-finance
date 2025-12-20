@@ -43,6 +43,13 @@
       "when": 1765750897553,
       "tag": "0005_abnormal_paper_doll",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1766202180699,
+      "tag": "0006_tiny_jasper_sitwell",
+      "breakpoints": true
     }
   ]
 }

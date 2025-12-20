@@ -71,4 +71,20 @@ loansRoutes.delete("/:id", authMiddleware, async (c) => {
   }
 });
 
+loansRoutes.patch("/:id/collection-fee", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  const body = await c.req.json();
+
+  try {
+    if (typeof body.amount !== 'number' || body.amount < 0) {
+      return ResponseBuilder.error(c, "Invalid collection fee amount", 400);
+    }
+
+    const loan = await loansDomain.updateCollectionFee(id, body.amount);
+    return ResponseBuilder.success(c, loan);
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 404);
+  }
+});
+
 export default loansRoutes;

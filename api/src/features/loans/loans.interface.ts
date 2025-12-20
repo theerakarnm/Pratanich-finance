@@ -58,6 +58,7 @@ export interface PaymentScheduleResponse {
     totalPenalties: number;
     penaltiesPaid: number;
     overduedays: number;
+    collectionFee: number;
   };
   /** Summary calculations */
   summary: {

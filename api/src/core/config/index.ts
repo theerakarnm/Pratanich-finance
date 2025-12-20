@@ -76,7 +76,7 @@ export const config = {
   },
   cors: {
     origin: env.ALLOW_CORS_ORIGIN.split(','),
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'User-Agent', 'Accept', 'Origin', 'X-Requested-With'],
     credentials: true,
   },

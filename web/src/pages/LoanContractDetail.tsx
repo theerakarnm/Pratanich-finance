@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -25,11 +26,17 @@ import {
   TrendingUp,
   Banknote,
   Calculator,
+  Loader2,
+  Phone,
+  Check,
+  X,
+  Pencil,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatter';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import apiClient from '@/lib/api-client';
 import dayjs from 'dayjs';
+import { toast } from 'sonner';
 
 interface PaymentPeriod {
   periodNumber: number;
@@ -67,6 +74,7 @@ interface LoanDetails {
   totalPenalties: number;
   penaltiesPaid: number;
   overduedays: number;
+  collectionFee: number;
 }
 
 interface LoanSummary {
@@ -92,6 +100,11 @@ export function LoanContractDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<PaymentScheduleResponse | null>(null);
+
+  // Collection fee inline edit state
+  const [isEditingCollectionFee, setIsEditingCollectionFee] = useState(false);
+  const [collectionFeeAmount, setCollectionFeeAmount] = useState('');
+  const [isUpdatingFee, setIsUpdatingFee] = useState(false);
 
   useEffect(() => {
     if (loanId) {
@@ -125,6 +138,40 @@ export function LoanContractDetail() {
         return <Badge variant="destructive">ค้างชำระ</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const handleStartEditCollectionFee = () => {
+    setCollectionFeeAmount(data?.loanDetails.collectionFee?.toString() || '0');
+    setIsEditingCollectionFee(true);
+  };
+
+  const handleCancelEditCollectionFee = () => {
+    setIsEditingCollectionFee(false);
+    setCollectionFeeAmount('');
+  };
+
+  const handleUpdateCollectionFee = async () => {
+    if (!loanId) return;
+
+    const amount = parseFloat(collectionFeeAmount);
+    if (isNaN(amount) || amount < 0) {
+      toast.error('กรุณากรอกจำนวนเงินที่ถูกต้อง');
+      return;
+    }
+
+    setIsUpdatingFee(true);
+    try {
+      await apiClient.patch(`/api/internal/loans/${loanId}/collection-fee`, {
+        amount: amount,
+      });
+      toast.success('บันทึกค่าทวงถามเรียบร้อยแล้ว');
+      setIsEditingCollectionFee(false);
+      fetchLoanSchedule(); // Refresh data
+    } catch (error: any) {
+      toast.error(error.message || 'ไม่สามารถบันทึกค่าทวงถามได้');
+    } finally {
+      setIsUpdatingFee(false);
     }
   };
 
@@ -345,6 +392,68 @@ export function LoanContractDetail() {
                   </span>
                 </div>
               )}
+
+              {/* Collection Fee Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="flex items-center gap-2 text-muted-foreground">
+                    <Phone className="h-4 w-4" />
+                    ค่าทวงถาม
+                  </span>
+                  {!isEditingCollectionFee && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-orange-600">
+                        {formatCurrency(loanDetails.collectionFee || 0)}
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 px-2"
+                        onClick={handleStartEditCollectionFee}
+                      >
+                        <Pencil className="h-3 w-3 mr-1" />
+                        แก้ไข
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {isEditingCollectionFee && (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      className="h-8 w-32"
+                      value={collectionFeeAmount}
+                      onChange={(e) => setCollectionFeeAmount((e.target as HTMLInputElement).value)}
+                      disabled={isUpdatingFee}
+                    />
+                    <span className="text-sm text-muted-foreground">บาท</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={handleCancelEditCollectionFee}
+                      disabled={isUpdatingFee}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="h-8 px-2"
+                      onClick={handleUpdateCollectionFee}
+                      disabled={isUpdatingFee}
+                    >
+                      {isUpdatingFee ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -434,6 +543,8 @@ export function LoanContractDetail() {
           </div>
         </CardContent>
       </Card>
+
+
     </div>
   );
 }
