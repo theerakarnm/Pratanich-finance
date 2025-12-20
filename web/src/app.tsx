@@ -16,6 +16,7 @@ import { LiffClient } from '@/pages/LiffClient';
 import { LiffConnect } from '@/pages/LiffConnect';
 import { LiffLoanSummary } from '@/pages/LiffLoanSummary';
 import { LiffPaymentHistory } from '@/pages/LiffPaymentHistory';
+import { LiffPdpaDetail } from '@/pages/LiffPdpaDetail';
 import ApiClientTest from '@/pages/ApiClientTest';
 import { Toaster } from 'sonner';
 
@@ -29,6 +30,7 @@ export function App() {
 
         {/* LIFF Routes */}
         <Route path="/liff/connect" component={LiffConnect} />
+        <Route path="/liff/pdpa" component={LiffPdpaDetail} />
         <Route path="/liff/loans/:clientId">
           {(params: { clientId: string }) => <LiffLoanSummary clientId={params.clientId} />}
         </Route>

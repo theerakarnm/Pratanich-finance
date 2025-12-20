@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
+import { AlertCircle, Loader2, CheckCircle2, ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import apiClient from '@/lib/api-client';
 import { useLiffStore } from '@/store';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
@@ -36,6 +37,8 @@ export function LiffConnect() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('phone');
+  const [pdpaConsent, setPdpaConsent] = useState(false);
+  const [specialOffersConsent, setSpecialOffersConsent] = useState(false);
 
   // Initialize LIFF
   useEffect(() => {
@@ -322,6 +325,58 @@ export function LiffConnect() {
                   </p>
                 </div>
 
+                {/* Consent Checkboxes */}
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="pdpa-consent-code"
+                      checked={pdpaConsent}
+                      onCheckedChange={(checked) => setPdpaConsent(checked === true)}
+                      disabled={isVerifying || isConnecting}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="pdpa-consent-code"
+                        className="text-sm font-medium leading-tight cursor-pointer"
+                      >
+                        ยินยอมตาม{' '}
+                        <button
+                          type="button"
+                          onClick={() => setLocation('/liff/pdpa')}
+                          className="text-primary underline hover:text-primary/80 inline-flex items-center gap-1"
+                        >
+                          นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                          <ExternalLink className="h-3 w-3" />
+                        </button>
+                        <span className="text-red-500"> *</span>
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        ข้อมูลจำเป็นสำหรับการเชื่อมต่อบัญชี
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="special-offers-code"
+                      checked={specialOffersConsent}
+                      onCheckedChange={(checked) => setSpecialOffersConsent(checked === true)}
+                      disabled={isVerifying || isConnecting}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="special-offers-code"
+                        className="text-sm font-medium leading-tight cursor-pointer"
+                      >
+                        รับสิทธิพิเศษสำหรับลูกค้า
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        รับข่าวสารโปรโมชั่นและสิทธิพิเศษต่างๆ
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -332,7 +387,7 @@ export function LiffConnect() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={!code || code.replace('-', '').length !== 8 || isVerifying || isConnecting}
+                  disabled={!code || code.replace('-', '').length !== 8 || !pdpaConsent || isVerifying || isConnecting}
                 >
                   {isVerifying || isConnecting ? (
                     <>
@@ -384,6 +439,58 @@ export function LiffConnect() {
                   </p>
                 </div>
 
+                {/* Consent Checkboxes */}
+                <div className="space-y-3 pt-2 border-t">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="pdpa-consent-phone"
+                      checked={pdpaConsent}
+                      onCheckedChange={(checked) => setPdpaConsent(checked === true)}
+                      disabled={isVerifying || isConnecting}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="pdpa-consent-phone"
+                        className="text-sm font-medium leading-tight cursor-pointer"
+                      >
+                        ยินยอมตาม{' '}
+                        <button
+                          type="button"
+                          onClick={() => setLocation('/liff/pdpa')}
+                          className="text-primary underline hover:text-primary/80 inline-flex items-center gap-1"
+                        >
+                          นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
+                          <ExternalLink className="h-3 w-3" />
+                        </button>
+                        <span className="text-red-500"> *</span>
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        ข้อมูลจำเป็นสำหรับการเชื่อมต่อบัญชี
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id="special-offers-phone"
+                      checked={specialOffersConsent}
+                      onCheckedChange={(checked) => setSpecialOffersConsent(checked === true)}
+                      disabled={isVerifying || isConnecting}
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <label
+                        htmlFor="special-offers-phone"
+                        className="text-sm font-medium leading-tight cursor-pointer"
+                      >
+                        รับสิทธิพิเศษสำหรับลูกค้า
+                      </label>
+                      <p className="text-xs text-muted-foreground">
+                        รับข่าวสารโปรโมชั่นและสิทธิพิเศษต่างๆ
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {error && (
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -394,7 +501,7 @@ export function LiffConnect() {
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={!phoneNumber || !contractNumber || isVerifying || isConnecting}
+                  disabled={!phoneNumber || !contractNumber || !pdpaConsent || isVerifying || isConnecting}
                 >
                   {isVerifying || isConnecting ? (
                     <>
