@@ -320,6 +320,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                           <FormControl>
                             <InputWithAdornment
                               type="number"
+                              step="0.01"
                               trailingAdornment="บาท"
                               placeholder="0.00"
                               {...field}
@@ -340,6 +341,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                           <FormControl>
                             <InputWithAdornment
                               type="number"
+                              step="0.01"
                               trailingAdornment="บาท"
                               placeholder="0.00"
                               {...field}
@@ -399,6 +401,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                           <FormControl>
                             <InputWithAdornment
                               type="number"
+                              step="0.01"
                               trailingAdornment="บาท"
                               placeholder="0.00"
                               {...field}
@@ -495,6 +498,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                           <FormControl>
                             <InputWithAdornment
                               type="number"
+                              step="0.01"
                               trailingAdornment="บาท"
                               placeholder="0.00"
                               {...field}

@@ -51,7 +51,7 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
       if (error.message) {
         setError(error.message);
       } else {
-        setError('Failed to load payment history. Please try again later.');
+        setError('ไม่สามารถโหลดประวัติการชำระเงินได้ กรุณาลองใหม่อีกครั้งภายหลัง');
       }
     } finally {
       setIsLoading(false);
@@ -70,13 +70,13 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'Completed':
-        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600">สำเร็จ</Badge>;
       case 'Pending':
-        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>;
+        return <Badge variant="outline" className="text-yellow-600 border-yellow-600">รอดำเนินการ</Badge>;
       case 'Failed':
-        return <Badge variant="destructive">Failed</Badge>;
+        return <Badge variant="destructive">ล้มเหลว</Badge>;
       case 'Reversed':
-        return <Badge variant="secondary">Reversed</Badge>;
+        return <Badge variant="secondary">ถูกยกเลิก</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -100,7 +100,7 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-gray-600">Loading payment history...</p>
+          <p className="mt-2 text-sm text-gray-600">กำลังโหลดประวัติการชำระเงิน...</p>
         </div>
       </div>
     );
@@ -111,7 +111,7 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading History</AlertTitle>
+          <AlertTitle>เกิดข้อผิดพลาดในการโหลดประวัติ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -131,7 +131,7 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-xl font-bold text-gray-900">Payment History</h1>
+          <h1 className="text-xl font-bold text-gray-900">ประวัติการชำระเงิน</h1>
         </div>
 
         {payments.length === 0 ? (
@@ -141,10 +141,10 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
                 <CreditCard className="h-8 w-8 text-gray-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                No Payments Found
+                ไม่พบรายการชำระเงิน
               </h3>
               <p className="text-sm text-gray-500 text-center">
-                There are no payment records for this loan yet.
+                ยังไม่มีรายการชำระเงินสำหรับสินเชื่อนี้
               </p>
             </CardContent>
           </Card>
@@ -169,7 +169,7 @@ export function LiffPaymentHistory({ loanId }: LiffPaymentHistoryProps) {
                           </span>
                         </div>
                         <p className="text-xs text-gray-400 mt-1">
-                          Ref: {payment.transaction_ref_id}
+                          เลขอ้างอิง: {payment.transaction_ref_id}
                         </p>
                       </div>
                     </div>

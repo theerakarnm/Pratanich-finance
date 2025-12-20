@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Link } from 'wouter';
-import { ChevronLeft, ChevronRight, Edit, Plus, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Edit, Eye, Plus, Trash2 } from "lucide-react";
 import { formatCurrency } from '@/lib/formatter';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 
@@ -170,7 +170,11 @@ export function LoanContractManagement() {
             ) : (
               loans.map((loan) => (
                 <TableRow key={loan.id}>
-                  <TableCell className="font-medium">{loan.contract_number}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link href={`/admin/loans/${loan.id}`} className="text-primary hover:underline">
+                      {loan.contract_number}
+                    </Link>
+                  </TableCell>
                   <TableCell>
                     {loan.client ? `${loan.client.first_name} ${loan.client.last_name}` : '-'}
                   </TableCell>
@@ -191,8 +195,13 @@ export function LoanContractManagement() {
                   <TableCell className='text-right'>{formatCurrency(loan.outstanding_balance)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-2">
+                      <Link href={`/admin/loans/${loan.id}`}>
+                        <Button variant="ghost" size="icon" title="ดูรายละเอียด">
+                          <Eye className="h-4 w-4 text-blue-600" />
+                        </Button>
+                      </Link>
                       <Link href={`/admin/loans/${loan.id}/edit`}>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" title="แก้ไข">
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>

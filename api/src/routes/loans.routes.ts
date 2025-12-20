@@ -30,6 +30,16 @@ loansRoutes.get("/:id", authMiddleware, async (c) => {
   }
 });
 
+loansRoutes.get("/:id/schedule", authMiddleware, async (c) => {
+  const id = c.req.param("id");
+  try {
+    const schedule = await loansDomain.calculatePaymentSchedule(id);
+    return ResponseBuilder.success(c, schedule);
+  } catch (error: any) {
+    return ResponseBuilder.error(c, error.message, 404);
+  }
+});
+
 loansRoutes.post("/", authMiddleware, async (c) => {
   const body = await c.req.json();
   try {

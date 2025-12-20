@@ -65,7 +65,7 @@ export function LiffClient() {
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
           <p className="text-gray-600">
-            {isInitializing ? 'Initializing...' : 'Checking your account...'}
+            {isInitializing ? 'กำลังเริ่มต้น...' : 'กำลังตรวจสอบบัญชีของคุณ...'}
           </p>
         </div>
       </div>
@@ -78,7 +78,7 @@ export function LiffClient() {
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>
-            {liffError ? 'LIFF Initialization Failed' : 'Connection Check Failed'}
+            {liffError ? 'เริ่มต้น LIFF ล้มเหลว' : 'ตรวจสอบการเชื่อมต่อล้มเหลว'}
           </AlertTitle>
           <AlertDescription>{liffError || connectionError}</AlertDescription>
         </Alert>

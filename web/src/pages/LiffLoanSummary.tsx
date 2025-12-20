@@ -73,7 +73,7 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
       if (error.message) {
         setError(error.message);
       } else {
-        setError('Failed to load loan information. Please try again later.');
+        setError('ไม่สามารถโหลดข้อมูลสินเชื่อได้ กรุณาลองใหม่อีกครั้งภายหลัง');
       }
     } finally {
       setIsLoading(false);
@@ -118,7 +118,7 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-          <p className="mt-2 text-sm text-gray-600">Loading your loan information...</p>
+          <p className="mt-2 text-sm text-gray-600">กำลังโหลดข้อมูลสินเชื่อของคุณ...</p>
         </div>
       </div>
     );
@@ -130,7 +130,7 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Loans</AlertTitle>
+          <AlertTitle>เกิดข้อผิดพลาดในการโหลดสินเชื่อ</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       </div>
@@ -147,10 +147,10 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
               <FileText className="h-8 w-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Active Loans
+              ไม่มีสินเชื่อที่ใช้งานอยู่
             </h3>
             <p className="text-sm text-gray-500 text-center">
-              You don't have any loan contracts at the moment.
+              ขณะนี้คุณยังไม่มีสัญญาสินเชื่อ
             </p>
           </CardContent>
         </Card>
@@ -165,7 +165,7 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
         {/* Header with summary */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-xl">Your Loan Summary</CardTitle>
+            <CardTitle className="text-xl">สรุปสินเชื่อของคุณ</CardTitle>
             <Button
               variant="ghost"
               size="icon"
@@ -178,11 +178,11 @@ export function LiffLoanSummary({ clientId }: LiffLoanSummaryProps) {
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">Total Loans</p>
+                <p className="text-sm text-gray-500">จำนวนสินเชื่อ</p>
                 <p className="text-2xl font-bold">{loanData.totalLoans}</p>
               </div>
               <div className="space-y-1">
-                <p className="text-sm text-gray-500">Total Outstanding</p>
+                <p className="text-sm text-gray-500">ยอดคงเหลือทั้งหมด</p>
                 <p className="text-2xl font-bold text-orange-600">
                   {formatCurrency(loanData.totalOutstanding)}
                 </p>

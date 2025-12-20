@@ -35,7 +35,7 @@ export function LiffConnect() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('code');
+  const [activeTab, setActiveTab] = useState('phone');
 
   // Initialize LIFF
   useEffect(() => {
@@ -93,7 +93,7 @@ export function LiffConnect() {
   // Verify connect code
   const handleVerifyCode = async () => {
     if (!code || code.replace('-', '').length !== 8) {
-      setError('Please enter a valid 8-character connect code');
+      setError('กรุณากรอกรหัสเชื่อมต่อ 8 หลักที่ถูกต้อง');
       return;
     }
 
@@ -109,13 +109,13 @@ export function LiffConnect() {
         // Automatically proceed to complete connection
         await handleCompleteConnection(response.data.clientId);
       } else {
-        setError(response.data.error || 'Invalid connect code');
+        setError(response.data.error || 'รหัสเชื่อมต่อไม่ถูกต้อง');
       }
     } catch (error: any) {
       if (error.message) {
         setError(error.message);
       } else {
-        setError('Failed to verify connect code. Please try again.');
+        setError('ไม่สามารถตรวจสอบรหัสเชื่อมต่อได้ กรุณาลองใหม่อีกครั้ง');
       }
     } finally {
       setIsVerifying(false);
@@ -125,7 +125,7 @@ export function LiffConnect() {
   // Complete connection with LINE profile
   const handleCompleteConnection = async (_clientId: string) => {
     if (!profile) {
-      setError('LINE profile not available. Please try again.');
+      setError('ไม่พบโปรไฟล์ LINE กรุณาลองใหม่อีกครั้ง');
       return;
     }
 
@@ -154,7 +154,7 @@ export function LiffConnect() {
           setError(error.message);
         }
       } else {
-        setError('Failed to complete connection. Please try again.');
+        setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่อีกครั้ง');
       }
     } finally {
       setIsConnecting(false);
@@ -164,7 +164,7 @@ export function LiffConnect() {
   // Verify phone and contract
   const handleVerifyPhone = async () => {
     if (!phoneNumber || !contractNumber) {
-      setError('Please enter both phone number and contract number');
+      setError('กรุณากรอกเบอร์โทรศัพท์และเลขที่สัญญา');
       return;
     }
 
@@ -181,13 +181,13 @@ export function LiffConnect() {
         // Automatically proceed to complete connection
         await handleCompletePhoneConnection(response.data.clientId);
       } else {
-        setError(response.data.error || 'Invalid phone number or contract number');
+        setError(response.data.error || 'เบอร์โทรศัพท์หรือเลขที่สัญญาไม่ถูกต้อง');
       }
     } catch (error: any) {
       if (error.message) {
         setError(error.message);
       } else {
-        setError('Failed to verify credentials. Please try again.');
+        setError('ไม่สามารถตรวจสอบข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
       }
     } finally {
       setIsVerifying(false);
@@ -197,7 +197,7 @@ export function LiffConnect() {
   // Complete phone connection with LINE profile
   const handleCompletePhoneConnection = async (_clientId: string) => {
     if (!profile) {
-      setError('LINE profile not available. Please try again.');
+      setError('ไม่พบโปรไฟล์ LINE กรุณาลองใหม่อีกครั้ง');
       return;
     }
 
@@ -227,7 +227,7 @@ export function LiffConnect() {
           setError(error.message);
         }
       } else {
-        setError('Failed to complete connection. Please try again.');
+        setError('ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่อีกครั้ง');
       }
     } finally {
       setIsConnecting(false);
@@ -259,7 +259,7 @@ export function LiffConnect() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>LIFF Initialization Failed</AlertTitle>
+          <AlertTitle>เริ่มต้น LIFF ล้มเหลว</AlertTitle>
           <AlertDescription>{liffError}</AlertDescription>
         </Alert>
       </div>
@@ -299,8 +299,8 @@ export function LiffConnect() {
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="code">รหัสเชื่อมต่อ</TabsTrigger>
               <TabsTrigger value="phone">เบอร์โทร + สัญญา</TabsTrigger>
+              <TabsTrigger value="code">รหัสเชื่อมต่อ</TabsTrigger>
             </TabsList>
 
             <TabsContent value="code">

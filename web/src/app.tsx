@@ -9,6 +9,7 @@ import { ClientCreate } from '@/pages/ClientCreate';
 import { ClientEdit } from '@/pages/ClientEdit';
 import { LoanContractCreate } from '@/pages/LoanContractCreate';
 import { LoanContractEdit } from '@/pages/LoanContractEdit';
+import { LoanContractDetail } from '@/pages/LoanContractDetail';
 import AdminLogin from '@/pages/login';
 import { NotFoundPage } from './pages/404NotFound';
 import { LiffClient } from '@/pages/LiffClient';
@@ -46,6 +47,7 @@ export function App() {
                 <Route path="/admin/clients/:id/edit" component={ClientEdit} />
                 <Route path="/admin/loans" component={LoanContractManagement} />
                 <Route path="/admin/loans/new" component={LoanContractCreate} />
+                <Route path="/admin/loans/:id" component={LoanContractDetail} />
                 <Route path="/admin/loans/:id/edit" component={LoanContractEdit} />
                 <Route path="/admin/transactions" component={Transaction} />
                 <Route>404: No such page!</Route>

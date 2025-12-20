@@ -94,6 +94,8 @@ export class PaymentDomain {
         ? new Date(loan.last_payment_date)
         : new Date(loan.contract_start_date);
 
+      console.log({ loan });
+
       const accruedInterest = this.calculateAccruedInterest(
         parseFloat(loan.outstanding_balance),
         parseFloat(loan.interest_rate) / 100,
@@ -519,7 +521,7 @@ export class PaymentDomain {
     );
 
     // Calculate daily interest and multiply by days
-    const interest = (principal * annualRate * daysDiff) / 365;
+    const interest = (principal * annualRate) / 365;
 
     // Round to 2 decimal places
     return Math.round(interest * 100) / 100;
