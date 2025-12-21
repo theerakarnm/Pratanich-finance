@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -77,8 +77,8 @@ export function LiffConnect() {
   };
 
   // Handle code input change (format as XXXX-XXXX)
-  const handleCodeChange = (e: Event) => {
-    const input = e.target as HTMLInputElement;
+  const handleCodeChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
     let value = input.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
     if (value.length > 8) {
@@ -238,7 +238,7 @@ export function LiffConnect() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: Event) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (activeTab === 'code') {
       handleVerifyCode();
