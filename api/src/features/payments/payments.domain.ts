@@ -521,7 +521,7 @@ export class PaymentDomain {
     );
 
     // Calculate daily interest and multiply by days
-    const interest = (principal * annualRate) / 365;
+    const interest = (principal * annualRate * daysDiff) / 365;
 
     // Round to 2 decimal places
     return Math.round(interest * 100) / 100;

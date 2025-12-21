@@ -134,19 +134,6 @@ export function createBillingMessage(data: BillingData): FlexMessage {
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
       ], { margin: 'lg' }),
     ])
-    .setFooter([
-      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : generatePromptPayQrUrl(data.amount), {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-        margin: 'md',
-      }),
-      builder.addButton('ชำระเงิน', { // ปรับจาก "ชำระเงินทันที" ตัดคำว่า "ทันที" ออก
-        type: 'uri',
-        uri: data.paymentLink,
-      }, { style: 'primary', margin: 'lg', color: PRIMARY_COLOR }),
-    ])
     .build();
 }
 
@@ -186,19 +173,6 @@ export function createDueWarningMessage(data: DueWarningData): FlexMessage {
         createDetailRow(builder, 'วันที่ครบกำหนด', data.dueDate),
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
       ], { spacing: 'sm', margin: 'lg' }),
-    ])
-    .setFooter([
-      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-        margin: 'md',
-      }),
-      builder.addButton('ชำระเงิน', {
-        type: 'uri',
-        uri: data.paymentLink,
-      }, { style: 'primary', margin: 'lg', color: PRIMARY_COLOR }),
     ])
     .build();
 }
@@ -242,6 +216,14 @@ export function createDueDateMessage(data: DueDateData): FlexMessage {
         }),
         builder.addText(`เลขที่สัญญา: ${data.contractNumber}`, { size: 'xs', color: '#aaaaaa', align: 'center' }),
       ], { margin: 'lg' }),
+      builder.addSeparator({ margin: 'lg' }),
+      builder.addText('📌 หลังชำระเงินสำเร็จ กรุณาส่งสลิปกลับมาเพื่อยืนยันการชำระเงิน', {
+        size: 'sm',
+        color: PRIMARY_COLOR,
+        align: 'center',
+        wrap: true,
+        margin: 'md',
+      }),
     ])
     .setFooter([
       builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
@@ -333,19 +315,6 @@ export function createOverdueMessage(data: OverdueData): FlexMessage {
         ...(data.penaltyAmount ? [createDetailRow(builder, 'ค่าธรรมเนียม/ค่าปรับ', `฿${data.penaltyAmount.toLocaleString()}`, false, TEXT_COLOR_SECONDARY)] : []),
         createDetailRow(builder, 'เลขที่สัญญา', data.contractNumber),
       ], { spacing: 'sm', margin: 'lg' }),
-    ])
-    .setFooter([
-      builder.addImage(process.env.NODE_ENV === 'production' ? generatePromptPayQrUrl(data.amount) : MOCK_QR_URL, {
-        size: 'md',
-        aspectRatio: '1:1',
-        aspectMode: 'cover',
-        align: 'center',
-        margin: 'md',
-      }),
-      builder.addButton('ชำระเงิน', { // ตัดคำว่า "ทันที" ออก
-        type: 'uri',
-        uri: data.paymentLink,
-      }, { style: 'primary', margin: 'lg', color: DANGER_COLOR }), // ปุ่มสีแดงยังใช้ได้ เพื่อกระตุ้น Action (Call to Action)
     ])
     .build();
 }

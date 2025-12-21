@@ -2,6 +2,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
+import { useMemo, useState } from "preact/hooks";
+import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
 import {
@@ -23,6 +25,16 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 const loanContractSchema = z.object({
   contract_number: z.string().min(1, "กรุณากรอกเลขที่สัญญา"),
@@ -164,6 +176,29 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
     },
   });
 
+  // State for client search combobox
+  const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
+  const [clientSearchQuery, setClientSearchQuery] = useState("");
+
+  // Filter clients based on search query (by name or citizen_id)
+  const filteredClients = useMemo(() => {
+    if (!clientSearchQuery.trim()) {
+      return clients;
+    }
+    const query = clientSearchQuery.toLowerCase().trim();
+    return clients.filter((client) => {
+      const fullName = `${client.first_name} ${client.last_name}`.toLowerCase();
+      const citizenId = client.citizen_id.toLowerCase();
+      return fullName.includes(query) || citizenId.includes(query);
+    });
+  }, [clients, clientSearchQuery]);
+
+  // Get selected client display name
+  const selectedClient = useMemo(() => {
+    const clientId = form.watch("client_id");
+    return clients.find((c) => c.id === clientId);
+  }, [clients, form.watch("client_id")]);
+
   // Watch values for live preview
   const principalAmount = form.watch("principal_amount");
 
@@ -216,22 +251,69 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                       control={form.control}
                       name="client_id"
                       render={({ field }) => (
-                        <FormItem>
+                        <FormItem className="flex flex-col">
                           <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ลูกค้า</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isEditing}>
-                            <FormControl>
-                              <SelectTrigger className="h-10 rounded-lg w-full">
-                                <SelectValue placeholder="เลือกลูกค้า" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {clients.map((client) => (
-                                <SelectItem key={client.id} value={client.id}>
-                                  {client.first_name} {client.last_name} ({client.citizen_id})
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+                            <PopoverTrigger asChild disabled={isEditing}>
+                              <FormControl>
+                                <Button
+                                  variant="outline"
+                                  role="combobox"
+                                  aria-expanded={clientPopoverOpen}
+                                  className={cn(
+                                    "h-10 w-full justify-between rounded-lg font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                  disabled={isEditing}
+                                >
+                                  {selectedClient
+                                    ? `${selectedClient.first_name} ${selectedClient.last_name} (${selectedClient.citizen_id})`
+                                    : "ค้นหาลูกค้าด้วยชื่อหรือเลขบัตรประชาชน..."}
+                                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[400px] p-0" align="start">
+                              <Command shouldFilter={false}>
+                                <CommandInput
+                                  placeholder="ค้นหาชื่อหรือเลขบัตรประชาชน..."
+                                  value={clientSearchQuery}
+                                  onValueChange={setClientSearchQuery}
+                                />
+                                <CommandList>
+                                  <CommandEmpty>ไม่พบลูกค้า</CommandEmpty>
+                                  <CommandGroup>
+                                    {filteredClients.map((client) => (
+                                      <CommandItem
+                                        key={client.id}
+                                        value={client.id}
+                                        onSelect={() => {
+                                          field.onChange(client.id);
+                                          setClientPopoverOpen(false);
+                                          setClientSearchQuery("");
+                                        }}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-4 w-4",
+                                            field.value === client.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">
+                                            {client.first_name} {client.last_name}
+                                          </span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {client.citizen_id}
+                                          </span>
+                                        </div>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -251,7 +333,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                       )}
                     />
 
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="loan_type"
                       render={({ field }) => (
@@ -263,7 +345,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
 
                     <FormField
                       control={form.control}
