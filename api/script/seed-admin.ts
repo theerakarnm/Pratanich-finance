@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { users } from "../src/core/database/schema";
 
 const ADMIN_EMAIL = "admin@smartloan.com";
-const ADMIN_PASSWORD = "password123";
+const ADMIN_PASSWORD = "!SMARTLOAN@2025";
 const ADMIN_NAME = "Admin User";
 
 async function seedAdmin() {

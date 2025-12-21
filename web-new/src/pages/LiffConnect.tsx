@@ -152,7 +152,7 @@ export function LiffConnect() {
         // Check for rate limit error
         if (error.code === 'RATE_LIMIT_EXCEEDED' && error.details?.retryAfter) {
           const minutes = Math.ceil(error.details.retryAfter / 60);
-          setError(`Too many attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+          setError(`ลองหลายครั้งเกินไป กรุณาลองใหม่ในอีก ${minutes} นาที`);
         } else {
           setError(error.message);
         }
@@ -225,7 +225,7 @@ export function LiffConnect() {
         // Check for rate limit error
         if (error.code === 'RATE_LIMIT_EXCEEDED' && error.details?.retryAfter) {
           const minutes = Math.ceil(error.details.retryAfter / 60);
-          setError(`Too many attempts. Please try again in ${minutes} minute${minutes > 1 ? 's' : ''}.`);
+          setError(`ลองหลายครั้งเกินไป กรุณาลองใหม่ในอีก ${minutes} นาที`);
         } else {
           setError(error.message);
         }

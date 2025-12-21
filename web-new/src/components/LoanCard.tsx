@@ -58,6 +58,20 @@ export function LoanCard({ loan }: LoanCardProps) {
     }
   };
 
+  // Translate status to Thai
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'ใช้งานอยู่';
+      case 'Closed':
+        return 'ปิดสัญญา';
+      case 'Overdue':
+        return 'ค้างชำระ';
+      default:
+        return status;
+    }
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="pb-3">
@@ -66,10 +80,10 @@ export function LoanCard({ loan }: LoanCardProps) {
             <CardTitle className="text-lg font-semibold">
               {loan.contractNumber}
             </CardTitle>
-            <p className="text-sm text-gray-500 mt-1">{loan.loanType}</p>
+            {/* <p className="text-sm text-gray-500 mt-1">{loan.loanType}</p> */}
           </div>
           <Badge variant={getStatusVariant(loan.contractStatus)}>
-            {loan.contractStatus}
+            {getStatusLabel(loan.contractStatus)}
           </Badge>
         </div>
       </CardHeader>
@@ -84,7 +98,7 @@ export function LoanCard({ loan }: LoanCardProps) {
           <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-red-800">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <p className="text-sm font-medium">
-              Overdue by {loan.overduedays} day{loan.overduedays > 1 ? 's' : ''}
+              ค้างชำระ {loan.overduedays} วัน
             </p>
           </div>
         )}
@@ -94,7 +108,7 @@ export function LoanCard({ loan }: LoanCardProps) {
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-gray-500">
               <CreditCard className="h-4 w-4" />
-              <p className="text-xs">Principal Amount</p>
+              <p className="text-xs">เงินต้น</p>
             </div>
             <p className="text-lg font-semibold">
               {formatCurrency(loan.principalAmount)}
@@ -103,7 +117,7 @@ export function LoanCard({ loan }: LoanCardProps) {
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-gray-500">
               <TrendingUp className="h-4 w-4" />
-              <p className="text-xs">Outstanding</p>
+              <p className="text-xs">ยอดคงเหลือ</p>
             </div>
             <p className="text-lg font-semibold text-orange-600">
               {formatCurrency(loan.outstandingBalance)}
@@ -116,7 +130,7 @@ export function LoanCard({ loan }: LoanCardProps) {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1.5 text-gray-600">
               <Calendar className="h-3.5 w-3.5" />
-              <span>Start Date</span>
+              <span>วันเริ่มสัญญา</span>
             </div>
             <span className="font-medium">
               {dayjs(loan.contractStartDate).format('DD MMM YYYY')}
@@ -125,15 +139,15 @@ export function LoanCard({ loan }: LoanCardProps) {
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-1.5 text-gray-600">
               <Calendar className="h-3.5 w-3.5" />
-              <span>End Date</span>
+              <span>วันสิ้นสุดสัญญา</span>
             </div>
             <span className="font-medium">
               {dayjs(loan.contractEndDate).format('DD MMM YYYY')}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Due Day</span>
-            <span className="font-medium">Day {loan.dueDay} of each month</span>
+            <span className="text-gray-600">วันครบกำหนดชำระ</span>
+            <span className="font-medium">วันที่ {loan.dueDay} ของทุกเดือน</span>
           </div>
         </div>
 
@@ -143,7 +157,7 @@ export function LoanCard({ loan }: LoanCardProps) {
           onClick={() => window.location.href = `/liff/loans/${loan.id}/payments`}
         >
           <HistoryIcon className="mr-2 h-4 w-4" />
-          View Payment History
+          ดูประวัติการชำระเงิน
         </Button>
       </CardContent>
     </Card>
