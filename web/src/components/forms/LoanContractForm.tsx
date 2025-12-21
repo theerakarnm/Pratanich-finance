@@ -1,8 +1,9 @@
+import * as React from "react";
+import { useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { format } from "date-fns";
-import { useMemo, useState } from "preact/hooks";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -71,89 +72,6 @@ function SectionHeader({ title, description }: { title: string; description?: st
     </div>
   );
 }
-
-// Live preview component for loan summary
-// function LoanPreviewCard({
-//   principal,
-//   interestRate,
-//   termMonths,
-//   installmentAmount,
-// }: {
-//   principal: number | string;
-//   interestRate: number | string;
-//   termMonths: number | string;
-//   installmentAmount: number | string;
-// }) {
-//   const calculations = useMemo(() => {
-//     const p = Number(principal) || 0;
-//     const r = Number(interestRate) || 0;
-//     const t = Number(termMonths) || 0;
-//     const i = Number(installmentAmount) || 0;
-
-//     if (!p || !r || !t) {
-//       return { monthlyPayment: 0, totalInterest: 0, totalRepayment: 0 };
-//     }
-
-//     // Simple interest calculation: Total = Principal + (Principal × Rate × Time)
-//     const totalInterest = (p * (r / 100) * (t / 12));
-//     const totalRepayment = p + totalInterest;
-//     const monthlyPayment = i > 0 ? i : totalRepayment / t;
-
-//     return { monthlyPayment, totalInterest, totalRepayment };
-//   }, [principal, interestRate, termMonths, installmentAmount]);
-
-//   const formatCurrency = (value: number) => {
-//     return new Intl.NumberFormat('th-TH', {
-//       minimumFractionDigits: 2,
-//       maximumFractionDigits: 2,
-//     }).format(value);
-//   };
-
-//   return (
-//     <Card className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent border-primary/20 shadow-lg sticky top-6">
-//       <CardHeader className="pb-4">
-//         <CardTitle className="text-lg flex items-center gap-2">
-//           <span className="text-2xl">📊</span>
-//           สรุปสัญญา
-//         </CardTitle>
-//         <CardDescription>
-//           คำนวณอัตโนมัติจากข้อมูลที่กรอก
-//         </CardDescription>
-//       </CardHeader>
-//       <CardContent className="space-y-6">
-//         {/* Monthly Payment - Hero Number */}
-//         <div className="bg-primary rounded-xl p-5 text-primary-foreground text-center shadow-md">
-//           <p className="text-xs uppercase tracking-wider opacity-90 mb-1">ยอดผ่อนชำระต่อเดือน</p>
-//           <p className="text-3xl font-bold tracking-tight">
-//             ฿{formatCurrency(calculations.monthlyPayment)}
-//           </p>
-//         </div>
-
-//         {/* Other Stats */}
-//         <div className="grid grid-cols-1 gap-4">
-//           <div className="bg-background/60 rounded-lg p-4 border border-border/50">
-//             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ยอดเงินต้น</p>
-//             <p className="text-lg font-semibold text-foreground">฿{formatCurrency(Number(principal) || 0)}</p>
-//           </div>
-//           <div className="bg-background/60 rounded-lg p-4 border border-border/50">
-//             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ดอกเบี้ยรวม</p>
-//             <p className="text-lg font-semibold text-amber-600">฿{formatCurrency(calculations.totalInterest)}</p>
-//           </div>
-//           <div className="bg-background/60 rounded-lg p-4 border border-border/50">
-//             <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">ยอดชำระรวมทั้งหมด</p>
-//             <p className="text-lg font-semibold text-foreground">฿{formatCurrency(calculations.totalRepayment)}</p>
-//           </div>
-//         </div>
-
-//         {/* Duration Badge */}
-//         <div className="flex items-center justify-center gap-2 text-muted-foreground">
-//           <span className="text-lg">🗓️</span>
-//           <span className="text-sm">ระยะเวลา {termMonths || 0} เดือน</span>
-//         </div>
-//       </CardContent>
-//     </Card>
-//   );
-// }
 
 export function LoanContractForm({ initialData, onSubmit, isEditing = false, clients = [] }: LoanContractFormProps) {
   const form = useForm<LoanContractFormValues>({
@@ -254,7 +172,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                         <FormItem className="flex flex-col">
                           <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ลูกค้า</FormLabel>
                           <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
-                            <PopoverTrigger asChild disabled={isEditing}>
+                            <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
                                   variant="outline"
