@@ -340,14 +340,15 @@ export function LiffConnect() {
                         className="text-sm font-medium leading-tight cursor-pointer"
                       >
                         ยินยอมตาม{' '}
-                        <button
-                          type="button"
-                          onClick={() => setLocation('/liff/pdpa')}
+                        <a
+                          href="/liff/pdpa"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-primary underline hover:text-primary/80 inline-flex items-center gap-1"
                         >
                           นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
                           <ExternalLink className="h-3 w-3" />
-                        </button>
+                        </a>
                         <span className="text-red-500"> *</span>
                       </label>
                       <p className="text-xs text-muted-foreground">
@@ -454,14 +455,15 @@ export function LiffConnect() {
                         className="text-sm font-medium leading-tight cursor-pointer"
                       >
                         ยินยอมตาม{' '}
-                        <button
-                          type="button"
-                          onClick={() => setLocation('/liff/pdpa')}
+                        <a
+                          href="/liff/pdpa"
+                          target="_blank"
+                          rel="noopener noreferrer"
                           className="text-primary underline hover:text-primary/80 inline-flex items-center gap-1"
                         >
                           นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)
                           <ExternalLink className="h-3 w-3" />
-                        </button>
+                        </a>
                         <span className="text-red-500"> *</span>
                       </label>
                       <p className="text-xs text-muted-foreground">
