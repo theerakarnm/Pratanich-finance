@@ -409,10 +409,10 @@ export function LiffConnect() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="081-234-5678"
+                    placeholder="0812345678"
                     value={phoneNumber}
                     onInput={(e) => {
-                      setPhoneNumber((e.target as HTMLInputElement).value);
+                      setPhoneNumber((e.target as HTMLInputElement).value.split('-').join(''));
                       setError(null);
                     }}
                     disabled={isVerifying || isConnecting}
