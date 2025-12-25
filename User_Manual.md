@@ -1,149 +1,125 @@
-# User Manual: Pratanich Finance System
+# คู่มือการใช้งานระบบบริหารจัดการสินเชื่อ (สำหรับเจ้าหน้าที่)
 
-## Introduction
-Welcome to the **Pratanich Finance System**. This comprehensive web application is designed to help you efficiently manage your lending business. It streamlines the process of tracking loans, managing client information, and calculating payments.
+## บทนำ
+คู่มือฉบับนี้จัดทำขึ้นเพื่อใช้เป็นแนวปฏิบัติมาตรฐาน (Standard Operating Procedure - SOP) สำหรับเจ้าหน้าที่ในการใช้งานระบบบริหารจัดการสินเชื่อ Pratanich Finance System เพื่อให้การปฏิบัติงานเป็นไปอย่างถูกต้อง รวดเร็ว และเป็นมาตรฐานเดียวกัน
 
-**Key Benefits:**
-- **Centralized Data:** Keep all client and loan records in one secure place.
-- **Automated Calculations:** Automatically calculate monthly installments, interest, and payment schedules.
-- **LINE Integration:** Communicate directly with clients through automated LINE notifications for bills and due dates.
-- **Real-time Overview:** Monitor your business health with a dynamic dashboard showing total loans and outstanding balances.
-
----
-
-## Getting Started
-
-### 1. Prerequisites
-- A computer with a modern web browser (Google Chrome, Microsoft Edge, or Safari).
-- An internet connection.
-- Your Administrator credentials (Email and Password).
-
-### 2. Logging In
-To access the system, you must log in with your staff account.
-
-1.  Navigate to the web portal URL in your browser.
-2.  You will see the **"ระบบผู้ดูแล" (Admin System)** login page.
-3.  Enter your **Email** (e.g., `admin@example.com`) in the email field.
-4.  Enter your **Password** in the password field.
-5.  Click the **"เข้าสู่ระบบ" (Log In)** button.
-    - *Note:* If you click the button and nothing happens, ensure you are connected to the internet.
+**วัตถุประสงค์:**
+1. เพื่อให้เจ้าหน้าที่สามารถป้อนข้อมูลลูกค้าและสัญญาเงินกู้ได้อย่างถูกต้อง
+2. เพื่อให้เจ้าหน้าที่สามารถแนะนำลูกค้าในการเชื่อมต่อระบบ LINE OA ได้
+3. เพื่อลดข้อผิดพลาดในการคำนวณยอดเงินและดอกเบี้ย
 
 ---
 
-## Core Features (Admin)
+## 1. การเข้าสู่ระบบ (Login)
+**ข้อกำหนด:** เจ้าหน้าที่ต้องได้รับ Email และ Password จากผู้ดูแลระบบก่อนเริ่มใช้งาน
 
-### 1. Dashboard (Overview)
-Upon logging in, you arrive at the **Dashboard**. This is your command center.
-
-**What you see:**
-- **Financial Stats:** Cards showing *Total Clients*, *Total Loans*, *Total Outstanding Balance*, and *Today's Transactions*.
-- **Charts:**
-    - **Loan Trends:** A bar chart showing lending activity over time.
-    - **Transaction Volume:** A line chart showing the number of transactions processed.
-
-**How to use it:**
-- Review these numbers daily to understand the health of your portfolio.
-- Use the detailed charts to spot trends (e.g., is lending increasing this month?).
-
-### 2. Client Management
-You can add new borrowers or update existing information.
-
-#### **Create a New Client**
-1.  Click on **"Clients" (ลูกค้า)** in the side navigation menu.
-2.  Click the **"Create Client"** button.
-3.  Fill in the **Client Form**:
-    - **Citizen ID (เลขบัตรประชาชน):** Enter the 13-digit ID number.
-    - **Title (คำนำหน้า):** Select Mr., Mrs., or Ms.
-    - **Name (ชื่อ) & Surname (นามสกุล):** Enter the client's full name.
-    - **Date of Birth (วันเกิด):** Select the date.
-    - **Mobile Number (เบอร์โทรศัพท์):** Enter a valid 10-digit number.
-4.  Click **"สร้างลูกค้า" (Create Client)** to save.
-
-### 3. Loan Contract Management
-This is where you create and monitor contracts.
-
-#### **Create a New Loan Contract**
-1.  Navigate to the **Loan Contracts** section.
-2.  Click **"Create Contract"**.
-3.  **Borrower Info:**
-    - **Client:** Search for the client by *Name* or *Citizen ID*.
-    - **Contract Number:** Enter your internal reference number (e.g., LN2023110001).
-4.  **Financial Terms:**
-    - **Principal (ยอดเงินต้น):** Enter the loaned amount.
-    - **Interest Rate (อัตราดอกเบี้ย):** Enter the annual percentage (%).
-    - **Term (ระยะเวลา):** Enter the number of months.
-    - **Installment (ยอดผ่อนชำระ):** Enter the monthly payment amount.
-5.  **Schedule:**
-    - **Start Date:** When the loan begins.
-    - **Due Day:** The day of the month payments are due (1-31).
-6.  Click **"✨ สร้างสัญญา" (Create Contract)**.
-
-#### **Edit Collection Fee (ค่าทวงถาม)**
-If you need to charge a fee for debt collection:
-1.  On the Loan Detail page, find the **"Collection Fee" (ค่าทวงถาม)** section.
-2.  Click the **"Edit" (แก้ไข)** button (Pencil icon).
-3.  Enter the amount and click the **Checkmark icon** to save.
+### ขั้นตอนการปฏิบัติ:
+1.  เปิดเว็บเบราว์เซอร์ (แนะนำให้ใช้ Google Chrome หรือ Safari)
+2.  พิมพ์ URL ของระบบเพื่อเข้าสู่หน้า Login
+3.  **ช่อง Email:** กรอกอีเมลประจำตัวพนักงานที่ได้รับ (เช่น `staff@company.com`)
+4.  **ช่อง Password:** กรอกรหัสผ่านให้ถูกต้อง
+5.  กดปุ่ม **"เข้าสู่ระบบ"**
+    *   *กรณีเข้าไม่ได้:* ให้ตรวจสอบว่าพิมพ์ตัวพิมพ์เล็ก/ใหญ่ถูกต้องหรือไม่ หรือปุ่ม Caps Lock เปิดค้างอยู่หรือไม่ หากยังไม่ได้ให้ติดต่อ Admin
 
 ---
 
-## Client Journey & Experience
-This section describes the end-to-end experience for your customers using the LINE application.
+## 2. หน้าแดชบอร์ด (Dashboard)
+เมื่อเข้าสู่ระบบ จะพบกับหน้าภาพรวม ซึ่งสรุปสถานะธุรกิจในปัจจุบัน เจ้าหน้าที่ควรตรวจสอบหน้านี้ทุกวัน
 
-### 1. Admin Creates Client
-The journey begins when you (the Admin) create a **Client Profile** and a **Loan Contract** in the system.
-> **Important:** Ensure the **Phone Number** entered matches the client's actual mobile number, as this is used for verification.
-
-### 2. Client Connects via LINE
-The client opens your LINE Official Account and taps the service menu.
-1.  **Welcome Screen:** The client sees the connection page.
-2.  **Verification:** They select the "Phone + Contract" tab and enter:
-    -   **Phone Number:** Must match the one in the system.
-    -   **Contract Number:** Must be a valid contract number associated with them.
-3.  **Consent:** They must check the box to accept the **PDPA Policy** (Privacy Policy).
-4.  **Connect:** Tapping "Connect Account" links their LINE ID to your system.
-
-### 3. Client Views Information
-Once connected, the client can access their personal dashboard at any time:
--   **Loan Summary:** View total outstanding balance and number of active loans.
--   **Loan Details:** Tap on a loan card to see:
-    -   Principal Amount
-    -   Remaining Balance
-    -   Next Due Date
-    -   Installment Amount
--   **Payment History:** View a record of all past payments made.
-
-### 4. Automated Notifications
-The system automatically sends LINE notifications to the client to ensure timely payments. You do not need to send these manually.
-
-**Schedule:**
-| Notification Type | Timing | Purpose |
-|-------------------|--------|---------|
-| **Billing Notice** | **15 Days** before due date | Inform client of the upcoming bill. |
-| **Warning** | **3 Days** before due date | Gentle reminder to prepare payment. |
-| **Due Date** | **On Due Day** | Alert that payment is due today. |
-| **Overdue Alert** | **Day +1, +3, +7** after due date | Warn client of missed payment and potential penalties. |
+*   **ลูกค้าทั้งหมด (Total Clients):** จำนวนลูกค้าที่มีในระบบ
+*   **เงินกู้ทั้งหมด (Total Loans):** จำนวนสัญญาที่เปิดใช้งานอยู่
+*   **ยอดคงเหลือ (Outstanding Balance):** ยอดหนี้คงเหลือรวมทั้งหมดที่รอการชำระ
+*   **กราฟแสดงแนวโน้ม:** ดูยอดการปล่อยกู้เปรียบเทียบแต่ละช่วงเวลา
 
 ---
 
-## Troubleshooting & FAQ
+## 3. การจัดการข้อมูลลูกค้า (Client Management)
+การสร้างฐานข้อมูลลูกค้าที่ถูกต้องสำคัญมากสำหรับการติดตามหนี้
 
-### Common Issues
+### 3.1 การสร้างลูกค้าใหม่
+1.  ที่เมนูด้านซ้าย เลือกเมนู **"Clients" (ลูกค้า)**
+2.  กดปุ่ม **"สร้างลูกค้า" (Create Client)** มุมขวาบน
+3.  กรอกข้อมูลตามฟอร์ม (ช่องที่มี * จำเป็นต้องกรอก):
+    *   **เลขบัตรประชาชน:** กรอกเลข 13 หลัก (ระบบจะตรวจสอบความถูกต้องอัตโนมัติ)
+    *   **คำนำหน้า:** เลือก นาย/นาง/นางสาว
+    *   **ชื่อ - นามสกุล:** กรอกชื่อจริงและนามสกุลให้ถูกต้องตามบัตรประชาชน
+    *   **วันเกิด:** เลือกจากปฏิทิน (ปี ค.ศ.)
+    *   **เบอร์โทรศัพท์:** **สำคัญมาก** ต้องเป็นเบอร์ที่ลูกค้าใช้จริงในการลงทะเบียน LINE
+4.  ตรวจสอบความถูกต้อง แล้วกดปุ่ม **"สร้างลูกค้า"** เพื่อบันทึก
 
-**1. "Login Failed" or "Invalid Credentials"**
-- **Cause:** Typo in email or password.
-- **Solution:** Check caps lock and spelling. Contact admin to reset if needed.
+---
 
-**2. Client Cannot Connect on LINE**
-- **Error:** "Phone number or contract number incorrect"
-- **Solution:** Verify you entered the correct Phone Number in the Client Profile. Ensure the client is typing the Contract Number exactly as it appears in the system (case-sensitive).
+## 4. การจัดการสัญญาเงินกู้ (Loan Contract)
+ขั้นตอนการออกสัญญาและบันทึกเข้าระบบ
 
-**3. LINE Message not delivered**
-- **Cause:** Client blocked the LINE Official Account.
-- **Solution:** Ask the client to unblock the account.
+### 4.1 การสร้างสัญญาใหม่
+1.  ที่เมนูด้านซ้าย เลือกเมนู **"Loan Contracts"**
+2.  กดปุ่ม **"Create Contract"**
+3.  **ส่วนที่ 1: ข้อมูลผู้กู้**
+    *   **Client (ลูกค้า):** พิมพ์ชื่อเล่น, ชื่อจริง หรือเลขบัตรประชาชน เพื่อค้นหาลูกค้ารายเก่าในระบบ
+    *   **Contract Number (เลขที่สัญญา):** กรอกเลขที่สัญญาอ้างอิงของบริษัท (เช่น 66/001)
+4.  **ส่วนที่ 2: เงื่อนไขทางการเงิน**
+    *   **ยอดเงินต้น:** ใส่จำนวนเงินที่ปล่อยกู้ (ระบบรองรับจุดทศนิยม)
+    *   **อัตราดอกเบี้ย (% ต่อปี):** ใส่ตัวเลขดอกเบี้ย
+    *   **ระยะเวลา (เดือน):** สัญญากี่เดือน
+    *   **ยอดผ่อนชำระ:** ระบบอาจช่วยคำนวณให้ หรือเจ้าหน้าที่สามารถใส่ตัวเลขที่ตกลงกับลูกค้าได้เอง
+5.  **ส่วนที่ 3: กำหนดเวลา**
+    *   **วันเริ่มสัญญา:** วันที่ลูกค้าได้รับเงิน
+    *   **วันครบกำหนดชำระ (Due Day):** ระบุวันที่ที่ต้องจ่ายค่างวด (เช่น วันที่ 1, 5, 25 ของเดือน)
+6.  กดปุ่ม **"✨ สร้างสัญญา"** เพื่อยืนยัน
 
-### FAQ
-**Q: Can I delete a loan contract?**
-A: No, you should close it or mark it as void to preserve audit history.
+### 4.2 การแก้ไขค่าติดตามทวงถาม
+หากสัญญานั้นมีค่าปรับหรือค่าติดตาม:
+1.  เข้าไปที่หน้ารายละเอียดสัญญา
+2.  เลื่อนลงมาด้านล่าง กรอบขวาล่าง "สรุปเงินกู้"
+3.  ดูหัวข้อ **"ค่าทวงถาม"** กดปุ่มรูปดินสอ (✏️)
+4.  ระบุจำนวนเงิน แล้วกดเครื่องหมายถูก (✅) เพื่อบันทึก
 
-**Q: How are overdue days calculated?**
-A: The system automatically counts days from the "Due Day" set in the contract. If a client pays late, the system tracks this automatically.
+---
+
+## 5. การแนะนำลูกค้าเชื่อมต่อ LINE (Script สำหรับเจ้าหน้าที่)
+เพื่อให้ลูกค้าได้รับแจ้งเตือนอัตโนมัติ เจ้าหน้าที่ต้องกำกับให้ลูกค้าทำรายการต่อหน้า หรือแนะนำดังนี้:
+
+**สิ่งที่ลูกค้าต้องเตรียม:**
+1.  มือถือที่เล่น LINE ได้
+2.  เบอร์โทรศัพท์ (เบอร์เดียวกับที่ให้ไว้ตอนสมัคร)
+3.  เลขที่สัญญาเงินกู้
+
+**ขั้นตอนการแนะนำลูกค้า:**
+> "รบกวนลูกค้าเปิด LINE ของบริษัทนะคะ/ครับ กดที่เมนู **'ตรวจสอบข้อมูล/ชำระเงิน'**"
+
+1.  ระบบจะขึ้นหน้าจอเชื่อมต่อ ให้ลูกค้าเลือกแถบ **"เบอร์โทร + สัญญา"**
+2.  **ช่องเบอร์โทร:** ใส่เบอร์มือถือ 10 หลัก
+3.  **ช่องเลขที่สัญญา:** ใส่เลขที่สัญญาให้ถูกต้องทุกตัวอักษร
+4.  ติ๊กถูกที่ช่อง **"ยินยอมตามนโยบาย PDPA"** (จำเป็นต้องทำ)
+5.  กดปุ่ม **"เชื่อมต่อบัญชี"**
+
+*หากเชื่อมต่อสำเร็จ*: หน้าจอจะเปลี่ยนเป็นแสดงยอดหนี้คงเหลือทันที
+
+---
+
+## 6. ระบบแจ้งเตือนอัตโนมัติ (Automation)
+เมื่อเชื่อมต่อ LINE แล้ว ระบบจะส่งข้อความหาลูกค้าเองตามรอบ เจ้าหน้าที่**ไม่ต้อง**ส่งเอง ดังนี้:
+
+| ระยะเวลา | ประเภทข้อความ | รายละเอียด |
+| :--- | :--- | :--- |
+| **ก่อน 15 วัน** | ใบแจ้งหนี้ (Billing) | แจ้งยอดที่ต้องชำระล่วงหน้า ให้นำเงินเข้าบัญชี |
+| **ก่อน 3 วัน** | เตือนใกล้ถึงกำหนด | เตือนกันลืม |
+| **วันครบกำหนด** | แจ้งเตือนวันครบกำหนด | แจ้งให้ชำระภายในวันนี้ |
+| **เกินกำหนด +1, +3, +7 วัน** | เตือนค้างชำระ (Overdue) | แจ้งเตือนยอดค้างชำระและค่าปรับ (ถ้ามี) |
+
+---
+
+## 7. การแก้ไขปัญหาเบื้องต้น (Troubleshooting)
+
+**กรณี 1: สร้างสัญญาไม่ได้ ระบบฟ้องว่า "Client is required"**
+*   **สาเหตุ:** ยังไม่ได้เลือกลูกค้า
+*   **แก้ไข:** ต้องพิมพ์ค้นหาชื่อลูกค้าในช่อง Client จนกว่าจะมีรายชื่อเด้งขึ้นมา แล้วคลิกเลือกรายชื่อนั้น หากค้นไม่เจอ ต้องไปสร้างลูกค้าใหม่ก่อน
+
+**กรณี 2: ลูกค้าเชื่อม LINE ไม่ผ่าน ฟ้องว่าข้อมูลไม่ถูกต้อง**
+*   **สาเหตุ:** เบอร์โทรในระบบ กับที่ลูกค้ากรอก ไม่ตรงกัน หรือพิมพ์เลขสัญญาผิด
+*   **แก้ไข:** เจ้าหน้าที่ต้องเข้าไปดูยอดละเอียดลูกค้าในระบบ Admin แล้วเทียบข้อมูลกับลูกค้าว่าตรงกันหรือไม่
+
+**กรณี 3: ข้อความแจ้งเตือนไม่เด้งหาลูกค้า**
+*   **สาเหตุ:** ลูกค้าอาจจะ Block LINE OA ของบริษัท
+*   **แก้ไข:** ให้ลูกค้าตรวจสอบใน LINE ว่าเผลอกด Block หรือไม่
