@@ -33,12 +33,14 @@ import {
   Pencil,
   MessageSquare,
   Send,
+  Plus,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/formatter';
 import { useDocumentTitle } from '@/hooks/useDocumentTitle';
 import apiClient from '@/lib/api-client';
 import dayjs from 'dayjs';
 import { toast } from 'sonner';
+import { ManualPaymentDialog } from '@/components/ManualPaymentDialog';
 
 interface PaymentPeriod {
   periodNumber: number;
@@ -110,6 +112,9 @@ export function LoanContractDetail() {
 
   // LINE message sending state
   const [sendingMessageType, setSendingMessageType] = useState<string | null>(null);
+
+  // Manual payment dialog state
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
 
   useEffect(() => {
     if (loanId) {
@@ -268,6 +273,12 @@ export function LoanContractDetail() {
           </div>
         </div>
         <div className="flex gap-2">
+          {loanDetails.contractStatus !== 'Closed' && (
+            <Button onClick={() => setIsPaymentDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              เพิ่มการชำระ
+            </Button>
+          )}
           <Link href={`/admin/loans/${loanId}/edit`}>
             <Button variant="outline">แก้ไขสัญญา</Button>
           </Link>
@@ -644,7 +655,14 @@ export function LoanContractDetail() {
         </CardContent>
       </Card>
 
-
+      {/* Manual Payment Dialog */}
+      <ManualPaymentDialog
+        loanId={loanId || ''}
+        contractNumber={loanDetails.contractNumber}
+        isOpen={isPaymentDialogOpen}
+        onClose={() => setIsPaymentDialogOpen(false)}
+        onSuccess={fetchLoanSchedule}
+      />
     </div>
   );
 }

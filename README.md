@@ -10,6 +10,7 @@ A modern loan management system for managing client information, loan contracts,
 - **Admin Dashboard**: Analytics and overview of loan portfolio
 - **Client Portal**: LINE LIFF integration for client-facing features
 - **Authentication & Authorization**: Secure access control with Better-auth
+- **LINE Integration**: LINE LIFF SDK integration for client portal & Notification
 
 ## Tech Stack
 
