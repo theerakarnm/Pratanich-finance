@@ -36,7 +36,18 @@ clientsRoutes.post("/", authMiddleware, async (c) => {
     const client = await clientsDomain.create(body);
     return ResponseBuilder.created(c, client);
   } catch (error: any) {
-    return ResponseBuilder.error(c, error.message, 400);
+    // Check for duplicate citizen_id error
+    if (error.message?.includes('clients_citizen_id_unique') ||
+      error.message?.includes('duplicate key') && error.message?.includes('citizen_id')) {
+      return ResponseBuilder.error(c, "เลขบัตรประชาชนนี้มีอยู่ในระบบแล้ว", 400);
+    }
+    // Check for other constraint violations
+    if (error.message?.includes('violates') || error.message?.includes('constraint')) {
+      return ResponseBuilder.error(c, "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบข้อมูลอีกครั้ง", 400);
+    }
+    // Log the actual error for debugging
+    console.error("Client creation error:", error);
+    return ResponseBuilder.error(c, "ไม่สามารถสร้างลูกค้าได้ กรุณาลองใหม่อีกครั้ง", 400);
   }
 });
 

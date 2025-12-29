@@ -3,6 +3,7 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { connectDomain } from "../features/connect/connect.domain";
 import { clientsDomain } from "../features/clients/clients.domain";
+import { paymentDomain } from "../features/payments/payments.domain";
 import { authMiddleware } from "../middleware/auth.middleware";
 import { auth } from "../libs/auth";
 import { ResponseBuilder } from "../core/response";
@@ -338,6 +339,48 @@ connectRoutes.get("/clients/:clientId/loans/summary", async (c) => {
     return ResponseBuilder.success(c, loansSummary);
   } catch (error: any) {
     if (error.message === "Client not found") {
+      return ResponseBuilder.error(c, error.message, 404);
+    }
+    return ResponseBuilder.error(c, error.message, 500);
+  }
+});
+
+// Client-facing endpoint: Get payment history for a loan (for LIFF users)
+connectRoutes.get("/loans/:loanId/payments", async (c) => {
+  const loanId = c.req.param("loanId");
+  const page = Number(c.req.query("page") || 1);
+  const limit = Number(c.req.query("limit") || 10);
+  const requestId = c.req.header('x-request-id');
+
+  try {
+    logger.info({
+      event: "liff_payment_history_request",
+      loanId,
+      page,
+      limit,
+      requestId,
+    });
+
+    const result = await paymentDomain.getPaymentHistory(loanId, page, limit);
+
+    logger.info({
+      event: "liff_payment_history_success",
+      loanId,
+      count: result.data.length,
+      total: result.pagination.total,
+      requestId,
+    });
+
+    return ResponseBuilder.success(c, result);
+  } catch (error: any) {
+    logger.error({
+      event: "liff_payment_history_error",
+      loanId,
+      error: error.message,
+      requestId,
+    });
+
+    if (error.message?.includes("not found")) {
       return ResponseBuilder.error(c, error.message, 404);
     }
     return ResponseBuilder.error(c, error.message, 500);

@@ -28,7 +28,16 @@ export class ClientsDomain {
   }
 
   async create(data: typeof clients.$inferInsert) {
-    return clientsRepository.create(data);
+    // Sanitize optional fields - convert empty strings to undefined
+    const sanitizedData = {
+      ...data,
+      email: data.email && data.email.trim() !== '' ? data.email.trim() : undefined,
+      line_id: data.line_id && data.line_id.trim() !== '' ? data.line_id.trim() : undefined,
+      // Explicitly set timestamps to avoid relying on database defaults
+      created_at: new Date(),
+      updated_at: new Date(),
+    };
+    return clientsRepository.create(sanitizedData);
   }
 
   async update(id: string, data: Partial<typeof clients.$inferInsert>) {
@@ -43,7 +52,7 @@ export class ClientsDomain {
 
   async getConnectionStatus(clientId: string) {
     const client = await this.findById(clientId);
-    
+
     return {
       isConnected: !!client.line_user_id,
       lineUserId: client.line_user_id,
@@ -56,15 +65,15 @@ export class ClientsDomain {
   async getLoansSummary(clientId: string) {
     // Ensure client exists
     await this.findById(clientId);
-    
+
     // Get all loans for the client
     const clientLoans = await loansRepository.findByClientId(clientId);
-    
+
     // Calculate total outstanding balance
     const totalOutstanding = clientLoans.reduce((sum, loan) => {
       return sum + Number(loan.outstanding_balance);
     }, 0);
-    
+
     // Format loan data
     const loans = clientLoans.map(loan => ({
       id: loan.id,
@@ -78,7 +87,7 @@ export class ClientsDomain {
       dueDay: loan.due_day,
       overduedays: loan.overdue_days,
     }));
-    
+
     return {
       loans,
       totalLoans: loans.length,
