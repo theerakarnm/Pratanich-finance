@@ -20,6 +20,47 @@ export class LineMessagingClient {
   }
 
   /**
+   * Retry an operation with exponential backoff
+   * @param operation - Function to retry
+   * @param maxRetries - Maximum number of retries
+   * @param delay - Initial delay in ms
+   */
+  private async retryOperation<T>(
+    operation: () => Promise<T>,
+    maxRetries: number = 3,
+    delay: number = 1000
+  ): Promise<T> {
+    let lastError: Error | unknown;
+
+    for (let i = 0; i <= maxRetries; i++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+
+        if (i === maxRetries) {
+          break;
+        }
+
+        const waitTime = delay * Math.pow(2, i);
+        logger.warn(
+          {
+            attempt: i + 1,
+            maxRetries,
+            waitTime,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          },
+          'Retrying LINE API operation'
+        );
+
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+
+    throw lastError;
+  }
+
+  /**
    * Send reply messages using LINE Messaging API
    * @param replyToken - Reply token from webhook event
    * @param messages - Array of messages to send (max 5)
@@ -47,65 +88,67 @@ export class LineMessagingClient {
       messages,
     };
 
-    try {
-      logger.info({ replyToken, messageCount: messages.length }, 'Sending LINE reply message');
+    return this.retryOperation(async () => {
+      try {
+        logger.info({ replyToken, messageCount: messages.length }, 'Sending LINE reply message');
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        body: JSON.stringify(body),
-      });
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.accessToken}`,
+          },
+          body: JSON.stringify(body),
+        });
 
-      if (!response.ok) {
-        let errorMessage = 'Unknown LINE API error';
-        let errorDetails: string | undefined;
+        if (!response.ok) {
+          let errorMessage = 'Unknown LINE API error';
+          let errorDetails: string | undefined;
 
-        try {
-          const text = await response.text();
           try {
-            const errorData = JSON.parse(text) as LineApiErrorResponse;
-            errorMessage = errorData.message || errorMessage;
-            errorDetails = errorData.details
-              ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
-              : undefined;
-          } catch {
-            // If not JSON, use the text as error message if it's not empty
-            if (text.trim()) {
-              errorMessage = text;
+            const text = await response.text();
+            try {
+              const errorData = JSON.parse(text) as LineApiErrorResponse;
+              errorMessage = errorData.message || errorMessage;
+              errorDetails = errorData.details
+                ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
+                : undefined;
+            } catch {
+              // If not JSON, use the text as error message if it's not empty
+              if (text.trim()) {
+                errorMessage = text;
+              }
             }
+          } catch (e) {
+            // Failed to read text, keep default error message
           }
-        } catch (e) {
-          // Failed to read text, keep default error message
+
+          logger.error(
+            {
+              status: response.status,
+              statusText: response.statusText,
+              errorMessage,
+              errorDetails,
+              replyToken
+            },
+            'LINE API reply message failed'
+          );
+
+          throw new Error(
+            `LINE API error (${response.status}): ${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`
+          );
         }
 
-        logger.error(
-          {
-            status: response.status,
-            statusText: response.statusText,
-            errorMessage,
-            errorDetails,
-            replyToken
-          },
-          'LINE API reply message failed'
-        );
+        logger.info({ replyToken }, 'LINE reply message sent successfully');
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('LINE API error')) {
+          throw error;
+        }
 
-        throw new Error(
-          `LINE API error (${response.status}): ${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`
-        );
+        logger.error({ error, replyToken }, 'Failed to send LINE reply message');
+        throw new Error(`Failed to send LINE reply message: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-
-      logger.info({ replyToken }, 'LINE reply message sent successfully');
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('LINE API error')) {
-        throw error;
-      }
-
-      logger.error({ error, replyToken }, 'Failed to send LINE reply message');
-      throw new Error(`Failed to send LINE reply message: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    });
   }
 
   /**
@@ -123,82 +166,84 @@ export class LineMessagingClient {
     const url = this.apiUrl.replace('api.line.me', 'api-data.line.me') + `/message/${messageId}/content`;
     const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
-    try {
-      logger.info({ messageId }, 'Downloading LINE message content');
+    return this.retryOperation(async () => {
+      try {
+        logger.info({ messageId }, 'Downloading LINE message content');
 
-      const response = await axios.get<Buffer>(url, {
-        headers: {
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        responseType: 'arraybuffer',
-        validateStatus: () => true, // Handle all status codes manually
-      });
+        const response = await axios.get<Buffer>(url, {
+          headers: {
+            'Authorization': `Bearer ${this.accessToken}`,
+          },
+          responseType: 'arraybuffer',
+          validateStatus: () => true, // Handle all status codes manually
+        });
 
-      if (response.status >= 400) {
-        let errorMessage = 'Unknown LINE API error';
+        if (response.status >= 400) {
+          let errorMessage = 'Unknown LINE API error';
 
-        try {
-          // Convert buffer to string to parse error message
-          const text = response.data.toString();
           try {
-            const errorData = JSON.parse(text) as LineApiErrorResponse;
-            errorMessage = errorData.message || errorMessage;
-          } catch {
-            if (text.trim()) {
-              errorMessage = text;
+            // Convert buffer to string to parse error message
+            const text = response.data.toString();
+            try {
+              const errorData = JSON.parse(text) as LineApiErrorResponse;
+              errorMessage = errorData.message || errorMessage;
+            } catch {
+              if (text.trim()) {
+                errorMessage = text;
+              }
             }
+          } catch (e) {
+            // Failed to read text
           }
-        } catch (e) {
-          // Failed to read text
+
+          logger.error(
+            {
+              status: response.status,
+              statusText: response.statusText,
+              errorMessage,
+              messageId
+            },
+            'LINE API get message content failed'
+          );
+
+          throw new Error(
+            `LINE API error (${response.status}): ${errorMessage}`
+          );
         }
 
-        logger.error(
-          {
-            status: response.status,
-            statusText: response.statusText,
-            errorMessage,
-            messageId
-          },
-          'LINE API get message content failed'
+        // Check content length
+        const contentLength = response.headers['content-length'];
+        if (contentLength && parseInt(contentLength) > MAX_SIZE) {
+          logger.warn({ messageId, contentLength }, 'Message content exceeds maximum size');
+          throw new Error(`Message content exceeds maximum size of ${MAX_SIZE} bytes`);
+        }
+
+        const buffer = Buffer.from(response.data);
+
+        // Double-check actual size
+        if (buffer.length > MAX_SIZE) {
+          logger.warn({ messageId, actualSize: buffer.length }, 'Downloaded content exceeds maximum size');
+          throw new Error(`Downloaded content exceeds maximum size of ${MAX_SIZE} bytes`);
+        }
+
+        logger.info(
+          { messageId, size: buffer.length, contentType: response.headers['content-type'] },
+          'LINE message content downloaded successfully'
         );
 
-        throw new Error(
-          `LINE API error (${response.status}): ${errorMessage}`
-        );
+        return {
+          content: buffer,
+          contentType: response.headers['content-type'] || null,
+        };
+      } catch (error) {
+        if (error instanceof Error && (error.message.includes('LINE API error') || error.message.includes('exceeds maximum size'))) {
+          throw error;
+        }
+
+        logger.error({ error, messageId }, 'Failed to download LINE message content');
+        throw new Error(`Failed to download LINE message content: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-
-      // Check content length
-      const contentLength = response.headers['content-length'];
-      if (contentLength && parseInt(contentLength) > MAX_SIZE) {
-        logger.warn({ messageId, contentLength }, 'Message content exceeds maximum size');
-        throw new Error(`Message content exceeds maximum size of ${MAX_SIZE} bytes`);
-      }
-
-      const buffer = Buffer.from(response.data);
-
-      // Double-check actual size
-      if (buffer.length > MAX_SIZE) {
-        logger.warn({ messageId, actualSize: buffer.length }, 'Downloaded content exceeds maximum size');
-        throw new Error(`Downloaded content exceeds maximum size of ${MAX_SIZE} bytes`);
-      }
-
-      logger.info(
-        { messageId, size: buffer.length, contentType: response.headers['content-type'] },
-        'LINE message content downloaded successfully'
-      );
-
-      return {
-        content: buffer,
-        contentType: response.headers['content-type'] || null,
-      };
-    } catch (error) {
-      if (error instanceof Error && (error.message.includes('LINE API error') || error.message.includes('exceeds maximum size'))) {
-        throw error;
-      }
-
-      logger.error({ error, messageId }, 'Failed to download LINE message content');
-      throw new Error(`Failed to download LINE message content: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    });
   }
 
   /**
@@ -229,63 +274,65 @@ export class LineMessagingClient {
       messages,
     };
 
-    try {
-      logger.info({ to, messageCount: messages.length }, 'Sending LINE push message');
+    return this.retryOperation(async () => {
+      try {
+        logger.info({ to, messageCount: messages.length }, 'Sending LINE push message');
 
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.accessToken}`,
-        },
-        body: JSON.stringify(body),
-      });
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.accessToken}`,
+          },
+          body: JSON.stringify(body),
+        });
 
-      if (!response.ok) {
-        let errorMessage = 'Unknown LINE API error';
-        let errorDetails: string | undefined;
+        if (!response.ok) {
+          let errorMessage = 'Unknown LINE API error';
+          let errorDetails: string | undefined;
 
-        try {
-          const text = await response.text();
           try {
-            const errorData = JSON.parse(text) as LineApiErrorResponse;
-            errorMessage = errorData.message || errorMessage;
-            errorDetails = errorData.details
-              ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
-              : undefined;
-          } catch {
-            if (text.trim()) {
-              errorMessage = text;
+            const text = await response.text();
+            try {
+              const errorData = JSON.parse(text) as LineApiErrorResponse;
+              errorMessage = errorData.message || errorMessage;
+              errorDetails = errorData.details
+                ? errorData.details.map(d => `${d.property}: ${d.message}`).join(', ')
+                : undefined;
+            } catch {
+              if (text.trim()) {
+                errorMessage = text;
+              }
             }
+          } catch (e) {
+            // Failed to read text
           }
-        } catch (e) {
-          // Failed to read text
+
+          logger.error(
+            {
+              status: response.status,
+              statusText: response.statusText,
+              errorMessage,
+              errorDetails,
+              to
+            },
+            'LINE API push message failed'
+          );
+
+          throw new Error(
+            `LINE API error (${response.status}): ${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`
+          );
         }
 
-        logger.error(
-          {
-            status: response.status,
-            statusText: response.statusText,
-            errorMessage,
-            errorDetails,
-            to
-          },
-          'LINE API push message failed'
-        );
+        logger.info({ to }, 'LINE push message sent successfully');
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('LINE API error')) {
+          throw error;
+        }
 
-        throw new Error(
-          `LINE API error (${response.status}): ${errorMessage}${errorDetails ? ` - ${errorDetails}` : ''}`
-        );
+        logger.error({ error, to }, 'Failed to send LINE push message');
+        throw new Error(`Failed to send LINE push message: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
-
-      logger.info({ to }, 'LINE push message sent successfully');
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('LINE API error')) {
-        throw error;
-      }
-
-      logger.error({ error, to }, 'Failed to send LINE push message');
-      throw new Error(`Failed to send LINE push message: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
+    });
   }
 }
