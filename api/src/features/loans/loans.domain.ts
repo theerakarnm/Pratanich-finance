@@ -43,6 +43,8 @@ export class LoansDomain {
   }
 
   async create(data: typeof loans.$inferInsert) {
+    console.log({ data });
+
     const loan = await loansRepository.create(data);
 
     // Send LINE notification if client has LINE account
@@ -79,6 +81,7 @@ export class LoansDomain {
   }
 
   async update(id: string, data: Partial<typeof loans.$inferInsert>) {
+    console.log({ data });
     const loan = await this.findById(id); // Ensure loan exists
     return loansRepository.update(id, data);
   }

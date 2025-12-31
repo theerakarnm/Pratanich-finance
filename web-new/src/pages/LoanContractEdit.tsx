@@ -43,6 +43,8 @@ export function LoanContractEdit() {
           outstanding_balance: loan.outstanding_balance,
           overdue_days: loan.overdue_days,
           client_id: loan.client_id,
+          license_plate: loan.license_plate,
+          engine_number: loan.engine_number,
         });
       } catch (err) {
         console.error("Failed to fetch data:", err);

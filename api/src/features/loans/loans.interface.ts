@@ -90,6 +90,8 @@ export const createLoanSchema = z.object({
   contract_status: z.enum(["Active", "Closed", "Overdue"]),
   outstanding_balance: z.number().min(0, "Outstanding balance cannot be negative"),
   overdue_days: z.number().int().min(0).default(0),
+  license_plate: z.string().optional().nullable(),
+  engine_number: z.string().optional().nullable(),
 });
 
 export type CreateLoanInput = z.infer<typeof createLoanSchema>;

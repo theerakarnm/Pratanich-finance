@@ -51,6 +51,8 @@ const loanContractSchema = z.object({
   outstanding_balance: z.coerce.number().min(0, "ยอดคงเหลือต้องเป็นค่าบวก"),
   overdue_days: z.coerce.number().min(0, "จำนวนวันที่ค้างชำระต้องเป็นค่าบวก"),
   client_id: z.string().min(1, "กรุณาเลือกลูกค้า"),
+  license_plate: z.string().optional().nullable(),
+  engine_number: z.string().optional().nullable(),
 });
 
 export type LoanContractFormValues = z.infer<typeof loanContractSchema>;
@@ -80,7 +82,7 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
       loan_type: "Personal Loan",
       principal_amount: "" as unknown as number,
       approved_amount: "" as unknown as number,
-      interest_rate: "" as unknown as number,
+      interest_rate: 24,
       term_months: "" as unknown as number,
       installment_amount: "" as unknown as number,
       contract_start_date: "",
@@ -90,6 +92,8 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
       outstanding_balance: "" as unknown as number,
       overdue_days: 0,
       client_id: "",
+      license_plate: "",
+      engine_number: "",
     },
   });
 
@@ -118,6 +122,65 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
 
   // Watch values for live preview
   const principalAmount = form.watch("principal_amount");
+  const watchedApprovedAmount = form.watch("approved_amount");
+  const watchedInterestRate = form.watch("interest_rate");
+  const watchedTermMonths = form.watch("term_months");
+  const watchedStartDate = form.watch("contract_start_date");
+
+  // Calculate amortization schedule
+  interface AmortizationRow {
+    paymentNumber: number;
+    paymentDate: Date;
+    principal: number;
+    interest: number;
+    payment: number;
+    remainingBalance: number;
+  }
+
+  const amortizationSchedule = useMemo<AmortizationRow[]>(() => {
+    const approvedAmount = Number(watchedApprovedAmount) || 0;
+    const annualInterestRate = Number(watchedInterestRate) || 0;
+    const termMonths = Number(watchedTermMonths) || 0;
+    const startDate = watchedStartDate ? new Date(watchedStartDate) : new Date();
+
+    if (approvedAmount <= 0 || termMonths <= 0) {
+      return [];
+    }
+
+    const schedule: AmortizationRow[] = [];
+    let balance = approvedAmount;
+    const monthlyInterestRate = annualInterestRate / 12 / 100;
+
+    // Calculate monthly payment
+    let monthlyPayment: number;
+    if (annualInterestRate === 0) {
+      monthlyPayment = approvedAmount / termMonths;
+    } else {
+      const compoundFactor = Math.pow(1 + monthlyInterestRate, termMonths);
+      monthlyPayment = approvedAmount * (monthlyInterestRate * compoundFactor) / (compoundFactor - 1);
+    }
+
+    for (let i = 1; i <= termMonths; i++) {
+      const interestPayment = balance * monthlyInterestRate;
+      const principalPayment = monthlyPayment - interestPayment;
+      balance = Math.max(0, balance - principalPayment);
+
+      // Calculate payment date (add i months to start date)
+      const paymentDate = new Date(startDate);
+      paymentDate.setMonth(paymentDate.getMonth() + i);
+
+      schedule.push({
+        paymentNumber: i,
+        paymentDate,
+        principal: principalPayment,
+        interest: interestPayment,
+        payment: monthlyPayment,
+        remainingBalance: balance,
+      });
+    }
+
+    return schedule;
+  }, [watchedApprovedAmount, watchedInterestRate, watchedTermMonths, watchedStartDate]);
 
   function handlePrincipalAmountBlur() {
     const principal = Number(principalAmount) || 0;
@@ -135,10 +198,26 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
 
   function handleTermMonthsBlur() {
     const termMonths = Number(form.watch("term_months")) || 0;
-    if (termMonths > 0) {
+    const approvedAmount = Number(form.watch("approved_amount")) || 0;
+    const annualInterestRate = Number(form.watch("interest_rate")) || 0;
+
+    if (termMonths > 0 && approvedAmount > 0) {
       const installment = Number(form.watch("installment_amount")) || 0;
       if (installment === 0) {
-        form.setValue("installment_amount", Number((principalAmount / termMonths).toFixed(2)));
+        let calculatedInstallment: number;
+
+        if (annualInterestRate === 0) {
+          // Simple division if no interest
+          calculatedInstallment = approvedAmount / termMonths;
+        } else {
+          // Loan amortization formula: M = P × [r(1+r)^n] / [(1+r)^n - 1]
+          // Where: P = principal, r = monthly interest rate, n = term in months
+          const monthlyInterestRate = annualInterestRate / 12 / 100;
+          const compoundFactor = Math.pow(1 + monthlyInterestRate, termMonths);
+          calculatedInstallment = approvedAmount * (monthlyInterestRate * compoundFactor) / (compoundFactor - 1);
+        }
+
+        form.setValue("installment_amount", Number(calculatedInstallment.toFixed(2)));
       }
     }
   }
@@ -296,6 +375,34 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                               </SelectItem>
                             </SelectContent>
                           </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="license_plate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">ทะเบียนรถ</FormLabel>
+                          <FormControl>
+                            <Input placeholder="กข 1234 กทม" className="h-10 rounded-lg" {...field} value={field.value || ""} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="engine_number"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-muted-foreground text-xs uppercase tracking-wide">เลขเครื่อง</FormLabel>
+                          <FormControl>
+                            <Input placeholder="EX-12345678" className="h-10 rounded-lg" {...field} value={field.value || ""} />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -527,6 +634,80 @@ export function LoanContractForm({ initialData, onSubmit, isEditing = false, cli
                     />
                   </div>
                 </section>
+
+                {/* Section E: Amortization Preview */}
+                {amortizationSchedule.length > 0 && (
+                  <section className="space-y-4">
+                    <SectionHeader title="ตารางผ่อนชำระ" description="ตัวอย่างตารางการผ่อนชำระรายเดือน" />
+                    <Separator className="mb-4" />
+
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="bg-blue-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground">ยอดกู้</p>
+                        <p className="text-lg font-bold text-blue-700">
+                          {Number(watchedApprovedAmount).toLocaleString("th-TH", { minimumFractionDigits: 2 })} ฿
+                        </p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground">ผ่อนต่อเดือน</p>
+                        <p className="text-lg font-bold text-green-700">
+                          {amortizationSchedule[0]?.payment.toLocaleString("th-TH", { minimumFractionDigits: 2 })} ฿
+                        </p>
+                      </div>
+                      <div className="bg-orange-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground">ดอกเบี้ยรวม</p>
+                        <p className="text-lg font-bold text-orange-700">
+                          {amortizationSchedule.reduce((sum, row) => sum + row.interest, 0).toLocaleString("th-TH", { minimumFractionDigits: 2 })} ฿
+                        </p>
+                      </div>
+                      <div className="bg-purple-50 rounded-lg p-3 text-center">
+                        <p className="text-xs text-muted-foreground">ยอดรวมทั้งหมด</p>
+                        <p className="text-lg font-bold text-purple-700">
+                          {(amortizationSchedule[0]?.payment * amortizationSchedule.length).toLocaleString("th-TH", { minimumFractionDigits: 2 })} ฿
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Amortization Table */}
+                    <div className="border rounded-lg overflow-hidden max-h-[400px] overflow-y-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/50 sticky top-0">
+                          <tr>
+                            <th className="px-3 py-2 text-left font-medium">งวดที่</th>
+                            <th className="px-3 py-2 text-left font-medium">วันที่ชำระ</th>
+                            <th className="px-3 py-2 text-right font-medium">เงินต้น</th>
+                            <th className="px-3 py-2 text-right font-medium">ดอกเบี้ย</th>
+                            <th className="px-3 py-2 text-right font-medium">ยอดชำระ</th>
+                            <th className="px-3 py-2 text-right font-medium">คงเหลือ</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {amortizationSchedule.map((row) => (
+                            <tr key={row.paymentNumber} className="hover:bg-muted/30">
+                              <td className="px-3 py-2 font-medium">{row.paymentNumber}</td>
+                              <td className="px-3 py-2 text-muted-foreground">
+                                {format(row.paymentDate, "dd/MM/yyyy")}
+                              </td>
+                              <td className="px-3 py-2 text-right">
+                                {row.principal.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-3 py-2 text-right text-orange-600">
+                                {row.interest.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-3 py-2 text-right font-medium">
+                                {row.payment.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                              </td>
+                              <td className="px-3 py-2 text-right text-muted-foreground">
+                                {row.remainingBalance.toLocaleString("th-TH", { minimumFractionDigits: 2 })}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </section>
+                )}
 
                 {/* Submit Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3 pt-4">

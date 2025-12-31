@@ -204,6 +204,8 @@ export interface Loan {
   contract_status: 'Active' | 'Closed' | 'Overdue';
   outstanding_balance: number;
   overdue_days: number;
+  license_plate?: string | null;
+  engine_number?: string | null;
   created_at: string;
   updated_at: string;
   deleted_at?: string | null;

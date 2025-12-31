@@ -46,6 +46,10 @@ export const loans = pgTable("loans", {
   last_payment_date: timestamp("last_payment_date"),
   last_payment_amount: decimal("last_payment_amount", { precision: 12, scale: 2 }),
 
+  // Vehicle details
+  license_plate: varchar("license_plate", { length: 50 }),
+  engine_number: varchar("engine_number", { length: 50 }),
+
   // Status history
   previous_status: contractStatusEnum("previous_status"),
   status_changed_at: timestamp("status_changed_at"),
